@@ -65,10 +65,45 @@ export async function addBookToLibrary(
 }
 
 /**
+ * Gets all books stored in a user's library.
+ * Books are returned from newest to oldest.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @returns {Promise<Object[]>} User's stored library books.
+ */
+export async function getUserLibrary(userId) {
+  if (!userId) {
+    return []
+  }
+
+  const libraryRef = ref(
+    database,
+    `users/${userId}/library`
+  )
+
+  const snapshot = await get(libraryRef)
+
+  if (!snapshot.exists()) {
+    return []
+  }
+
+  return Object.entries(snapshot.val())
+    .map(([bookId, book]) => ({
+      ...book,
+      googleBooksId: book.googleBooksId || bookId,
+    }))
+    .sort(
+      (firstBook, secondBook) =>
+        (secondBook.addedAt || 0) -
+        (firstBook.addedAt || 0)
+    )
+}
+
+/**
  * Gets a book from a user's library.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @returns {Promise<Object|null>} Stored library book or null.
  */
 export async function getLibraryBook(userId, bookId) {
@@ -91,7 +126,7 @@ export async function getLibraryBook(userId, bookId) {
  * in the user's library.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @param {string} status - New reading status.
  * @returns {Promise<void>}
  */
@@ -120,7 +155,7 @@ export async function updateBookStatus(
  * from a user's library.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @returns {Promise<void>}
  */
 export async function removeBookFromLibrary(userId, bookId) {
@@ -142,7 +177,7 @@ export async function removeBookFromLibrary(userId, bookId) {
  * Notes are used while a book is marked as "to-read" or "reading".
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @param {string} note - Personal note content.
  * @returns {Promise<void>}
  */
@@ -168,7 +203,7 @@ export async function updateBookNote(userId, bookId, note) {
  * Reviews are used for finished or abandoned books.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @param {string} review - User's private review.
  * @returns {Promise<void>}
  */
@@ -192,7 +227,7 @@ export async function updateBookReview(userId, bookId, review) {
  * Saves the user's rating for a finished book.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {string} bookId - Google Books ID.
+ * @param {string} bookId - Book ID.
  * @param {number} rating - Rating between 1 and 5.
  * @returns {Promise<void>}
  */
