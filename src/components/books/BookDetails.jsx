@@ -41,10 +41,10 @@ const CATEGORY_TRANSLATIONS = {
 }
 
 /**
- * Cleans and translates Google Books categories for display.
+ * Cleans and translates book categories for display.
  * The original book data is left unchanged.
  *
- * @param {string[]} categories - Raw Google Books categories.
+ * @param {string[]} categories - Raw book categories.
  * @returns {string[]} Clean categories displayed in Dear Pages.
  */
 function formatCategories(categories = []) {
@@ -80,6 +80,25 @@ function formatCategories(categories = []) {
   return formattedCategories.slice(0, 3)
 }
 
+/**
+ * Returns a smaller responsive font size for unusually long
+ * book titles so external metadata cannot overwhelm the layout.
+ *
+ * @param {string} title - Book title.
+ * @returns {string} Tailwind classes for the title size.
+ */
+function getTitleSize(title = '') {
+  if (title.length > 140) {
+    return 'text-2xl sm:text-3xl'
+  }
+
+  if (title.length > 80) {
+    return 'text-3xl sm:text-4xl'
+  }
+
+  return 'text-4xl sm:text-5xl'
+}
+
 function BookDetails({
   book,
   libraryBook,
@@ -93,6 +112,8 @@ function BookDetails({
   const visibleCategories = formatCategories(
     book.categories
   )
+
+  const titleSize = getTitleSize(book.title)
 
   return (
     <section
@@ -119,7 +140,7 @@ function BookDetails({
         <div
           className="
             mx-auto w-full
-            max-w-[210px] shrink-0
+            max-w-52.5 shrink-0
             md:mx-0
           "
         >
@@ -128,7 +149,7 @@ function BookDetails({
               src={book.cover}
               alt={`Couverture de ${book.title}`}
               className="
-                aspect-[2/3] w-full
+                aspect-2/3 w-full
                 rounded-[18px]
                 object-cover
                 shadow-md
@@ -137,7 +158,7 @@ function BookDetails({
           ) : (
             <div
               className="
-                flex aspect-[2/3]
+                flex aspect-2/3
                 items-center justify-center
                 rounded-[18px]
                 bg-parchment
@@ -154,13 +175,21 @@ function BookDetails({
 
         <div className="min-w-0 flex-1">
           <h1
-            className="
+            title={book.title}
+            className={`
               max-w-3xl
+              overflow-hidden
               font-heading
-              text-4xl font-bold
-              leading-tight text-darkwood
-              sm:text-5xl
-            "
+              font-bold
+              leading-tight
+              text-darkwood
+              ${titleSize}
+            `}
+            style={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 4,
+            }}
           >
             {book.title}
           </h1>
