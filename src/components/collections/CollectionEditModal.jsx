@@ -1,31 +1,34 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Button from '../ui/Button.jsx'
 import Input from '../ui/Input.jsx'
 import Modal from '../ui/Modal.jsx'
 
-function CollectionCreateModal({
-  isOpen,
+function CollectionEditModal({
+  collection,
+  isSaving,
   onClose,
-  onCreate,
-  isSubmitting,
+  onSave,
 }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [formError, setFormError] = useState('')
 
-  function resetForm() {
-    setName('')
-    setDescription('')
-    setFormError('')
-  }
-
-  function handleClose() {
-    if (isSubmitting) {
+  useEffect(() => {
+    if (!collection) {
       return
     }
 
-    resetForm()
+    setName(collection.name || '')
+    setDescription(collection.description || '')
+    setFormError('')
+  }, [collection])
+
+  function handleClose() {
+    if (isSaving) {
+      return
+    }
+
     onClose()
   }
 
@@ -41,25 +44,21 @@ function CollectionCreateModal({
 
     setFormError('')
 
-    const wasCreated = await onCreate({
+    await onSave({
       name: trimmedName,
       description: description.trim(),
     })
-
-    if (wasCreated) {
-      resetForm()
-    }
   }
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen={Boolean(collection)}
       onClose={handleClose}
-      title="Nouvelle collection"
+      title="Modifier la collection"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          id="collection-name"
+          id="edit-collection-name"
           label="Nom"
           value={name}
           onChange={(event) => {
@@ -70,27 +69,27 @@ function CollectionCreateModal({
           }}
           placeholder="Lectures d'automne"
           autoFocus
-          disabled={isSubmitting}
+          disabled={isSaving}
           required
         />
 
         <div className="flex flex-col gap-1.5">
           <label
-            htmlFor="collection-description"
+            htmlFor="edit-collection-description"
             className="font-ui text-sm text-darkwood"
           >
             Description
           </label>
 
           <textarea
-            id="collection-description"
+            id="edit-collection-description"
             value={description}
             onChange={(event) =>
               setDescription(event.target.value)
             }
             placeholder="Une note douce pour retrouver cette pile plus tard..."
             rows={4}
-            disabled={isSubmitting}
+            disabled={isSaving}
             className="
               hide-scrollbar h-28 resize-none
               overflow-y-auto rounded-lg
@@ -117,22 +116,20 @@ function CollectionCreateModal({
             type="button"
             variant="secondary"
             onClick={handleClose}
-            disabled={isSubmitting}
+            disabled={isSaving}
           >
             Annuler
           </Button>
 
           <Button
             type="submit"
-            disabled={isSubmitting || !name.trim()}
+            disabled={isSaving || !name.trim()}
             className="
               disabled:cursor-not-allowed
               disabled:opacity-60
             "
           >
-            {isSubmitting
-              ? 'Création...'
-              : 'Créer la collection'}
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </form>
@@ -140,4 +137,4 @@ function CollectionCreateModal({
   )
 }
 
-export default CollectionCreateModal
+export default CollectionEditModal

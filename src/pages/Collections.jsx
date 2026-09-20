@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import CollectionCard from '../components/collections/CollectionCard.jsx'
 import CollectionCreateModal from '../components/collections/CollectionCreateModal.jsx'
 import CollectionDeleteModal from '../components/collections/CollectionDeleteModal.jsx'
+import CollectionEditModal from '../components/collections/CollectionEditModal.jsx'
 import HeaderActions from '../components/layout/HeaderActions.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
@@ -11,7 +12,26 @@ import {
   createCollection,
   deleteCollection,
   getUserCollections,
+  updateCollection,
+  updateCollectionPinned,
 } from '../services/collectionsService.js'
+
+function sortCollections(collections) {
+  return [...collections].sort((firstCollection, secondCollection) => {
+    if (firstCollection.pinned !== secondCollection.pinned) {
+      return firstCollection.pinned ? -1 : 1
+    }
+
+    return (
+      (secondCollection.updatedAt ||
+        secondCollection.createdAt ||
+        0) -
+      (firstCollection.updatedAt ||
+        firstCollection.createdAt ||
+        0)
+    )
+  })
+}
 
 function Collections() {
   const { user } = useAuth()
@@ -25,6 +45,9 @@ function Collections() {
   const [collectionToDelete, setCollectionToDelete] =
     useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [collectionToEdit, setCollectionToEdit] =
+    useState(null)
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
 
   async function loadCollections() {
     if (!user?.uid) {
@@ -39,7 +62,7 @@ function Collections() {
         user.uid
       )
 
-      setCollections(userCollections)
+      setCollections(sortCollections(userCollections))
     } catch (loadError) {
       console.error(
         'Unable to load collections:',
@@ -71,7 +94,7 @@ function Collections() {
         )
 
         if (isActive) {
-          setCollections(userCollections)
+          setCollections(sortCollections(userCollections))
         }
       } catch (loadError) {
         console.error(
@@ -113,7 +136,7 @@ function Collections() {
         user.uid
       )
 
-      setCollections(userCollections)
+      setCollections(sortCollections(userCollections))
       setIsCreateModalOpen(false)
 
       return true
@@ -165,6 +188,100 @@ function Collections() {
       )
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  async function handleUpdateCollection(collectionData) {
+    if (!user?.uid || !collectionToEdit?.id) {
+      return false
+    }
+
+    try {
+      setIsSavingEdit(true)
+      setError('')
+
+      await updateCollection(
+        user.uid,
+        collectionToEdit.id,
+        collectionData
+      )
+
+      const updatedAt = Date.now()
+
+      setCollections((currentCollections) =>
+        sortCollections(
+          currentCollections.map((collection) =>
+            collection.id === collectionToEdit.id
+              ? {
+                  ...collection,
+                  name: collectionData.name,
+                  description:
+                    collectionData.description || '',
+                  updatedAt,
+                }
+              : collection
+          )
+        )
+      )
+      setCollectionToEdit(null)
+
+      return true
+    } catch (updateError) {
+      console.error(
+        'Unable to update collection:',
+        updateError
+      )
+
+      setError(
+        'Impossible de modifier cette collection pour le moment.'
+      )
+
+      return false
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }
+
+  async function handleTogglePinned(collectionToPin) {
+    if (!user?.uid || !collectionToPin?.id) {
+      return
+    }
+
+    const nextPinned = !collectionToPin.pinned
+
+    try {
+      setError('')
+
+      await updateCollectionPinned(
+        user.uid,
+        collectionToPin.id,
+        nextPinned
+      )
+
+      const updatedAt = Date.now()
+
+      setCollections((currentCollections) =>
+        sortCollections(
+          currentCollections.map((collection) =>
+            collection.id === collectionToPin.id
+              ? {
+                  ...collection,
+                  pinned: nextPinned,
+                  updatedAt,
+                }
+              : collection
+          )
+        )
+      )
+    } catch (pinError) {
+      console.error(
+        'Unable to update collection pin:',
+        pinError
+      )
+
+      setError(
+        'Impossible de mettre à jour cette collection pour le moment.'
+      )
     }
   }
 
@@ -319,6 +436,8 @@ function Collections() {
                 key={collection.id}
                 collection={collection}
                 onDeleteRequest={setCollectionToDelete}
+                onEditRequest={setCollectionToEdit}
+                onPinRequest={handleTogglePinned}
               />
             ))}
           </div>
@@ -337,6 +456,13 @@ function Collections() {
         isDeleting={isDeleting}
         onClose={() => setCollectionToDelete(null)}
         onDelete={handleDeleteCollection}
+      />
+
+      <CollectionEditModal
+        collection={collectionToEdit}
+        isSaving={isSavingEdit}
+        onClose={() => setCollectionToEdit(null)}
+        onSave={handleUpdateCollection}
       />
     </div>
   )

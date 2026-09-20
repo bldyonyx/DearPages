@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import {
   BookOpen,
   MoreHorizontal,
+  Pencil,
+  Pin,
   Trash2,
 } from 'lucide-react'
 
@@ -10,13 +12,28 @@ function getBookCount(collection) {
   return Object.keys(collection.books || {}).length
 }
 
-function CollectionCard({ collection, onDeleteRequest }) {
+function CollectionCard({
+  collection,
+  onDeleteRequest,
+  onEditRequest,
+  onPinRequest,
+}) {
   const bookCount = getBookCount(collection)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   function handleDeleteClick() {
     setIsMenuOpen(false)
     onDeleteRequest(collection)
+  }
+
+  function handleEditClick() {
+    setIsMenuOpen(false)
+    onEditRequest(collection)
+  }
+
+  function handlePinClick() {
+    setIsMenuOpen(false)
+    onPinRequest(collection)
   }
 
   return (
@@ -48,6 +65,26 @@ function CollectionCard({ collection, onDeleteRequest }) {
         </div>
 
         <div className="flex items-center gap-2">
+          {collection.pinned && (
+            <span
+              className="
+                flex h-8 w-8 shrink-0
+                items-center justify-center
+                rounded-full border
+                border-lime/60 bg-lime/35
+                text-darkwood
+              "
+              aria-label="Collection épinglée"
+              title="Collection épinglée"
+            >
+              <Pin
+                className="h-4 w-4"
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            </span>
+          )}
+
           <span
             className="
               rounded-full border border-walnut/15
@@ -96,6 +133,50 @@ function CollectionCard({ collection, onDeleteRequest }) {
               >
                 <button
                   type="button"
+                  onClick={handlePinClick}
+                  className="
+                    flex w-full cursor-pointer
+                    items-center gap-2
+                    rounded-xl px-3 py-2
+                    text-left font-ui text-sm
+                    font-bold text-darkwood
+                    transition-colors
+                    hover:bg-lime/30
+                  "
+                >
+                  <Pin
+                    className="h-4 w-4"
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  {collection.pinned
+                    ? 'Désépingler'
+                    : 'Épingler'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleEditClick}
+                  className="
+                    flex w-full cursor-pointer
+                    items-center gap-2
+                    rounded-xl px-3 py-2
+                    text-left font-ui text-sm
+                    font-bold text-darkwood
+                    transition-colors
+                    hover:bg-lime/30
+                  "
+                >
+                  <Pencil
+                    className="h-4 w-4"
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  Modifier
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleDeleteClick}
                   className="
                     flex w-full cursor-pointer
@@ -123,7 +204,7 @@ function CollectionCard({ collection, onDeleteRequest }) {
       <Link
         to={`/collections/${collection.id}`}
         className="
-          mt-5 flex flex-1 flex-col
+          mt-5 flex min-w-0 flex-1 flex-col
           rounded-2xl
           focus:outline-none
           focus-visible:ring-2
@@ -151,14 +232,16 @@ function CollectionCard({ collection, onDeleteRequest }) {
         {collection.description && (
           <p
             className="
-              mt-3 overflow-hidden
+              mt-3 min-w-0 overflow-hidden
               font-ui text-sm leading-6
               text-walnut/70
+              break-words
             "
             style={{
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 2,
+              overflowWrap: 'anywhere',
             }}
           >
             {collection.description}

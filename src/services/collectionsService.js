@@ -25,8 +25,24 @@ function createCollectionData(collection) {
     description: collection.description?.trim() || '',
     createdAt: now,
     updatedAt: now,
+    pinned: false,
     books: {},
   }
+}
+
+function sortCollections(firstCollection, secondCollection) {
+  if (firstCollection.pinned !== secondCollection.pinned) {
+    return firstCollection.pinned ? -1 : 1
+  }
+
+  return (
+    (secondCollection.updatedAt ||
+      secondCollection.createdAt ||
+      0) -
+    (firstCollection.updatedAt ||
+      firstCollection.createdAt ||
+      0)
+  )
 }
 
 /**
@@ -56,17 +72,10 @@ export async function getUserCollections(userId) {
     .map(([collectionId, collection]) => ({
       ...collection,
       id: collectionId,
+      pinned: collection.pinned === true,
       books: collection.books || {},
     }))
-    .sort(
-      (firstCollection, secondCollection) =>
-        (secondCollection.updatedAt ||
-          secondCollection.createdAt ||
-          0) -
-        (firstCollection.updatedAt ||
-          firstCollection.createdAt ||
-          0)
-    )
+    .sort(sortCollections)
 }
 
 /**
@@ -95,6 +104,7 @@ export async function getUserCollection(userId, collectionId) {
   return {
     ...snapshot.val(),
     id: collectionId,
+    pinned: snapshot.val().pinned === true,
     books: snapshot.val().books || {},
   }
 }
@@ -151,6 +161,34 @@ export async function updateCollection(
   await update(collectionRef, {
     name: collection.name.trim(),
     description: collection.description?.trim() || '',
+    updatedAt: Date.now(),
+  })
+}
+
+/**
+ * Updates a collection's pinned state.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} collectionId - Collection ID.
+ * @param {boolean} pinned - Whether the collection is pinned.
+ * @returns {Promise<void>}
+ */
+export async function updateCollectionPinned(
+  userId,
+  collectionId,
+  pinned
+) {
+  if (!userId || !collectionId) {
+    throw new Error('Missing collection information.')
+  }
+
+  const collectionRef = ref(
+    database,
+    `users/${userId}/collections/${collectionId}`
+  )
+
+  await update(collectionRef, {
+    pinned: Boolean(pinned),
     updatedAt: Date.now(),
   })
 }
