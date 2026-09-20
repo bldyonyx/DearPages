@@ -133,7 +133,7 @@ function BookNotesEditor({
     >
       <div
         className="
-          flex items-center gap-2
+          flex flex-wrap items-center gap-2
           rounded-t-2xl
           border-b border-walnut/15
           px-3 py-2
@@ -183,7 +183,7 @@ function BookNotesEditor({
 
         <div
           ref={sizeMenuRef}
-          className="relative ml-1"
+          className="relative min-w-0 sm:ml-1"
         >
           <button
             type="button"
@@ -195,7 +195,7 @@ function BookNotesEditor({
               setIsSizeMenuOpen((current) => !current)
             }
             className={`
-              flex min-w-28 items-center
+              flex min-w-24 items-center
               justify-between gap-3
               rounded-xl px-3 py-2
               font-ui text-xs
@@ -231,7 +231,7 @@ function BookNotesEditor({
               role="listbox"
               aria-label="Taille du texte"
               className="
-                absolute left-0 top-full z-30
+                absolute right-0 top-full z-30
                 mt-2 w-36
                 overflow-hidden
                 rounded-xl

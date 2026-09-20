@@ -121,27 +121,30 @@ function BookDetails({
         rounded-[28px]
         border border-walnut/10
         bg-cream/70
-        px-7 py-8
+        px-5 py-6
         shadow-sm
         backdrop-blur-[2px]
-        sm:px-9
+        sm:px-7 sm:py-8
+        md:px-8
         lg:px-11 lg:py-10
       "
     >
       <div
         className="
           mx-auto flex max-w-5xl
-          flex-col gap-9
-          md:flex-row
-          md:items-center
-          md:gap-12
+          min-w-0 flex-col gap-7
+          lg:flex-row
+          lg:items-center
+          lg:gap-10
+          xl:gap-12
         "
       >
         <div
           className="
             mx-auto w-full
-            max-w-52.5 shrink-0
-            md:mx-0
+            max-w-44 shrink-0
+            sm:max-w-52.5
+            lg:mx-0
           "
         >
           {book.cover ? (
@@ -173,7 +176,7 @@ function BookDetails({
           )}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="w-full min-w-0 flex-1">
           <h1
             title={book.title}
             className={`
@@ -197,10 +200,16 @@ function BookDetails({
           <p
             className="
               mt-2
+              overflow-hidden
               font-handwritten
               text-xl text-walnut
               sm:text-2xl
             "
+            style={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+            }}
           >
             {book.authors.join(', ')}
           </p>
@@ -225,6 +234,7 @@ function BookDetails({
                     mt-1.5
                     font-ui text-sm
                     text-forest/80
+                    break-words
                   "
                 >
                   {visibleCategories.join(' · ')}
@@ -233,9 +243,9 @@ function BookDetails({
             </div>
           )}
 
-          <div className="mt-10">
+          <div className="mt-8 lg:mt-10">
             {!libraryBook ? (
-              <div className="max-w-sm">
+              <div className="w-full max-w-sm">
                 <button
                   type="button"
                   onClick={onAddToLibrary}
@@ -300,13 +310,13 @@ function BookDetails({
 
                   <div
                     className="
-                      flex max-w-xl
+                      flex w-full max-w-xl
                       flex-col gap-3
-                      sm:flex-row
-                      sm:items-center
+                      xl:flex-row
+                      xl:items-center
                     "
                   >
-                    <div className="min-w-0 flex-1">
+                    <div className="w-full min-w-44 xl:min-w-48 xl:flex-1">
                       <BookStatusSelect
                         value={libraryBook.status}
                         options={statusOptions}
@@ -320,7 +330,7 @@ function BookDetails({
                       onClick={onRemoveFromLibrary}
                       disabled={isSaving}
                       className="
-                        inline-flex shrink-0
+                        inline-flex w-full shrink-0
                         items-center justify-center
                         gap-2 rounded-2xl
                         border border-dustyrose/60
@@ -333,6 +343,7 @@ function BookDetails({
                         hover:text-darkwood
                         disabled:cursor-not-allowed
                         disabled:opacity-60
+                        xl:w-auto
                       "
                     >
                       <Trash2
@@ -340,7 +351,7 @@ function BookDetails({
                         strokeWidth={1.7}
                       />
 
-                      Retirer
+                      Retirer de ma bibliothèque
                     </button>
                   </div>
                 </div>

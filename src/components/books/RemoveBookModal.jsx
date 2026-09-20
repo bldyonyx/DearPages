@@ -16,8 +16,9 @@ function RemoveBookModal({
         fixed inset-0 z-50
         flex items-center justify-center
         bg-darkwood/45
-        px-5
+        px-4 py-5
         backdrop-blur-[2px]
+        sm:px-5
       "
       onClick={onCancel}
     >
@@ -27,11 +28,14 @@ function RemoveBookModal({
         aria-labelledby="remove-book-title"
         className="
           relative w-full max-w-md
+          max-h-[calc(100vh-2.5rem)]
+          overflow-y-auto
           rounded-[28px]
           border border-walnut/10
           bg-cream
-          p-7
+          p-6
           shadow-xl
+          sm:max-h-[calc(100vh-3rem)]
           sm:p-8
         "
         onClick={(event) => event.stopPropagation()}
@@ -78,8 +82,9 @@ function RemoveBookModal({
           className="
             mt-1
             font-heading
-            text-3xl font-bold
+            text-2xl font-bold
             text-darkwood
+            sm:text-3xl
           "
         >
           Retirer ce livre ?
@@ -122,6 +127,7 @@ function RemoveBookModal({
               hover:text-darkwood
               disabled:cursor-not-allowed
               disabled:opacity-50
+              sm:w-auto
             "
           >
             Annuler
@@ -143,6 +149,7 @@ function RemoveBookModal({
               hover:brightness-95
               disabled:cursor-not-allowed
               disabled:opacity-60
+              sm:w-auto
             "
           >
             <Trash2 size={16} strokeWidth={1.8} />

@@ -37,7 +37,7 @@ function BookStatusSelect({
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full min-w-0">
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
@@ -57,7 +57,7 @@ function BookStatusSelect({
           disabled:opacity-60
         "
       >
-        <span>
+        <span className="min-w-0 truncate">
           {selectedOption?.label || 'Choisir un statut'}
         </span>
 
@@ -100,7 +100,9 @@ function BookStatusSelect({
                   }
                 `}
               >
-                <span>{option.label}</span>
+                <span className="min-w-0 truncate">
+                  {option.label}
+                </span>
 
                 {isSelected && (
                   <Check

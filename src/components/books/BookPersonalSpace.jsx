@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Star } from 'lucide-react'
+import { BookMarked, Star } from 'lucide-react'
 
+import BookCollectionsModal from '../collections/BookCollectionsModal.jsx'
+import { getUserCollections } from '../../services/collectionsService.js'
 import {
   BOOK_STATUSES,
   updateBookNote,
@@ -23,6 +25,11 @@ function BookPersonalSpace({
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [collectionCount, setCollectionCount] = useState(0)
+  const [
+    isCollectionsModalOpen,
+    setIsCollectionsModalOpen,
+  ] = useState(false)
 
   const status = libraryBook?.status
 
@@ -36,6 +43,38 @@ function BookPersonalSpace({
     libraryBook?.rating,
     bookId,
   ])
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadCollectionCount() {
+      try {
+        const collections = await getUserCollections(userId)
+        const nextCollectionCount = collections.filter(
+          (collection) => collection.books?.[bookId]
+        ).length
+
+        if (isActive) {
+          setCollectionCount(nextCollectionCount)
+        }
+      } catch (collectionsError) {
+        console.error(
+          'Unable to load book collection count:',
+          collectionsError
+        )
+
+        if (isActive) {
+          setCollectionCount(0)
+        }
+      }
+    }
+
+    loadCollectionCount()
+
+    return () => {
+      isActive = false
+    }
+  }, [bookId, userId])
 
   async function handleSaveNote() {
     setIsSaving(true)
@@ -117,7 +156,7 @@ function BookPersonalSpace({
   const showsRating = status === BOOK_STATUSES.FINISHED
 
   return (
-    <section className="mt-14 max-w-4xl">
+    <section className="mt-14 w-full max-w-4xl min-w-0">
       <div className="mb-5">
         <p className="font-handwritten text-lg text-olive">
         entre toi et les pages ♡
@@ -137,6 +176,56 @@ function BookPersonalSpace({
           sm:p-7
         "
       >
+        <div
+          className="
+            mb-6 flex flex-col gap-3
+            border-b border-walnut/10
+            pb-5
+            lg:flex-row
+            lg:items-center
+            lg:justify-between
+          "
+        >
+          <div className="min-w-0">
+            <p className="font-ui text-sm font-bold text-darkwood">
+              Collections
+            </p>
+
+            <p className="mt-1 font-ui text-xs leading-5 text-walnut/65">
+              {collectionCount > 0
+                ? `${collectionCount} collection${
+                    collectionCount > 1 ? 's' : ''
+                  } pour ce livre`
+                : 'Range ce livre dans une ou plusieurs collections.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsCollectionsModalOpen(true)}
+            className="
+              inline-flex w-full
+              items-center justify-center gap-2
+              rounded-2xl border
+              border-walnut/15
+              bg-cream/70 px-4 py-2.5
+              font-ui text-sm
+              font-bold text-darkwood
+              transition
+              hover:bg-lime/45
+              sm:w-fit
+              lg:shrink-0
+            "
+          >
+            <BookMarked
+              size={17}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            Gérer les collections
+          </button>
+        </div>
+
         {showsNotes && (
           <div>
             <h3
@@ -169,7 +258,7 @@ function BookPersonalSpace({
             >
               <div>
                 {message && (
-                  <p className="font-handwritten text-lg text-forest">
+                  <p className="font-handwritten text-lg leading-6 text-forest">
                     {message}
                   </p>
                 )}
@@ -186,6 +275,7 @@ function BookPersonalSpace({
                 onClick={handleSaveNote}
                 disabled={isSaving}
                 className="
+                  w-full
                   rounded-xl
                   bg-lime
                   px-5 py-2.5
@@ -195,6 +285,7 @@ function BookPersonalSpace({
                   hover:brightness-95
                   disabled:cursor-not-allowed
                   disabled:opacity-60
+                  sm:w-auto
                 "
               >
                 {isSaving ? 'Enregistrement...' : 'Enregistrer'}
@@ -209,7 +300,7 @@ function BookPersonalSpace({
               Ma note
             </h3>
 
-            <div className="mt-3 flex gap-1">
+            <div className="mt-3 flex flex-wrap gap-1">
               {[1, 2, 3, 4, 5].map((star) => {
                 const isSelected = star <= rating
 
@@ -275,7 +366,7 @@ function BookPersonalSpace({
             >
               <div>
                 {message && (
-                  <p className="font-handwritten text-lg text-forest">
+                  <p className="font-handwritten text-lg leading-6 text-forest">
                     {message}
                   </p>
                 )}
@@ -292,6 +383,7 @@ function BookPersonalSpace({
                 onClick={handleSaveReview}
                 disabled={isSaving}
                 className="
+                  w-full
                   rounded-xl
                   bg-lime
                   px-5 py-2.5
@@ -301,6 +393,7 @@ function BookPersonalSpace({
                   hover:brightness-95
                   disabled:cursor-not-allowed
                   disabled:opacity-60
+                  sm:w-auto
                 "
               >
                 {isSaving ? 'Enregistrement...' : 'Enregistrer'}
@@ -309,6 +402,14 @@ function BookPersonalSpace({
           </div>
         )}
       </div>
+
+      <BookCollectionsModal
+        isOpen={isCollectionsModalOpen}
+        userId={userId}
+        bookId={bookId}
+        onClose={() => setIsCollectionsModalOpen(false)}
+        onSaved={setCollectionCount}
+      />
     </section>
   )
 }

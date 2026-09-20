@@ -301,7 +301,7 @@ function BookPage() {
         />
 
         {book.description && (
-          <section className="mt-14 max-w-4xl">
+          <section className="mt-14 w-full max-w-4xl min-w-0">
             <p className="font-handwritten text-lg text-olive">
               quelques mots sur ce livre ♡
             </p>
@@ -317,6 +317,7 @@ function BookPage() {
                 mt-5
                 font-ui text-sm
                 leading-7 text-ink
+                break-words
               "
             >
               {book.description}
@@ -332,7 +333,7 @@ function BookPage() {
             onLibraryBookChange={setLibraryBook}
           />
         ) : (
-          <section className="mt-14 max-w-4xl">
+          <section className="mt-14 w-full max-w-4xl min-w-0">
             <p className="font-handwritten text-lg text-olive">
               entre toi et les pages ♡
             </p>
