@@ -429,99 +429,103 @@ function CollectionPage() {
               {getBookLabel(collectionBooks.length)}
             </span>
 
-            <button
-              type="button"
-              onClick={() => setIsBooksModalOpen(true)}
-              className="
-                inline-flex h-10
-                cursor-pointer items-center
-                justify-center rounded-full
-                border border-lime/70
-                bg-lime/70 px-4
-                font-ui text-sm
-                font-bold text-darkwood
-                shadow-sm
-                transition-colors
-                hover:bg-lime
-              "
-            >
-              + Ajouter des livres
-            </button>
-
-            {collectionBooks.length > 0 && (
-              <div
-                ref={headerActionsMenuRef}
-                className="relative"
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:flex-none">
+              <button
+                type="button"
+                onClick={() => setIsBooksModalOpen(true)}
+                className="
+                  inline-flex h-10
+                  min-w-0 flex-1 shrink-0 cursor-pointer items-center
+                  justify-center rounded-full
+                  border border-lime/70
+                  bg-lime/70 px-3
+                  font-ui text-sm
+                  font-bold text-darkwood
+                  whitespace-nowrap
+                  shadow-sm
+                  transition-colors
+                  hover:bg-lime
+                  sm:flex-none sm:px-4
+                "
               >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setIsHeaderActionsMenuOpen(
-                      (current) => !current
-                    )
-                  }
-                  aria-label="Actions de collection"
-                  aria-haspopup="menu"
-                  aria-expanded={isHeaderActionsMenuOpen}
-                  className="
-                    inline-flex h-10 w-10
-                    cursor-pointer items-center
-                    justify-center rounded-full
-                    border border-walnut/15
-                    bg-cream/70 text-walnut
-                    shadow-sm
-                    transition-colors
-                    hover:border-walnut/25
-                    hover:bg-cream
-                    hover:text-darkwood
-                    focus:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-darkwood/25
-                  "
-                >
-                  <MoreHorizontal
-                    className="h-5 w-5"
-                    strokeWidth={1.8}
-                    aria-hidden="true"
-                  />
-                </button>
+                + Ajouter des livres
+              </button>
 
-                {isHeaderActionsMenuOpen && (
-                  <div
-                    role="menu"
+              {collectionBooks.length > 0 && (
+                <div
+                  ref={headerActionsMenuRef}
+                  className="relative shrink-0"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsHeaderActionsMenuOpen(
+                        (current) => !current
+                      )
+                    }
+                    aria-label="Actions de collection"
+                    aria-haspopup="menu"
+                    aria-expanded={isHeaderActionsMenuOpen}
                     className="
-                      absolute right-0 top-12 z-30
-                      min-w-52 rounded-2xl
+                      inline-flex h-10 w-10
+                      cursor-pointer items-center
+                      justify-center rounded-full
                       border border-walnut/15
-                      bg-cream p-1.5
-                      shadow-md
+                      bg-cream/70 text-walnut
+                      shadow-sm
+                      transition-colors
+                      hover:border-walnut/25
+                      hover:bg-cream
+                      hover:text-darkwood
+                      focus:outline-none
+                      focus-visible:ring-2
+                      focus-visible:ring-darkwood/25
                     "
                   >
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={handleOpenClearModalFromMenu}
+                    <MoreHorizontal
+                      className="h-5 w-5"
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {isHeaderActionsMenuOpen && (
+                    <div
+                      role="menu"
                       className="
-                        flex w-full cursor-pointer
-                        items-center gap-2
-                        rounded-xl px-3 py-2
-                        text-left font-ui text-sm
-                        font-bold text-darkwood
-                        transition-colors
-                        hover:bg-dustyrose/25
+                        absolute right-0 top-12 z-30
+                        min-w-52 rounded-2xl
+                        border border-walnut/15
+                        bg-cream p-1.5
+                        shadow-md
                       "
                     >
-                      <BookMinus
-                        className="h-4 w-4"
-                        strokeWidth={1.8}
-                        aria-hidden="true"
-                      />
-                      Vider la collection
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleOpenClearModalFromMenu}
+                        className="
+                          flex w-full cursor-pointer
+                          items-center gap-2
+                          rounded-xl px-3 py-2
+                          text-left font-ui text-sm
+                          font-bold text-darkwood
+                          transition-colors
+                          hover:bg-dustyrose/25
+                        "
+                      >
+                        <BookMinus
+                          className="h-4 w-4"
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                        />
+                        Vider la collection
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

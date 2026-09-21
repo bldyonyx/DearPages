@@ -318,7 +318,7 @@ function Collections() {
         <div
           className="
             flex flex-col gap-4
-            md:flex-row md:items-center md:justify-between
+            lg:flex-row lg:items-center lg:justify-between
           "
         >
           <div className="min-w-0">
@@ -333,33 +333,36 @@ function Collections() {
 
           <div
             className="
-              flex min-w-0
+              flex min-w-0 flex-wrap
               items-center gap-3
-              md:flex-1
-              md:justify-end
+              lg:flex-1
+              lg:flex-nowrap
+              lg:justify-end
             "
           >
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="
-                inline-flex h-10
-                cursor-pointer
-                shrink-0 items-center
-                justify-center
-                rounded-full border
-                border-lime/70
-                bg-lime/70 px-4
-                font-bold text-darkwood
-                shadow-sm
-                hover:bg-lime
-                md:h-11 md:px-5
-              "
-            >
-              + Nouvelle collection
-            </button>
+            <HeaderActions className="order-1 md:flex-none lg:order-2" />
 
-            <HeaderActions className="md:flex-none" />
+            <div className="order-2 basis-full lg:order-1 lg:basis-auto">
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="
+                  inline-flex h-10
+                  cursor-pointer
+                  shrink-0 items-center
+                  justify-center
+                  rounded-full border
+                  border-lime/70
+                  bg-lime/70 px-4
+                  font-bold text-darkwood
+                  shadow-sm
+                  hover:bg-lime
+                  md:h-11 md:px-5
+                "
+              >
+                + Nouvelle collection
+              </button>
+            </div>
           </div>
         </div>
       </header>
