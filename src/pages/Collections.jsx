@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import CollectionCard from '../components/collections/CollectionCard.jsx'
 import CollectionCreateModal from '../components/collections/CollectionCreateModal.jsx'
@@ -15,6 +15,7 @@ import {
   updateCollection,
   updateCollectionPinned,
 } from '../services/collectionsService.js'
+import { getUserLibrary } from '../services/libraryService.js'
 
 function sortCollections(collections) {
   return [...collections].sort((firstCollection, secondCollection) => {
@@ -33,10 +34,15 @@ function sortCollections(collections) {
   })
 }
 
+function getBookId(book) {
+  return book.googleBooksId || book.id
+}
+
 function Collections() {
   const { user } = useAuth()
 
   const [collections, setCollections] = useState([])
+  const [libraryBooks, setLibraryBooks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] =
@@ -58,11 +64,14 @@ function Collections() {
       setIsLoading(true)
       setError('')
 
-      const userCollections = await getUserCollections(
-        user.uid
-      )
+      const [userCollections, userLibrary] =
+        await Promise.all([
+          getUserCollections(user.uid),
+          getUserLibrary(user.uid),
+        ])
 
       setCollections(sortCollections(userCollections))
+      setLibraryBooks(userLibrary)
     } catch (loadError) {
       console.error(
         'Unable to load collections:',
@@ -89,12 +98,15 @@ function Collections() {
         setIsLoading(true)
         setError('')
 
-        const userCollections = await getUserCollections(
-          user.uid
-        )
+        const [userCollections, userLibrary] =
+          await Promise.all([
+            getUserCollections(user.uid),
+            getUserLibrary(user.uid),
+          ])
 
         if (isActive) {
           setCollections(sortCollections(userCollections))
+          setLibraryBooks(userLibrary)
         }
       } catch (loadError) {
         console.error(
@@ -285,6 +297,21 @@ function Collections() {
     }
   }
 
+  const libraryBooksById = useMemo(() => {
+    return new Map(
+      libraryBooks.map((book) => [getBookId(book), book])
+    )
+  }, [libraryBooks])
+
+  function getCollectionPreviewBooks(collection) {
+    return Object.keys(collection.books || {})
+      .slice(0, 4)
+      .map((bookId) => ({
+        id: bookId,
+        book: libraryBooksById.get(bookId) || null,
+      }))
+  }
+
   return (
     <div className="p-6">
       <header className="py-4">
@@ -366,11 +393,10 @@ function Collections() {
       ) : collections.length === 0 ? (
         <section
           className="
-            mt-8 rounded-[28px]
+            mt-8 max-w-2xl rounded-[24px]
             border border-walnut/10
-            bg-cream/60
-            px-6 py-16
-            text-center
+            bg-cream/75
+            px-6 py-10
             shadow-sm
           "
         >
@@ -385,7 +411,7 @@ function Collections() {
 
           <p
             className="
-              mx-auto mt-2 max-w-md
+              mt-2 max-w-md
               font-ui text-sm
               leading-6 text-walnut/70
             "
@@ -414,20 +440,12 @@ function Collections() {
         <section
           className="
             mt-8
-            rounded-[28px]
-            border border-walnut/10
-            bg-cream/65
-            p-5
-            shadow-sm
-            backdrop-blur-[2px]
-            sm:p-7
-            lg:p-8
           "
         >
           <div
             className="
-              grid gap-4
-              sm:grid-cols-2
+              grid gap-5
+              sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]
               xl:grid-cols-3
             "
           >
@@ -435,6 +453,9 @@ function Collections() {
               <CollectionCard
                 key={collection.id}
                 collection={collection}
+                previewBooks={getCollectionPreviewBooks(
+                  collection
+                )}
                 onDeleteRequest={setCollectionToDelete}
                 onEditRequest={setCollectionToEdit}
                 onPinRequest={handleTogglePinned}

@@ -274,3 +274,29 @@ export async function removeBookFromCollection(
     updatedAt: Date.now(),
   })
 }
+
+/**
+ * Removes every book reference from a collection.
+ *
+ * This keeps the collection itself and does not remove any book
+ * from the user's library.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} collectionId - Collection ID.
+ * @returns {Promise<void>}
+ */
+export async function clearCollectionBooks(
+  userId,
+  collectionId
+) {
+  if (!userId || !collectionId) {
+    throw new Error('Missing collection information.')
+  }
+
+  const collectionBooksRef = ref(
+    database,
+    `users/${userId}/collections/${collectionId}/books`
+  )
+
+  await remove(collectionBooksRef)
+}
