@@ -68,10 +68,10 @@ function SignUp() {
 
   return (
     <AuthLayout
-      title="Create your account ♡"
-      subtitle="A new chapter starts here."
-      footerText="Already have an account?"
-      footerLinkText="Log in"
+      title="Crée ton compte ♡"
+      subtitle="Un nouveau chapitre commence ici."
+      footerText="Tu as déjà un compte ?"
+      footerLinkText="Se connecter"
       footerLinkTo="/login"
     >
       <form
@@ -94,7 +94,7 @@ function SignUp() {
             onChange={(event) =>
               setDisplayName(event.target.value)
             }
-            placeholder="Your name"
+            placeholder="Ton nom"
             autoComplete="name"
             required
             className="
@@ -124,7 +124,7 @@ function SignUp() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email address"
+            placeholder="Adresse e-mail"
             autoComplete="email"
             required
             className="
@@ -156,7 +156,7 @@ function SignUp() {
             onChange={(event) =>
               setPassword(event.target.value)
             }
-            placeholder="Password"
+            placeholder="Mot de passe"
             autoComplete="new-password"
             minLength={6}
             required
@@ -179,8 +179,8 @@ function SignUp() {
             }
             aria-label={
               showPassword
-                ? 'Hide password'
-                : 'Show password'
+                ? 'Masquer le mot de passe'
+                : 'Afficher le mot de passe'
             }
             className="
               absolute right-4 top-1/2
@@ -215,8 +215,8 @@ function SignUp() {
           "
         >
           {isLoading
-            ? 'Creating account...'
-            : 'Create account'}
+            ? 'Création du compte...'
+            : 'Créer mon compte'}
         </button>
       </form>
 
@@ -224,7 +224,7 @@ function SignUp() {
         <div className="h-px flex-1 bg-walnut/20" />
 
         <span className="font-heading text-lg text-walnut">
-          or
+          ou
         </span>
 
         <div className="h-px flex-1 bg-walnut/20" />
@@ -245,7 +245,7 @@ function SignUp() {
         "
       >
         <GoogleIcon />
-        Continue with Google
+        Continuer avec Google
       </button>
     </AuthLayout>
   )

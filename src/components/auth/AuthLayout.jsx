@@ -32,10 +32,10 @@ function AuthLayout({
     >
       <section
         className="
-          mx-auto flex min-h-[720px] w-full max-w-5xl
+          mx-auto flex min-h-180 w-full max-w-5xl
           overflow-hidden rounded-[28px]
           bg-cream shadow-xl
-          md:min-h-[760px]
+          md:min-h-190
         "
       >
         <aside
@@ -77,11 +77,11 @@ function AuthLayout({
                 text-xl leading-relaxed text-parchment
               "
             >
-              collect stories
+              choisis tes histoires
               <br />
-              build your library
+              suis ton rythme
               <br />
-              be you ♡
+              lis à ta façon ♡
             </p>
           </div>
 
@@ -91,9 +91,9 @@ function AuthLayout({
               leading-relaxed text-parchment
             "
           >
-            good books,
+            un nouveau chapitre
             <br />
-            brighter days ♡
+            commence ici ♡
           </p>
         </aside>
 
@@ -154,9 +154,9 @@ function AuthLayout({
                 text-lg text-olive
               "
             >
-              same pages,
+              les mêmes pages,
               <br />
-              brighter days ♡
+              des jours plus doux ♡
             </p>
           </div>
         </div>

@@ -59,10 +59,10 @@ function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back ♡"
-      subtitle="So good to see you again."
-      footerText="Don't have an account yet?"
-      footerLinkText="Create one"
+      title="Bon retour ♡"
+      subtitle="Ça fait plaisir de te revoir."
+      footerText="Tu n'as pas encore de compte ?"
+      footerLinkText="Créer un compte"
       footerLinkTo="/signup"
     >
       <form
@@ -83,7 +83,7 @@ function Login() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email address"
+            placeholder="Adresse e-mail"
             autoComplete="email"
             required
             className="
@@ -113,7 +113,7 @@ function Login() {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
+            placeholder="Mot de passe"
             autoComplete="current-password"
             required
             className="
@@ -135,8 +135,8 @@ function Login() {
             }
             aria-label={
               showPassword
-                ? 'Hide password'
-                : 'Show password'
+                ? 'Masquer le mot de passe'
+                : 'Afficher le mot de passe'
             }
             className="
               absolute right-4 top-1/2
@@ -170,7 +170,7 @@ function Login() {
             disabled:cursor-not-allowed disabled:opacity-60
           "
         >
-          {isLoading ? 'Logging in...' : 'Log in'}
+          {isLoading ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
 
@@ -178,7 +178,7 @@ function Login() {
         <div className="h-px flex-1 bg-walnut/20" />
 
         <span className="font-heading text-lg text-walnut">
-          or
+          ou
         </span>
 
         <div className="h-px flex-1 bg-walnut/20" />
@@ -199,7 +199,7 @@ function Login() {
         "
       >
         <GoogleIcon />
-        Continue with Google
+        Continuer avec Google
       </button>
     </AuthLayout>
   )
