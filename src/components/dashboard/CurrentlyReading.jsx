@@ -1,71 +1,91 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  BOOK_STATUSES,
+} from '../../services/libraryService'
 import StatusBadge from '../ui/StatusBadge'
 
-const initialBooks = [
-  {
-    id: 1,
-    title: 'The Hobbit',
-    author: 'J.R.R. Tolkien',
-    cover: 'https://placehold.co/240x360?text=The+Hobbit',
-    status: 'reading',
-  },
-  {
-    id: 2,
-    title: 'Pride and Prejudice',
-    author: 'Jane Austen',
-    cover: 'https://placehold.co/240x360?text=Pride',
-    status: 'reading',
-  },
-  {
-    id: 3,
-    title: 'Little Women',
-    author: 'Louisa May Alcott',
-    cover: 'https://placehold.co/240x360?text=Little+Women',
-    status: 'reading',
-  },
-]
-
 const statusOptions = [
-  { value: 'to-read', label: 'À lire' },
-  { value: 'reading', label: 'En cours' },
-  { value: 'finished', label: 'Terminé' },
-  { value: 'abandoned', label: 'Abandonné' },
+  { value: BOOK_STATUSES.TO_READ, label: 'À lire' },
+  { value: BOOK_STATUSES.READING, label: 'En cours' },
+  { value: BOOK_STATUSES.FINISHED, label: 'Terminé' },
+  { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
 ]
 
-function CurrentlyReading() {
-  const [books, setBooks] = useState(initialBooks)
-  const [selectedBookId, setSelectedBookId] = useState(initialBooks[0].id)
-  const [isStatusOpen, setIsStatusOpen] = useState(false)
+function DashboardCover({
+  book,
+  isSelected,
+}) {
+  const [hasFailed, setHasFailed] = useState(false)
+  const shouldShowCover = Boolean(book.cover) && !hasFailed
 
-  const readingBooks = books.filter(
-    (book) => book.status === 'reading'
+  return (
+    <div
+      className={`
+        aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
+        transition-all duration-300
+        md:w-36 lg:w-40
+        ${
+          isSelected
+            ? 'scale-105 shadow-lg'
+            : 'opacity-80'
+        }
+      `}
+    >
+      {shouldShowCover ? (
+        <img
+          src={book.cover}
+          alt={`Couverture de ${book.title}`}
+          onError={() => setHasFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center p-4 text-center">
+          <span className="font-heading text-sm font-bold leading-snug text-darkwood">
+            {book.title}
+          </span>
+        </div>
+      )}
+    </div>
   )
+}
+
+function CurrentlyReading({
+  books,
+  updatingBookId,
+  onStatusChange,
+}) {
+  const [selectedBookId, setSelectedBookId] = useState(
+    books[0]?.googleBooksId || null
+  )
+  const [isStatusOpen, setIsStatusOpen] = useState(false)
+  const [statusError, setStatusError] = useState('')
 
   const currentBook =
-    readingBooks.find((book) => book.id === selectedBookId) ||
-    readingBooks[0]
+    books.find((book) => book.googleBooksId === selectedBookId) ||
+    books[0]
 
-  function handleStatusChange(newStatus) {
-    if (!currentBook) return
+  async function handleStatusChange(newStatus) {
+    if (!currentBook || updatingBookId) return
 
-    const updatedBooks = books.map((book) =>
-      book.id === currentBook.id
-        ? { ...book, status: newStatus }
-        : book
-    )
+    if (newStatus === currentBook.status) {
+      setIsStatusOpen(false)
+      return
+    }
 
-    setBooks(updatedBooks)
-    setIsStatusOpen(false)
+    setStatusError('')
 
-    const remainingBooks = updatedBooks.filter(
-      (book) => book.status === 'reading'
-    )
-
-    setSelectedBookId(remainingBooks[0]?.id ?? null)
+    try {
+      await onStatusChange(currentBook.googleBooksId, newStatus)
+      setIsStatusOpen(false)
+    } catch {
+      setStatusError(
+        'Impossible de modifier ce statut pour le moment.'
+      )
+    }
   }
 
-  if (readingBooks.length === 0) {
+  if (books.length === 0) {
     return (
       <section className="rounded-3xl border border-darkwood/10 bg-cream/80 p-5 md:p-6">
         <h2 className="font-heading text-2xl font-bold text-darkwood">
@@ -94,15 +114,16 @@ function CurrentlyReading() {
       <div className="mt-6 grid items-center gap-8 sm:grid-cols-2">
         {/* Stack de couvertures */}
         <div className="flex items-center justify-center px-4">
-          {readingBooks.map((book, index) => {
-            const isSelected = book.id === currentBook.id
+          {books.map((book, index) => {
+            const isSelected =
+              book.googleBooksId === currentBook.googleBooksId
 
             return (
               <button
-                key={book.id}
+                key={book.googleBooksId}
                 type="button"
                 onClick={() => {
-                  setSelectedBookId(book.id)
+                  setSelectedBookId(book.googleBooksId)
                   setIsStatusOpen(false)
                 }}
                 className={`
@@ -112,24 +133,14 @@ function CurrentlyReading() {
                 `}
                 style={{
                   zIndex: isSelected
-                    ? readingBooks.length + 1
-                    : readingBooks.length - index,
+                    ? books.length + 1
+                    : books.length - index,
                 }}
                 aria-label={`Afficher ${book.title}`}
               >
-                <img
-                  src={book.cover}
-                  alt={`Couverture de ${book.title}`}
-                  className={`
-                    aspect-2/3 w-32 rounded-xl object-cover shadow-md
-                    transition-all duration-300
-                    md:w-36 lg:w-40
-                    ${
-                      isSelected
-                        ? 'scale-105 shadow-lg'
-                        : 'opacity-80'
-                    }
-                  `}
+                <DashboardCover
+                  book={book}
+                  isSelected={isSelected}
                 />
               </button>
             )
@@ -142,17 +153,17 @@ function CurrentlyReading() {
             <StatusBadge status={currentBook.status} />
           </div>
 
-          <h3 className="mt-3 font-heading text-2xl font-bold leading-tight text-darkwood">
+          <h3 className="mt-3 line-clamp-3 wrap-break-word font-heading text-2xl font-bold leading-tight text-darkwood">
             {currentBook.title}
           </h3>
 
-          <p className="mt-1 font-ui text-sm text-darkwood/60">
-            {currentBook.author}
+          <p className="mt-1 line-clamp-2 wrap-break-word font-ui text-sm text-darkwood/60">
+            {currentBook.authors?.join(', ') || 'Auteur inconnu'}
           </p>
 
           <div className="mt-5 flex flex-wrap items-start gap-2">
             <Link
-              to={`/books/${currentBook.id}`}
+              to={`/books/${currentBook.googleBooksId}`}
               className="rounded-full bg-darkwood px-4 py-2 font-ui text-xs font-bold text-cream transition-transform hover:-translate-y-0.5"
             >
               Voir la fiche
@@ -162,9 +173,12 @@ function CurrentlyReading() {
               <button
                 type="button"
                 onClick={() => setIsStatusOpen((current) => !current)}
-                className="cursor-pointer rounded-full border border-darkwood/20 px-4 py-2 font-ui text-xs font-bold text-darkwood transition-transform hover:-translate-y-0.5"
+                disabled={updatingBookId === currentBook.googleBooksId}
+                className="cursor-pointer rounded-full border border-darkwood/20 px-4 py-2 font-ui text-xs font-bold text-darkwood transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
               >
-                Changer le statut
+                {updatingBookId === currentBook.googleBooksId
+                  ? 'Modification...'
+                  : 'Changer le statut'}
               </button>
 
               {isStatusOpen && (
@@ -174,7 +188,10 @@ function CurrentlyReading() {
                       key={status.value}
                       type="button"
                       onClick={() => handleStatusChange(status.value)}
-                      className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10"
+                      disabled={
+                        updatingBookId === currentBook.googleBooksId
+                      }
+                      className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10 disabled:cursor-wait disabled:opacity-60"
                     >
                       {status.label}
                     </button>
@@ -184,38 +201,46 @@ function CurrentlyReading() {
             </div>
           </div>
 
-          {/* Navigation entre les lectures */}
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <div className="flex gap-2">
-              {readingBooks.map((book) => (
-                <button
-                  key={book.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedBookId(book.id)
-                    setIsStatusOpen(false)
-                  }}
-                  className={`
-                    h-2.5 w-2.5 cursor-pointer rounded-full
-                    transition-all duration-300
-                    ${
-                      book.id === currentBook.id
-                        ? 'scale-125 bg-darkwood'
-                        : 'bg-darkwood/20 hover:bg-darkwood/40'
-                    }
-                  `}
-                  aria-label={`Sélectionner ${book.title}`}
-                />
-              ))}
-            </div>
-
-            <p className="font-ui text-xs text-darkwood/50">
-              {readingBooks.length}{' '}
-              {readingBooks.length === 1
-                ? 'lecture en cours'
-                : 'lectures en cours'}
+          {statusError && (
+            <p className="mt-3 font-ui text-sm text-red-700">
+              {statusError}
             </p>
-          </div>
+          )}
+
+          {/* Navigation entre les lectures */}
+          {books.length > 1 && (
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <div className="flex gap-2">
+                {books.map((book) => (
+                  <button
+                    key={book.googleBooksId}
+                    type="button"
+                    onClick={() => {
+                      setSelectedBookId(book.googleBooksId)
+                      setIsStatusOpen(false)
+                    }}
+                    className={`
+                      h-2.5 w-2.5 cursor-pointer rounded-full
+                      transition-all duration-300
+                      ${
+                        book.googleBooksId === currentBook.googleBooksId
+                          ? 'scale-125 bg-darkwood'
+                          : 'bg-darkwood/20 hover:bg-darkwood/40'
+                      }
+                    `}
+                    aria-label={`Sélectionner ${book.title}`}
+                  />
+                ))}
+              </div>
+
+              <p className="font-ui text-xs text-darkwood/50">
+                {books.length}{' '}
+                {books.length === 1
+                  ? 'lecture en cours'
+                  : 'lectures en cours'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

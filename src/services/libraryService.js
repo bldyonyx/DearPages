@@ -26,7 +26,7 @@ export const BOOK_STATUSES = {
  * @returns {Object} Library book data ready for Firebase.
  */
 function createLibraryBook(book, status) {
-  return {
+  const libraryBook = {
     googleBooksId: book.googleBooksId,
     title: book.title,
     authors: book.authors,
@@ -37,6 +37,12 @@ function createLibraryBook(book, status) {
     status,
     addedAt: Date.now(),
   }
+
+  if (status === BOOK_STATUSES.FINISHED) {
+    libraryBook.finishedAt = Date.now()
+  }
+
+  return libraryBook
 }
 
 /**
@@ -122,13 +128,17 @@ export async function getLibraryBook(userId, bookId) {
 }
 
 /**
- * Changes the reading status of a book already stored
- * in the user's library.
+ * Changes the reading status of a book already stored in the user's library.
+ *
+ * When a book enters the "finished" status, a finishedAt timestamp is stored.
+ * When it leaves "finished", finishedAt is removed from Realtime Database.
+ * If the requested status already matches the stored status, nothing is
+ * written, so an existing finishedAt is not replaced unnecessarily.
  *
  * @param {string} userId - Firebase Authentication user ID.
  * @param {string} bookId - Book ID.
  * @param {string} status - New reading status.
- * @returns {Promise<void>}
+ * @returns {Promise<Object|null>} Updated fields, or null if status is unchanged.
  */
 export async function updateBookStatus(
   userId,
@@ -143,11 +153,27 @@ export async function updateBookStatus(
     database,
     `users/${userId}/library/${bookId}`
   )
+  const snapshot = await get(bookRef)
+  const storedBook = snapshot.exists() ? snapshot.val() : null
 
-  await update(bookRef, {
+  if (storedBook?.status === status) {
+    return null
+  }
+
+  const updatedBook = {
     status,
     updatedAt: Date.now(),
-  })
+  }
+
+  if (status === BOOK_STATUSES.FINISHED) {
+    updatedBook.finishedAt = Date.now()
+  } else if (storedBook?.status === BOOK_STATUSES.FINISHED) {
+    updatedBook.finishedAt = null
+  }
+
+  await update(bookRef, updatedBook)
+
+  return updatedBook
 }
 
 /**

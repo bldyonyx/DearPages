@@ -3,10 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import flower from '../../assets/images/flower.png'
 import Input from '../ui/Input'
 
-function DashboardHeader() {
+function getDisplayName(user) {
+  return user?.displayName?.trim() || user?.email || 'lectrice'
+}
+
+function getAvatarInitial(displayName) {
+  return displayName.trim().charAt(0).toUpperCase() || '?'
+}
+
+function DashboardHeader({ user }) {
   const [search, setSearch] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const navigate = useNavigate()
+  const displayName = getDisplayName(user)
+  const avatarInitial = getAvatarInitial(displayName)
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -29,7 +39,7 @@ function DashboardHeader() {
         {/* Bonjour */}
         <div className="min-w-0">
           <h1 className="font-heading text-3xl font-bold text-darkwood md:text-4xl">
-            Bonjour, Maya
+            Bonjour, {displayName}
           </h1>
 
           <p className="mt-2 font-ui text-sm font-semibold text-darkwood/60 md:text-base">
@@ -139,11 +149,11 @@ function DashboardHeader() {
                 items-center justify-center
                 rounded-full bg-cream
                 font-heading text-base font-bold text-darkwood
-                md:h-10 md:w-10 md:text-lg
-              "
-            >
-              M
-            </span>
+            md:h-10 md:w-10 md:text-lg
+          "
+        >
+          {avatarInitial}
+        </span>
           </Link>
         </div>
       </div>

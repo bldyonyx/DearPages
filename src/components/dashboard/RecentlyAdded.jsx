@@ -1,40 +1,7 @@
 import { Link } from 'react-router-dom'
 import BookCard from '../books/BookCard'
 
-const recentBooks = [
-  {
-    id: 1,
-    title: 'The Hobbit',
-    author: 'J.R.R. Tolkien',
-    cover: 'https://placehold.co/240x360?text=The+Hobbit',
-  },
-  {
-    id: 2,
-    title: 'Pride and Prejudice',
-    author: 'Jane Austen',
-    cover: 'https://placehold.co/240x360?text=Pride',
-  },
-  {
-    id: 3,
-    title: 'Little Women',
-    author: 'Louisa May Alcott',
-    cover: 'https://placehold.co/240x360?text=Little+Women',
-  },
-  {
-    id: 4,
-    title: 'Jane Eyre',
-    author: 'Charlotte Brontë',
-    cover: 'https://placehold.co/240x360?text=Jane+Eyre',
-  },
-  {
-    id: 5,
-    title: 'The Secret Garden',
-    author: 'Frances Hodgson Burnett',
-    cover: 'https://placehold.co/240x360?text=Secret+Garden',
-  },
-]
-
-function RecentlyAdded() {
+function RecentlyAdded({ books }) {
   return (
     <section className="rounded-3xl border border-darkwood/10 bg-cream/80 p-5 md:p-6">
       {/* Header */}
@@ -57,27 +24,27 @@ function RecentlyAdded() {
         </Link>
       </div>
 
-      {/* Preview des derniers livres */}
-      <div className="hide-scrollbar mt-6 flex gap-6 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:gap-8 lg:overflow-visible">
-        {recentBooks.map((book) => (
-          <div
-            key={book.id}
-            className="w-36 shrink-0 sm:w-40 lg:mx-auto lg:w-full lg:max-w-40"
-          >
-            <Link
-              to={`/books/${book.id}`}
-              className="block"
-              aria-label={`Voir la fiche de ${book.title}`}
+      {books.length === 0 ? (
+        <p className="mt-6 font-ui text-sm text-darkwood/60">
+          Aucun livre ajouté pour le moment.
+        </p>
+      ) : (
+        <div className="hide-scrollbar mt-6 flex gap-6 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:gap-8 lg:overflow-visible">
+          {books.map((book) => (
+            <div
+              key={book.googleBooksId}
+              className="w-36 shrink-0 sm:w-40 lg:mx-auto lg:w-full lg:max-w-40"
             >
               <BookCard
+                bookId={book.googleBooksId}
                 title={book.title}
-                author={book.author}
+                author={book.authors?.join(', ')}
                 cover={book.cover}
               />
-            </Link>
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

@@ -1,8 +1,8 @@
-function ReadingStats() {
-  const totalBooks = 28
-  const currentlyReading = 3
-  const favoriteGenre = 'Fantasy'
-
+function ReadingStats({
+  totalBooks,
+  currentlyReading,
+  favoriteGenre,
+}) {
   return (
     <section className="w-full min-w-0 rounded-3xl border border-darkwood/10 bg-cream/80 p-5 md:p-6">
       {/* Titre */}
@@ -18,7 +18,6 @@ function ReadingStats() {
 
       {/* Statistiques */}
       <div className="mt-6 md:flex md:items-stretch">
-
         {/* Deux premières stats */}
         <div className="flex w-full min-w-0 md:flex-1">
           {/* Livres */}
@@ -68,7 +67,7 @@ function ReadingStats() {
           </p>
 
           <p className="mt-1 font-ui text-xs text-darkwood/50">
-            genre le plus lu
+            genre préféré
           </p>
         </div>
       </div>
