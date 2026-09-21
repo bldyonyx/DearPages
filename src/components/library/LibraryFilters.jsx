@@ -67,7 +67,7 @@ function LibraryFilters({
             overflow-x-auto
             px-1 pb-3
 
-            [scrollbar-width:thin]
+            scrollbar-thin
             [scrollbar-color:rgba(102,72,57,0.25)_transparent]
 
             [&::-webkit-scrollbar]:h-1
@@ -81,7 +81,7 @@ function LibraryFilters({
             md:overflow-visible
             md:pb-0
 
-            md:[scrollbar-width:none]
+            md:scrollbar-none
             md:[&::-webkit-scrollbar]:hidden
           "
         >

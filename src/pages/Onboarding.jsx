@@ -7,6 +7,7 @@ import OnboardingShell from '../components/onboarding/OnboardingShell.jsx'
 import ReadingGoalStep from '../components/onboarding/ReadingGoalStep.jsx'
 import WelcomeStep from '../components/onboarding/WelcomeStep.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
+import { saveOnboardingPreferences } from '../services/preferencesService.js'
 
 const TOTAL_STEPS = 4
 const DEFAULT_ANNUAL_GOAL = 24
@@ -27,6 +28,8 @@ function Onboarding() {
     useState('')
   const [goalValidationMessage, setGoalValidationMessage] =
     useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   function goToNextStep() {
     setCurrentStep((step) =>
@@ -95,8 +98,35 @@ function Onboarding() {
     goToNextStep()
   }
 
-  function finishOnboarding() {
-    navigate('/')
+  async function finishOnboarding() {
+    if (isSaving) return
+
+    setSaveError('')
+
+    if (!user?.uid) {
+      setSaveError(
+        'Impossible de retrouver ta session. Reconnecte-toi puis reessaie.'
+      )
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      await saveOnboardingPreferences(
+        user.uid,
+        favoriteGenres,
+        normalizedAnnualGoal
+      )
+      navigate('/')
+    } catch (firebaseError) {
+      console.error(firebaseError)
+      setSaveError(
+        "Impossible d'enregistrer tes preferences pour le moment."
+      )
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const normalizedAnnualGoal =
@@ -138,6 +168,8 @@ function Onboarding() {
         <CompleteStep
           annualGoal={normalizedAnnualGoal}
           favoriteGenres={favoriteGenres}
+          isSaving={isSaving}
+          saveError={saveError}
           onBack={goToPreviousStep}
           onFinish={finishOnboarding}
         />

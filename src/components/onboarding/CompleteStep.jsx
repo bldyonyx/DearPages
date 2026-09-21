@@ -3,6 +3,8 @@ import { AVAILABLE_GENRES } from '../../constants/genres.js'
 function CompleteStep({
   annualGoal,
   favoriteGenres,
+  isSaving = false,
+  saveError = '',
   onBack,
   onFinish,
 }) {
@@ -62,6 +64,12 @@ function CompleteStep({
         </div>
       </div>
 
+      {saveError && (
+        <p className="mt-4 text-sm font-bold text-walnut">
+          {saveError}
+        </p>
+      )}
+
       <div
         className="
           mt-10 flex flex-col-reverse gap-3
@@ -86,15 +94,17 @@ function CompleteStep({
         <button
           type="button"
           onClick={onFinish}
+          disabled={isSaving}
           className="
             rounded-2xl bg-lime px-5 py-3
             text-sm font-bold text-darkwood
             transition hover:-translate-y-0.5 hover:brightness-95
             focus-visible:outline-none focus-visible:ring-2
             focus-visible:ring-olive/35
+            disabled:cursor-not-allowed disabled:opacity-60
           "
         >
-          Entrer dans Dear Pages
+          {isSaving ? 'Enregistrement...' : 'Entrer dans Dear Pages'}
         </button>
       </div>
     </div>

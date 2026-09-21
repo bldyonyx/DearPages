@@ -231,7 +231,7 @@ function MyLibrary() {
       ) : error ? (
         <div
           className="
-            mt-8 rounded-[24px]
+            mt-8 rounded-3xl
             border border-dustyrose/30
             bg-dustyrose/20
             px-5 py-4

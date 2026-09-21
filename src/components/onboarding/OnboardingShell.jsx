@@ -30,8 +30,8 @@ function OnboardingShell({
           mx-auto flex w-full max-w-6xl
           overflow-hidden rounded-[28px]
           bg-cream shadow-xl
-          md:min-h-[720px]
-          lg:min-h-[760px]
+          md:min-h-180
+          lg:min-h-190
         "
       >
         <aside

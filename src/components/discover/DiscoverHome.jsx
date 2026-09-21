@@ -18,13 +18,13 @@ function DiscoverHome({
   return (
     <div className="mt-10 space-y-12">
       {isLoading && (
-        <p className="max-w-[calc(100vw-3rem)] break-words font-ui text-sm text-darkwood/60 md:max-w-full">
+        <p className="max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm text-darkwood/60 md:max-w-full">
           Préparation de tes découvertes...
         </p>
       )}
 
       {!isLoading && error && (
-        <p className="max-w-[calc(100vw-3rem)] break-words font-ui text-sm text-darkwood/60 md:max-w-full">
+        <p className="max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm text-darkwood/60 md:max-w-full">
           {error}
         </p>
       )}
