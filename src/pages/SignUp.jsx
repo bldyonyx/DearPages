@@ -10,6 +10,7 @@ import {
 
 import AuthLayout from '../components/auth/AuthLayout.jsx'
 import GoogleIcon from '../components/auth/GoogleIcon.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import {
   signInWithGoogle,
   signUpWithEmail,
@@ -17,6 +18,7 @@ import {
 
 function SignUp() {
   const navigate = useNavigate()
+  const { updatePreferences } = useAuth()
 
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -32,12 +34,13 @@ function SignUp() {
     setIsLoading(true)
 
     try {
-      await signUpWithEmail(
+      const result = await signUpWithEmail(
         email.trim(),
         password,
         displayName.trim(),
       )
 
+      updatePreferences(result.preferences)
       navigate('/')
     } catch (firebaseError) {
       console.error(firebaseError)
@@ -54,7 +57,12 @@ function SignUp() {
     setIsLoading(true)
 
     try {
-      await signInWithGoogle()
+      const result = await signInWithGoogle()
+
+      if (result.preferences) {
+        updatePreferences(result.preferences)
+      }
+
       navigate('/')
     } catch (firebaseError) {
       console.error(firebaseError)

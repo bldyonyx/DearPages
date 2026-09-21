@@ -1,29 +1,41 @@
 import {
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from 'firebase/auth'
-import { ref, set } from 'firebase/database'
+import { get, ref, set, update } from 'firebase/database'
 import { auth, database } from './firebase.js'
+import { initializeOnboardingPreferences } from './preferencesService.js'
 
 const googleProvider = new GoogleAuthProvider()
 
 /**
- * Creates the initial private profile stored for a Dear Pages user.
+ * Creates or updates the private profile stored for a Dear Pages user.
  *
  * @param {import('firebase/auth').User} user
  * @param {string} [displayName]
  * @returns {Promise<void>}
  */
-async function createUserProfile(user, displayName = '') {
+async function saveUserProfile(user, displayName = '') {
   const userRef = ref(database, `users/${user.uid}/profile`)
-
-  await set(userRef, {
+  const profile = {
     displayName: displayName || user.displayName || '',
     email: user.email || '',
     photoURL: user.photoURL || '',
+  }
+  const snapshot = await get(userRef)
+
+  if (snapshot.exists()) {
+    await update(userRef, profile)
+    return
+  }
+
+  await set(userRef, {
+    ...profile,
     createdAt: Date.now(),
   })
 }
@@ -34,7 +46,10 @@ async function createUserProfile(user, displayName = '') {
  * @param {string} email
  * @param {string} password
  * @param {string} displayName
- * @returns {Promise<import('firebase/auth').User>}
+ * @returns {Promise<{
+ *   user: import('firebase/auth').User,
+ *   preferences: Object
+ * }>}
  */
 export async function signUpWithEmail(
   email,
@@ -47,9 +62,20 @@ export async function signUpWithEmail(
     password
   )
 
-  await createUserProfile(credential.user, displayName)
+  const trimmedDisplayName = displayName.trim()
 
-  return credential.user
+  await updateProfile(credential.user, {
+    displayName: trimmedDisplayName,
+  })
+  await saveUserProfile(credential.user, trimmedDisplayName)
+  const preferences = await initializeOnboardingPreferences(
+    credential.user.uid
+  )
+
+  return {
+    user: credential.user,
+    preferences,
+  }
 }
 
 /**
@@ -73,17 +99,32 @@ export async function signInWithEmail(email, password) {
  * Signs in with Google and creates or updates
  * the user's Dear Pages profile.
  *
- * @returns {Promise<import('firebase/auth').User>}
+ * @returns {Promise<{
+ *   user: import('firebase/auth').User,
+ *   isNewUser: boolean,
+ *   preferences: Object | null
+ * }>}
  */
 export async function signInWithGoogle() {
   const credential = await signInWithPopup(
     auth,
     googleProvider
   )
+  const isNewUser = Boolean(
+    getAdditionalUserInfo(credential)?.isNewUser
+  )
 
-  await createUserProfile(credential.user)
+  await saveUserProfile(credential.user)
 
-  return credential.user
+  const preferences = isNewUser
+    ? await initializeOnboardingPreferences(credential.user.uid)
+    : null
+
+  return {
+    user: credential.user,
+    isNewUser,
+    preferences,
+  }
 }
 
 /**

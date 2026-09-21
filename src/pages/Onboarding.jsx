@@ -19,7 +19,7 @@ function normalizeAnnualGoal(value) {
 
 function Onboarding() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, updatePreferences } = useAuth()
 
   const [currentStep, setCurrentStep] = useState(0)
   const [favoriteGenres, setFavoriteGenres] = useState([])
@@ -113,11 +113,12 @@ function Onboarding() {
     setIsSaving(true)
 
     try {
-      await saveOnboardingPreferences(
+      const savedPreferences = await saveOnboardingPreferences(
         user.uid,
         favoriteGenres,
         normalizedAnnualGoal
       )
+      updatePreferences(savedPreferences)
       navigate('/')
     } catch (firebaseError) {
       console.error(firebaseError)
