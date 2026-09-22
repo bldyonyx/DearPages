@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { TEMPORARY_DISCOVER_PREFERENCES } from '../constants/discoverPreferences'
 import { getBooksBySubject } from '../services/booksApi'
 import { getTrendingBooksDetails } from '../services/trendingBooksApi'
 import {
@@ -17,16 +16,6 @@ const HOME_GOOGLE_CANDIDATE_POOL_SIZE = 40
 const HOME_TRENDING_CANDIDATE_POOL_SIZE = 100
 const EMPTY_EXCLUDED_BOOK_IDS = []
 
-/**
- * Keeps the home preview tied to the same temporary preference source as the
- * extended personalized view, so Firebase preferences can replace the constant
- * without changing the selection flow.
- */
-const HOME_PERSONALIZED_SUBJECT =
-  TEMPORARY_DISCOVER_PREFERENCES.find(
-    ({ subject }) => subject === 'mystery'
-  )?.subject || TEMPORARY_DISCOVER_PREFERENCES[0].subject
-
 function createSeenIdentitySetFromBooks(books) {
   const seenIdentityKeys = new Set()
 
@@ -42,14 +31,19 @@ function createSeenIdentitySetFromBooks(books) {
  * une selection indisponible ne bloque pas les autres, et la page affiche
  * un message de disponibilite partielle si au moins une requete echoue.
  *
- * @param {boolean} isSearchMode - Indique si la page affiche des resultats.
+ * @param {Object} options - Options de chargement de la home Discover.
+ * @param {boolean} options.isEnabled - Indique si la home Discover est active.
+ * @param {string} options.personalizedSubject - Subject Google Books pour l'aperçu personnalisé.
+ * @param {string} options.forYouCacheSignature - Signature des genres pour le cache For You.
  * @param {Iterable<string|Object>} [excludedBookIds] - Identifiants a exclure plus tard depuis la bibliotheque.
  * @returns {Object} Livres et etats de chargement de la vue Decouvrir.
  */
-function useDiscoverHomeBooks(
-  isSearchMode,
+function useDiscoverHomeBooks({
+  isEnabled,
+  personalizedSubject,
+  forYouCacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
-) {
+}) {
   const [forYouBooks, setForYouBooks] = useState([])
   const [trendingBooks, setTrendingBooks] = useState([])
   const [mustReadBooks, setMustReadBooks] = useState([])
@@ -88,13 +82,15 @@ function useDiscoverHomeBooks(
   }
 
   useEffect(() => {
-    if (isSearchMode) return
+    if (!isEnabled || !personalizedSubject) return
 
     let isActive = true
 
     function loadDiscoverBooks() {
       const savedForYouState = readRecommendationState(
-        RECOMMENDATION_STORAGE_KEYS.homeForYou
+        RECOMMENDATION_STORAGE_KEYS.homeForYou(
+          forYouCacheSignature
+        )
       )
       const savedTrendingState = readRecommendationState(
         RECOMMENDATION_STORAGE_KEYS.trending
@@ -173,7 +169,7 @@ function useDiscoverHomeBooks(
         savedForYouState
           ? Promise.resolve(savedForYouState.books)
           : getBooksBySubject(
-              HOME_PERSONALIZED_SUBJECT,
+              personalizedSubject,
               HOME_GOOGLE_CANDIDATE_POOL_SIZE,
               0
             ),
@@ -224,7 +220,9 @@ function useDiscoverHomeBooks(
         setForYouBooks(selectedForYouBooks)
         if (selectedForYouBooks.length) {
           writeRecommendationState(
-            RECOMMENDATION_STORAGE_KEYS.homeForYou,
+            RECOMMENDATION_STORAGE_KEYS.homeForYou(
+              forYouCacheSignature
+            ),
             {
               books: selectedForYouBooks,
               startIndex: forYouStartIndexRef.current,
@@ -321,7 +319,12 @@ function useDiscoverHomeBooks(
     return () => {
       isActive = false
     }
-  }, [isSearchMode, excludedBookIds])
+  }, [
+    isEnabled,
+    personalizedSubject,
+    forYouCacheSignature,
+    excludedBookIds,
+  ])
 
   async function refreshTrendingBooks() {
     if (isTrendingRefreshing) return

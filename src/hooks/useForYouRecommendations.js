@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { TEMPORARY_DISCOVER_PREFERENCES } from '../constants/discoverPreferences'
 import { getBooksBySubject } from '../services/booksApi'
 import {
   addBooksToIdentitySet,
@@ -13,10 +12,11 @@ import {
 
 const RECOMMENDATIONS_PER_GENRE = 5
 const CANDIDATE_POOL_SIZE = 40
+const MAX_REFRESH_WINDOW_ATTEMPTS = 4
 const EMPTY_EXCLUDED_BOOK_IDS = []
 
-function createInitialGenreState() {
-  return TEMPORARY_DISCOVER_PREFERENCES.reduce(
+function createInitialGenreState(preferences) {
+  return preferences.reduce(
     (state, preference) => ({
       ...state,
       [preference.subject]: {
@@ -39,23 +39,56 @@ function createSeenIdentitySetFromBooks(books) {
 }
 
 /**
+ * Persists the current genre shelf after a refresh attempt that advanced the
+ * Google Books cursor without finding displayable books.
+ *
+ * @param {string} cacheSignature - Signature des preferences Discover.
+ * @param {string} subject - Subject du genre concerne.
+ * @param {Array<Object>} books - Livres actuellement affiches.
+ * @param {number} startIndex - Prochain curseur Google Books a essayer.
+ * @param {Set<string>} seenIdentityKeys - Identites deja vues pour ce genre.
+ * @returns {void}
+ */
+function writeGenreState(
+  cacheSignature,
+  subject,
+  books,
+  startIndex,
+  seenIdentityKeys
+) {
+  writeRecommendationState(
+    RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+      cacheSignature,
+      subject
+    ),
+    {
+      books,
+      startIndex,
+      seenIdentityKeys,
+    }
+  )
+}
+
+/**
  * Charge les recommandations personnalisees de la vue etendue.
  *
- * Les preferences sont temporaires et centralisees ici pour pouvoir remplacer
- * plus tard ce tableau par les genres du profil Firebase sans changer le
- * composant d'affichage. Chaque genre conserve son propre `startIndex` afin
- * qu'un rafraichissement ne recharge que la section concernee.
+ * Chaque genre conserve son propre `startIndex` afin qu'un rafraichissement
+ * ne recharge que la section concernee.
  *
  * @param {boolean} isEnabled - Indique si la vue recommandations est active.
+ * @param {Array<{label: string, subject: string}>} preferences - Preferences Discover normalisees.
+ * @param {string} cacheSignature - Signature des genres pour isoler le cache For You.
  * @param {Iterable<string|Object>} [excludedBookIds] - Identifiants a exclure plus tard depuis la bibliotheque.
  * @returns {Object} Preferences, livres par genre et action de rafraichissement.
  */
 function useForYouRecommendations(
   isEnabled,
+  preferences,
+  cacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
 ) {
   const [genreState, setGenreState] = useState(
-    createInitialGenreState
+    () => createInitialGenreState(preferences)
   )
   const shownIdentityKeysByGenreRef = useRef({})
 
@@ -64,22 +97,25 @@ function useForYouRecommendations(
 
     let isActive = true
     const savedStateBySubject =
-      TEMPORARY_DISCOVER_PREFERENCES.reduce(
+      preferences.reduce(
         (state, { subject }) => ({
           ...state,
           [subject]: readRecommendationState(
-            RECOMMENDATION_STORAGE_KEYS.forYouGenre(subject)
+            RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+              cacheSignature,
+              subject
+            )
           ),
         }),
         {}
       )
     const preferencesToFetch =
-      TEMPORARY_DISCOVER_PREFERENCES.filter(
+      preferences.filter(
         ({ subject }) => !savedStateBySubject[subject]
       )
 
     shownIdentityKeysByGenreRef.current =
-      TEMPORARY_DISCOVER_PREFERENCES.reduce(
+      preferences.reduce(
         (state, { subject }) => ({
           ...state,
           [subject]: new Set(
@@ -89,7 +125,7 @@ function useForYouRecommendations(
         {}
       )
 
-    TEMPORARY_DISCOVER_PREFERENCES.forEach(({ subject }) => {
+    preferences.forEach(({ subject }) => {
       const savedState = savedStateBySubject[subject]
 
       if (!savedState) return
@@ -101,10 +137,10 @@ function useForYouRecommendations(
     })
 
     async function loadInitialRecommendations() {
-      setGenreState((currentState) => {
-        const nextState = { ...currentState }
+      setGenreState(() => {
+        const nextState = createInitialGenreState(preferences)
 
-        TEMPORARY_DISCOVER_PREFERENCES.forEach(
+        preferences.forEach(
           ({ subject }) => {
             const savedState = savedStateBySubject[subject]
 
@@ -164,10 +200,13 @@ function useForYouRecommendations(
 
           if (result.status === 'fulfilled' && books.length) {
             writeRecommendationState(
-              RECOMMENDATION_STORAGE_KEYS.forYouGenre(subject),
+              RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+                cacheSignature,
+                subject
+              ),
               {
                 books,
-                startIndex: CANDIDATE_POOL_SIZE,
+                startIndex: result.value.length,
                 seenIdentityKeys: shownIdentityKeys,
               }
             )
@@ -183,7 +222,7 @@ function useForYouRecommendations(
             startIndex:
               result.status === 'fulfilled' &&
               result.value.length > 0
-                ? CANDIDATE_POOL_SIZE
+                ? result.value.length
                 : 0,
           }
         })
@@ -197,15 +236,12 @@ function useForYouRecommendations(
     return () => {
       isActive = false
     }
-  }, [isEnabled, excludedBookIds])
+  }, [isEnabled, preferences, cacheSignature, excludedBookIds])
 
   async function refreshGenre(subject) {
     const currentGenre = genreState[subject]
 
     if (!currentGenre || currentGenre.isLoading) return
-
-    const requestedStartIndex = currentGenre.startIndex
-    const nextStartIndex = requestedStartIndex + CANDIDATE_POOL_SIZE
 
     setGenreState((currentState) => ({
       ...currentState,
@@ -217,46 +253,72 @@ function useForYouRecommendations(
     }))
 
     try {
-      const books = await getBooksBySubject(
-        subject,
-        CANDIDATE_POOL_SIZE,
-        requestedStartIndex
-      )
-      const shownIdentityKeys =
+      let requestedStartIndex = currentGenre.startIndex
+      let nextStartIndex = requestedStartIndex
+      let selectedBooks = []
+      let books = []
+      let didResetCycle = false
+      let shownIdentityKeys =
         shownIdentityKeysByGenreRef.current[subject] ||
         new Set()
-      const selectedBooks = selectRecommendationBooks(books, {
-        limit: RECOMMENDATIONS_PER_GENRE,
-        alreadyShownIdentityKeys: shownIdentityKeys,
-        excludedBookIds,
-        preferBooksWithCovers: true,
-      })
-      const shouldAdvanceStartIndex = books.length > 0
-      const shouldResetCycle = books.length === 0
 
-      if (shouldResetCycle) {
-        const resetSeenIdentityKeys =
-          createSeenIdentitySetFromBooks(currentGenre.books)
+      for (
+        let attempt = 0;
+        attempt < MAX_REFRESH_WINDOW_ATTEMPTS;
+        attempt += 1
+      ) {
+        books = await getBooksBySubject(
+          subject,
+          CANDIDATE_POOL_SIZE,
+          requestedStartIndex
+        )
 
+        if (books.length === 0) {
+          didResetCycle = true
+          shownIdentityKeys =
+            createSeenIdentitySetFromBooks(currentGenre.books)
+          shownIdentityKeysByGenreRef.current[subject] =
+            shownIdentityKeys
+          requestedStartIndex = 0
+          nextStartIndex = 0
+          continue
+        }
+
+        nextStartIndex = requestedStartIndex + books.length
+        selectedBooks = selectRecommendationBooks(books, {
+          limit: RECOMMENDATIONS_PER_GENRE,
+          alreadyShownIdentityKeys: shownIdentityKeys,
+          excludedBookIds,
+          preferBooksWithCovers: true,
+        })
+
+        if (selectedBooks.length) {
+          break
+        }
+
+        requestedStartIndex = nextStartIndex
+      }
+
+      if (selectedBooks.length) {
+        addBooksToIdentitySet(shownIdentityKeys, selectedBooks)
         shownIdentityKeysByGenreRef.current[subject] =
-          resetSeenIdentityKeys
+          shownIdentityKeys
+
         setGenreState((currentState) => ({
           ...currentState,
           [subject]: {
-            ...currentState[subject],
-            error:
-              'Aucune nouvelle suggestion disponible pour ce genre.',
+            books: selectedBooks,
+            error: '',
             isLoading: false,
-            startIndex: 0,
-          },
-        }))
-        writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.forYouGenre(subject),
-          {
-            books: currentGenre.books,
-            startIndex: 0,
-            seenIdentityKeys: resetSeenIdentityKeys,
+            startIndex: nextStartIndex,
           }
+        }))
+        writeGenreState(
+          cacheSignature,
+          subject,
+          selectedBooks,
+          nextStartIndex,
+          shownIdentityKeys
         )
         return
       }
@@ -264,41 +326,21 @@ function useForYouRecommendations(
       setGenreState((currentState) => ({
         ...currentState,
         [subject]: {
-          books: selectedBooks.length
-            ? selectedBooks
-            : currentState[subject].books,
-          error: selectedBooks.length
-            ? ''
+          ...currentState[subject],
+          error: didResetCycle
+            ? 'Nouveau cycle prepare pour ce genre.'
             : 'Aucune nouvelle suggestion disponible pour ce genre.',
           isLoading: false,
-          startIndex: selectedBooks.length || shouldAdvanceStartIndex
-            ? nextStartIndex
-            : currentState[subject].startIndex,
+          startIndex: nextStartIndex,
         },
       }))
-
-      if (selectedBooks.length) {
-        addBooksToIdentitySet(shownIdentityKeys, selectedBooks)
-        shownIdentityKeysByGenreRef.current[subject] =
-          shownIdentityKeys
-        writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.forYouGenre(subject),
-          {
-            books: selectedBooks,
-            startIndex: nextStartIndex,
-            seenIdentityKeys: shownIdentityKeys,
-          }
-        )
-      } else if (shouldAdvanceStartIndex) {
-        writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.forYouGenre(subject),
-          {
-            books: currentGenre.books,
-            startIndex: nextStartIndex,
-            seenIdentityKeys: shownIdentityKeys,
-          }
-        )
-      }
+      writeGenreState(
+        cacheSignature,
+        subject,
+        currentGenre.books,
+        nextStartIndex,
+        shownIdentityKeys
+      )
     } catch {
       setGenreState((currentState) => ({
         ...currentState,
@@ -312,7 +354,7 @@ function useForYouRecommendations(
   }
 
   return {
-    preferences: TEMPORARY_DISCOVER_PREFERENCES,
+    preferences,
     genreState,
     refreshGenre,
   }

@@ -1,20 +1,44 @@
+import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import DiscoverHome from '../components/discover/DiscoverHome'
 import DiscoverSearch from '../components/discover/DiscoverSearch'
 import ForYouRecommendations from '../components/discover/ForYouRecommendations'
 import SearchResults from '../components/discover/SearchResults'
 import HeaderActions from '../components/layout/HeaderActions'
-import { TEMPORARY_DISCOVER_PREFERENCE_LABELS } from '../constants/discoverPreferences'
+import { useAuth } from '../context/AuthContext'
 import useDiscoverHomeBooks from '../hooks/useDiscoverHomeBooks'
 import useDiscoverSearch from '../hooks/useDiscoverSearch'
+import {
+  createDiscoverPreferencesSignature,
+  normalizeDiscoverPreferences,
+} from '../utils/discoverPreferences'
 
 function Discover() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { user, preferences, isPreferencesLoading } = useAuth()
 
   const queryFromUrl = searchParams.get('q') || ''
   const isSearchMode = Boolean(queryFromUrl)
   const isForYouMode =
     searchParams.get('view') === 'for-you' && !isSearchMode
+  const discoverPreferences = useMemo(
+    () =>
+      normalizeDiscoverPreferences(preferences?.favoriteGenres),
+    [preferences]
+  )
+  const discoverPreferenceLabels = useMemo(
+    () =>
+      discoverPreferences.map(
+        (preference) => preference.label
+      ),
+    [discoverPreferences]
+  )
+  const discoverPreferencesSignature = useMemo(
+    () =>
+      createDiscoverPreferencesSignature(discoverPreferences),
+    [discoverPreferences]
+  )
+  const personalizedSubject = discoverPreferences[0].subject
 
   const {
     search,
@@ -41,7 +65,12 @@ function Discover() {
     isMustReadRefreshing,
     mustReadRefreshError,
     refreshMustReadBooks,
-  } = useDiscoverHomeBooks(isSearchMode || isForYouMode)
+  } = useDiscoverHomeBooks({
+    isEnabled:
+      !isSearchMode && !isForYouMode && !isPreferencesLoading,
+    personalizedSubject,
+    forYouCacheSignature: discoverPreferencesSignature,
+  })
 
   return (
     <div className="p-6">
@@ -63,7 +92,7 @@ function Discover() {
             </p>
           </div>
 
-          <HeaderActions />
+          <HeaderActions user={user} />
         </div>
       </header>
 
@@ -86,7 +115,7 @@ function Discover() {
           forYouBooks={forYouBooks}
           trendingBooks={trendingBooks}
           mustReadBooks={mustReadBooks}
-          preferences={TEMPORARY_DISCOVER_PREFERENCE_LABELS}
+          preferences={discoverPreferenceLabels}
           isLoading={isDiscoverLoading}
           error={discoverError}
           isTrendingRefreshing={isTrendingRefreshing}
@@ -99,7 +128,13 @@ function Discover() {
       )}
 
       {/* Mode recommandations personnalisees */}
-      {isForYouMode && <ForYouRecommendations />}
+      {isForYouMode && (
+        <ForYouRecommendations
+          preferences={discoverPreferences}
+          cacheSignature={discoverPreferencesSignature}
+          isEnabled={!isPreferencesLoading}
+        />
+      )}
 
       {/* Mode recherche */}
       {isSearchMode && (

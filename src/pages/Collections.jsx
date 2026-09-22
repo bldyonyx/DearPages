@@ -340,7 +340,10 @@ function Collections() {
               lg:justify-end
             "
           >
-            <HeaderActions className="order-1 md:flex-none lg:order-2" />
+            <HeaderActions
+              user={user}
+              className="order-1 md:flex-none lg:order-2"
+            />
 
             <div className="order-2 basis-full lg:order-1 lg:basis-auto">
               <button

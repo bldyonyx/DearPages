@@ -199,7 +199,7 @@ function MyLibrary() {
               )}
             </button>
 
-            <HeaderActions className="md:flex-none" />
+            <HeaderActions user={user} className="md:flex-none" />
           </div>
         </div>
 

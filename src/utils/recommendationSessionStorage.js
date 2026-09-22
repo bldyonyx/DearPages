@@ -1,10 +1,13 @@
 const STORAGE_PREFIX = 'booktracker:recommendations'
+const FOR_YOU_CACHE_VERSION = 'v4'
 
 export const RECOMMENDATION_STORAGE_KEYS = {
-  homeForYou: `${STORAGE_PREFIX}:discover:home-for-you`,
+  homeForYou: (signature) =>
+    `${STORAGE_PREFIX}:discover:home-for-you:${FOR_YOU_CACHE_VERSION}:${signature}`,
   trending: `${STORAGE_PREFIX}:discover:trending`,
   mustReads: `${STORAGE_PREFIX}:discover:must-reads`,
-  forYouGenre: (subject) => `${STORAGE_PREFIX}:for-you:${subject}`,
+  forYouGenre: (signature, subject) =>
+    `${STORAGE_PREFIX}:for-you:${FOR_YOU_CACHE_VERSION}:${signature}:${subject}`,
 }
 
 function getSessionStorage() {

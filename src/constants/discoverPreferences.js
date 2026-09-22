@@ -1,4 +1,4 @@
-export const TEMPORARY_DISCOVER_PREFERENCES = [
+export const FALLBACK_DISCOVER_PREFERENCES = [
   {
     label: 'Fantasy',
     subject: 'fantasy',
@@ -12,8 +12,3 @@ export const TEMPORARY_DISCOVER_PREFERENCES = [
     subject: 'classics',
   },
 ]
-
-export const TEMPORARY_DISCOVER_PREFERENCE_LABELS =
-  TEMPORARY_DISCOVER_PREFERENCES.map(
-    (preference) => preference.label
-  )

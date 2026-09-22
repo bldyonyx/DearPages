@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom'
 import flower from '../../assets/images/flower.png'
 
-function HeaderActions({ className = '' }) {
+function getDisplayName(user) {
+  return user?.displayName?.trim() || user?.email || 'lectrice'
+}
+
+function getAvatarInitial(displayName) {
+  return displayName.trim().charAt(0).toUpperCase() || '?'
+}
+
+function HeaderActions({ className = '', user = null }) {
+  const avatarInitial = getAvatarInitial(getDisplayName(user))
+
   return (
     <div
       className={[
@@ -54,7 +64,7 @@ function HeaderActions({ className = '' }) {
             md:h-10 md:w-10 md:text-lg
           "
         >
-          M
+          {avatarInitial}
         </span>
       </Link>
     </div>

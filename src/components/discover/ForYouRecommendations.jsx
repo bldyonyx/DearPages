@@ -2,12 +2,20 @@ import { Link } from 'react-router-dom'
 import BookCard from '../books/BookCard'
 import useForYouRecommendations from '../../hooks/useForYouRecommendations'
 
-function ForYouRecommendations() {
+function ForYouRecommendations({
+  preferences,
+  cacheSignature,
+  isEnabled,
+}) {
   const {
-    preferences,
+    preferences: discoverPreferences,
     genreState,
     refreshGenre,
-  } = useForYouRecommendations(true)
+  } = useForYouRecommendations(
+    isEnabled,
+    preferences,
+    cacheSignature
+  )
 
   return (
     <main className="mt-10 space-y-10">
@@ -36,7 +44,7 @@ function ForYouRecommendations() {
       </header>
 
       <div className="space-y-7 md:space-y-8">
-        {preferences.map(({ label, subject }, sectionIndex) => {
+        {discoverPreferences.map(({ label, subject }, sectionIndex) => {
           const currentGenre = genreState[subject]
           const books = currentGenre?.books || []
           const isLoading = Boolean(currentGenre?.isLoading)
