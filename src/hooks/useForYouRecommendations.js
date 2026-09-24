@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getBooksBySubject } from '../services/booksApi'
+import { getBooksBySubjectWindow } from '../services/booksApi'
 import {
   addBooksToIdentitySet,
   selectRecommendationBooks,
@@ -47,6 +47,7 @@ function createSeenIdentitySetFromBooks(books) {
  * @param {Array<Object>} books - Livres actuellement affiches.
  * @param {number} startIndex - Prochain curseur Google Books a essayer.
  * @param {Set<string>} seenIdentityKeys - Identites deja vues pour ce genre.
+ * @param {boolean} [isPoolExhausted=false] - Indique si Google n'a plus de fenetre exploitable.
  * @returns {void}
  */
 function writeGenreState(
@@ -54,7 +55,8 @@ function writeGenreState(
   subject,
   books,
   startIndex,
-  seenIdentityKeys
+  seenIdentityKeys,
+  isPoolExhausted = false
 ) {
   writeRecommendationState(
     RECOMMENDATION_STORAGE_KEYS.forYouGenre(
@@ -65,8 +67,100 @@ function writeGenreState(
       books,
       startIndex,
       seenIdentityKeys,
+      isPoolExhausted,
     }
   )
+}
+
+function shouldFetchGenreRecommendations(savedState) {
+  if (!savedState) return true
+
+  return (
+    savedState.books.length < RECOMMENDATIONS_PER_GENRE &&
+    !savedState.isPoolExhausted
+  )
+}
+
+async function fetchRecommendationBatch({
+  subject,
+  startIndex = 0,
+  limit = RECOMMENDATIONS_PER_GENRE,
+  shownIdentityKeys = new Set(),
+  excludedBookIds,
+  currentBooks = [],
+}) {
+  if (limit <= 0) {
+    return {
+      books: [],
+      didResetCycle: false,
+      isPoolExhausted: false,
+      seenIdentityKeys: shownIdentityKeys,
+      startIndex,
+    }
+  }
+
+  let requestedStartIndex = startIndex
+  let nextStartIndex = startIndex
+  let selectedBooks = []
+  let candidateBooks = []
+  let didResetCycle = false
+  let didReachEnd = false
+  let activeShownIdentityKeys = shownIdentityKeys
+
+  for (
+    let attempt = 0;
+    attempt < MAX_REFRESH_WINDOW_ATTEMPTS;
+    attempt += 1
+  ) {
+    const {
+      books,
+      returnedCount,
+      nextStartIndex: windowNextStartIndex,
+    } = await getBooksBySubjectWindow(
+      subject,
+      CANDIDATE_POOL_SIZE,
+      requestedStartIndex
+    )
+
+    if (returnedCount === 0) {
+      didReachEnd = true
+
+      if (requestedStartIndex === 0) {
+        break
+      }
+
+      didResetCycle = true
+      activeShownIdentityKeys =
+        createSeenIdentitySetFromBooks(currentBooks)
+      requestedStartIndex = 0
+      nextStartIndex = 0
+      continue
+    }
+
+    candidateBooks = [...candidateBooks, ...books]
+    nextStartIndex = windowNextStartIndex
+    selectedBooks = selectRecommendationBooks(candidateBooks, {
+      limit,
+      alreadyShownIdentityKeys: activeShownIdentityKeys,
+      excludedBookIds,
+      preferBooksWithCovers: true,
+    })
+
+    if (selectedBooks.length >= limit) {
+      break
+    }
+
+    requestedStartIndex = windowNextStartIndex
+  }
+
+  return {
+    books: selectedBooks,
+    didResetCycle,
+    isPoolExhausted:
+      didReachEnd && selectedBooks.length < limit,
+    seenIdentityKeys: activeShownIdentityKeys,
+    startIndex: nextStartIndex,
+  }
 }
 
 /**
@@ -111,7 +205,10 @@ function useForYouRecommendations(
       )
     const preferencesToFetch =
       preferences.filter(
-        ({ subject }) => !savedStateBySubject[subject]
+        ({ subject }) =>
+          shouldFetchGenreRecommendations(
+            savedStateBySubject[subject]
+          )
       )
 
     shownIdentityKeysByGenreRef.current =
@@ -150,7 +247,8 @@ function useForYouRecommendations(
                 ? savedState.books
                 : nextState[subject].books,
               error: '',
-              isLoading: !savedState,
+              isLoading:
+                shouldFetchGenreRecommendations(savedState),
               startIndex: savedState
                 ? savedState.startIndex
                 : nextState[subject].startIndex,
@@ -165,12 +263,24 @@ function useForYouRecommendations(
 
       const results = await Promise.allSettled(
         preferencesToFetch.map(
-          ({ subject }) =>
-            getBooksBySubject(
+          ({ subject }) => {
+            const savedState = savedStateBySubject[subject]
+            const shownIdentityKeys =
+              shownIdentityKeysByGenreRef.current[subject] ||
+              new Set()
+            const remainingBookCount =
+              RECOMMENDATIONS_PER_GENRE -
+              (savedState?.books.length || 0)
+
+            return fetchRecommendationBatch({
               subject,
-              CANDIDATE_POOL_SIZE,
-              0
-            )
+              startIndex: savedState?.startIndex || 0,
+              limit: remainingBookCount,
+              shownIdentityKeys,
+              excludedBookIds,
+              currentBooks: savedState?.books || [],
+            })
+          }
         )
       )
 
@@ -181,22 +291,26 @@ function useForYouRecommendations(
 
         results.forEach((result, index) => {
           const { subject } = preferencesToFetch[index]
+          const savedState = savedStateBySubject[subject]
           const shownIdentityKeys =
             shownIdentityKeysByGenreRef.current[subject] ||
             new Set()
-          const books =
+          const fetchedBooks =
             result.status === 'fulfilled'
-              ? selectRecommendationBooks(result.value, {
-                  limit: RECOMMENDATIONS_PER_GENRE,
-                  alreadyShownIdentityKeys: shownIdentityKeys,
-                  excludedBookIds,
-                  preferBooksWithCovers: true,
-                })
+              ? result.value.books
               : []
+          const books = [
+            ...(savedState?.books || []),
+            ...fetchedBooks,
+          ].slice(0, RECOMMENDATIONS_PER_GENRE)
+          const nextShownIdentityKeys =
+            result.status === 'fulfilled'
+              ? result.value.seenIdentityKeys
+              : shownIdentityKeys
 
-          addBooksToIdentitySet(shownIdentityKeys, books)
+          addBooksToIdentitySet(nextShownIdentityKeys, books)
           shownIdentityKeysByGenreRef.current[subject] =
-            shownIdentityKeys
+            nextShownIdentityKeys
 
           if (result.status === 'fulfilled' && books.length) {
             writeRecommendationState(
@@ -206,8 +320,10 @@ function useForYouRecommendations(
               ),
               {
                 books,
-                startIndex: result.value.length,
-                seenIdentityKeys: shownIdentityKeys,
+                startIndex: result.value.startIndex,
+                seenIdentityKeys:
+                  shownIdentityKeysByGenreRef.current[subject],
+                isPoolExhausted: result.value.isPoolExhausted,
               }
             )
           }
@@ -220,10 +336,9 @@ function useForYouRecommendations(
                 : '',
             isLoading: false,
             startIndex:
-              result.status === 'fulfilled' &&
-              result.value.length > 0
-                ? result.value.length
-                : 0,
+              result.status === 'fulfilled'
+                ? result.value.startIndex
+                : savedState?.startIndex || 0,
           }
         })
 
@@ -253,51 +368,24 @@ function useForYouRecommendations(
     }))
 
     try {
-      let requestedStartIndex = currentGenre.startIndex
-      let nextStartIndex = requestedStartIndex
-      let selectedBooks = []
-      let books = []
-      let didResetCycle = false
       let shownIdentityKeys =
         shownIdentityKeysByGenreRef.current[subject] ||
         new Set()
+      const {
+        books: selectedBooks,
+        didResetCycle,
+        isPoolExhausted,
+        seenIdentityKeys,
+        startIndex,
+      } = await fetchRecommendationBatch({
+        subject,
+        startIndex: currentGenre.startIndex,
+        shownIdentityKeys,
+        excludedBookIds,
+        currentBooks: currentGenre.books,
+      })
 
-      for (
-        let attempt = 0;
-        attempt < MAX_REFRESH_WINDOW_ATTEMPTS;
-        attempt += 1
-      ) {
-        books = await getBooksBySubject(
-          subject,
-          CANDIDATE_POOL_SIZE,
-          requestedStartIndex
-        )
-
-        if (books.length === 0) {
-          didResetCycle = true
-          shownIdentityKeys =
-            createSeenIdentitySetFromBooks(currentGenre.books)
-          shownIdentityKeysByGenreRef.current[subject] =
-            shownIdentityKeys
-          requestedStartIndex = 0
-          nextStartIndex = 0
-          continue
-        }
-
-        nextStartIndex = requestedStartIndex + books.length
-        selectedBooks = selectRecommendationBooks(books, {
-          limit: RECOMMENDATIONS_PER_GENRE,
-          alreadyShownIdentityKeys: shownIdentityKeys,
-          excludedBookIds,
-          preferBooksWithCovers: true,
-        })
-
-        if (selectedBooks.length) {
-          break
-        }
-
-        requestedStartIndex = nextStartIndex
-      }
+      shownIdentityKeys = seenIdentityKeys
 
       if (selectedBooks.length) {
         addBooksToIdentitySet(shownIdentityKeys, selectedBooks)
@@ -310,15 +398,16 @@ function useForYouRecommendations(
             books: selectedBooks,
             error: '',
             isLoading: false,
-            startIndex: nextStartIndex,
+            startIndex,
           }
         }))
         writeGenreState(
           cacheSignature,
           subject,
           selectedBooks,
-          nextStartIndex,
-          shownIdentityKeys
+          startIndex,
+          shownIdentityKeys,
+          isPoolExhausted
         )
         return
       }
@@ -331,15 +420,16 @@ function useForYouRecommendations(
             ? 'Nouveau cycle prepare pour ce genre.'
             : 'Aucune nouvelle suggestion disponible pour ce genre.',
           isLoading: false,
-          startIndex: nextStartIndex,
+          startIndex,
         },
       }))
       writeGenreState(
         cacheSignature,
         subject,
         currentGenre.books,
-        nextStartIndex,
-        shownIdentityKeys
+        startIndex,
+        shownIdentityKeys,
+        isPoolExhausted
       )
     } catch {
       setGenreState((currentState) => ({

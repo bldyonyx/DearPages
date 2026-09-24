@@ -598,6 +598,20 @@ export async function getBooksBySubject(
   maxResults = 10,
   startIndex = 0
 ) {
+  const { books } = await getBooksBySubjectWindow(
+    subject,
+    maxResults,
+    startIndex
+  )
+
+  return books
+}
+
+export async function getBooksBySubjectWindow(
+  subject,
+  maxResults = 10,
+  startIndex = 0
+) {
   const data = await getGoogleBooksData(
     `${BASE_URL}?q=${createSubjectQuery(
       subject
@@ -605,11 +619,15 @@ export async function getBooksBySubject(
     'Impossible de récupérer cette sélection de livres.'
   )
 
-  return (
-    data.items
-      ?.filter((item) => isRelevantSubjectBook(item, subject))
-      .map(formatBook) || []
-  )
+  const items = data.items || []
+
+  return {
+    books: items
+      .filter((item) => isRelevantSubjectBook(item, subject))
+      .map(formatBook),
+    returnedCount: items.length,
+    nextStartIndex: startIndex + items.length,
+  }
 }
 
 /**
