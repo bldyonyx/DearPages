@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   BOOK_STATUSES,
 } from '../../services/libraryService'
+import BookCover from '../books/BookCover'
 import StatusBadge from '../ui/StatusBadge'
 
 const statusOptions = [
@@ -16,11 +17,13 @@ function DashboardCover({
   book,
   isSelected,
 }) {
-  const [hasFailed, setHasFailed] = useState(false)
-  const shouldShowCover = Boolean(book.cover) && !hasFailed
-
   return (
-    <div
+    <BookCover
+      title={book.title}
+      cover={book.cover}
+      isbn={book.isbn}
+      source={book.source}
+      fallback="title"
       className={`
         aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
         transition-all duration-300
@@ -31,22 +34,8 @@ function DashboardCover({
             : 'opacity-80'
         }
       `}
-    >
-      {shouldShowCover ? (
-        <img
-          src={book.cover}
-          alt={`Couverture de ${book.title}`}
-          onError={() => setHasFailed(true)}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center p-4 text-center">
-          <span className="font-heading text-sm font-bold leading-snug text-darkwood">
-            {book.title}
-          </span>
-        </div>
-      )}
-    </div>
+      imageClassName="h-full w-full object-cover"
+    />
   )
 }
 

@@ -1,4 +1,5 @@
 import { fetchJsonOnce } from '../utils/inFlightRequest'
+import { getPreferredIsbn } from './coverUtils.js'
 
 const OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json'
 const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org'
@@ -54,17 +55,22 @@ export async function getTrendingBooksDetails(limit = 10) {
     throw new Error('Impossible de recuperer les tendances.')
   }
 
-  return (data.docs || []).map((book) => ({
-    id: book.key.replace('/works/', ''),
-    openLibraryId: book.key,
-    title: book.title || 'Titre inconnu',
-    authors: book.author_name || ['Auteur inconnu'],
-    isbn: book.isbn?.[0] || null,
-    isbns: book.isbn || [],
-    cover: book.cover_i
-      ? `${OPEN_LIBRARY_COVERS_URL}/${book.cover_i}-L.jpg?default=false`
-      : null,
-  }))
+  return (data.docs || []).map((book) => {
+    const isbns = book.isbn || []
+
+    return {
+      id: book.key.replace('/works/', ''),
+      openLibraryId: book.key,
+      title: book.title || 'Titre inconnu',
+      authors: book.author_name || ['Auteur inconnu'],
+      isbn: getPreferredIsbn(isbns),
+      isbns,
+      cover: book.cover_i
+        ? `${OPEN_LIBRARY_COVERS_URL}/${book.cover_i}-L.jpg?default=false`
+        : null,
+      source: 'open-library',
+    }
+  })
 }
 
 /**

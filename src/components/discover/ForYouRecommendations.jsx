@@ -132,6 +132,8 @@ function ForYouRecommendations({
                       title={book.title}
                       author={book.authors.join(', ')}
                       cover={book.cover}
+                      isbn={book.isbn}
+                      source={book.source}
                       coverLoading={
                         sectionIndex === 0 ? 'eager' : 'lazy'
                       }

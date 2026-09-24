@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react'
 
+import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
 
 const CATEGORY_TRANSLATIONS = {
@@ -147,33 +148,20 @@ function BookDetails({
             lg:mx-0
           "
         >
-          {book.cover ? (
-            <img
-              src={book.cover}
-              alt={`Couverture de ${book.title}`}
-              className="
-                aspect-2/3 w-full
-                rounded-[18px]
-                object-cover
-                shadow-md
-              "
-            />
-          ) : (
-            <div
-              className="
-                flex aspect-2/3
-                items-center justify-center
-                rounded-[18px]
-                bg-parchment
-                p-6 text-center
-                shadow-sm
-              "
-            >
-              <span className="font-heading text-xl text-darkwood">
-                {book.title}
-              </span>
-            </div>
-          )}
+          <BookCover
+            title={book.title}
+            cover={book.cover}
+            isbn={book.isbn}
+            source={book.source}
+            fallback="title"
+            coverLoading="eager"
+            className="
+              aspect-2/3 w-full
+              overflow-hidden rounded-[18px]
+              bg-parchment shadow-md
+            "
+            imageClassName="h-full w-full object-cover"
+          />
         </div>
 
         <div className="w-full min-w-0 flex-1">

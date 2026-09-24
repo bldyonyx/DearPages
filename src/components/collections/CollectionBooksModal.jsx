@@ -5,6 +5,7 @@ import {
   addBookToCollection,
   removeBookFromCollection,
 } from '../../services/collectionsService.js'
+import BookCover from '../books/BookCover.jsx'
 import Button from '../ui/Button.jsx'
 import Input from '../ui/Input.jsx'
 import Modal from '../ui/Modal.jsx'
@@ -228,19 +229,16 @@ function CollectionBooksModal({
                         bg-parchment
                       "
                     >
-                      {book.cover ? (
-                        <img
-                          src={book.cover}
-                          alt=""
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <span className="px-1 text-center font-heading text-xs font-bold text-darkwood">
-                          {book.title}
-                        </span>
-                      )}
+                      <BookCover
+                        title={book.title}
+                        cover={book.cover}
+                        isbn={book.isbn}
+                        source={book.source}
+                        fallback="title"
+                        className="h-full w-full"
+                        imageClassName="h-full w-full object-cover"
+                        titleClassName="px-1 text-center font-heading text-xs font-bold text-darkwood"
+                      />
                     </span>
 
                     <span className="min-w-0">

@@ -31,9 +31,12 @@ function createLibraryBook(book, status) {
     title: book.title,
     authors: book.authors,
     isbn: book.isbn || null,
+    isbns: book.isbns || [],
     cover: book.cover || null,
     categories: book.categories || [],
     publishedDate: book.publishedDate || '',
+    source: book.source || null,
+    openLibraryId: book.openLibraryId || null,
     status,
     addedAt: Date.now(),
   }

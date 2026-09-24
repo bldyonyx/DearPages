@@ -73,6 +73,8 @@ function SearchResults({
                     title={book.title}
                     author={book.authors.join(', ')}
                     cover={book.cover}
+                    isbn={book.isbn}
+                    source={book.source}
                   />
                 </div>
               ))}

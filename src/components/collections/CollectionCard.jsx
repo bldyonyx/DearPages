@@ -7,6 +7,8 @@ import {
   Trash2,
 } from 'lucide-react'
 
+import BookCover from '../books/BookCover.jsx'
+
 function getBookCount(collection) {
   return Object.keys(collection.books || {}).length
 }
@@ -24,33 +26,19 @@ function CollectionCoverPreview({ preview }) {
         shadow-sm
       "
     >
-      {book?.cover ? (
-        <img
-          src={book.cover}
-          alt={`Couverture de ${title}`}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <div
-          className="
-            flex h-full items-center justify-center
-            bg-cream/70 px-2 text-center
-          "
-        >
-          <span
-            className="
-              break-words font-heading
-              text-xs font-bold leading-tight
-              text-darkwood/75
-            "
-            style={{ overflowWrap: 'anywhere' }}
-          >
-            {title}
-          </span>
-        </div>
-      )}
+      <BookCover
+        title={title}
+        cover={book?.cover}
+        isbn={book?.isbn}
+        source={book?.source}
+        fallback="title"
+        className="h-full w-full"
+        imageClassName="h-full w-full object-cover"
+        titleClassName="
+          break-words font-heading text-xs font-bold
+          leading-tight text-darkwood/75
+        "
+      />
     </div>
   )
 }

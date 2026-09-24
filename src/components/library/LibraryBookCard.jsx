@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+
+import BookCover from '../books/BookCover.jsx'
 import StatusBadge from '../ui/StatusBadge.jsx'
 
 function LibraryBookCard({ book }) {
@@ -21,21 +23,15 @@ function LibraryBookCard({ book }) {
           group-hover:shadow-md
         "
       >
-        {book.cover ? (
-          <img
-            src={book.cover}
-            alt={`Couverture de ${book.title}`}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center p-5 text-center">
-            <span className="font-heading text-lg font-bold leading-snug text-darkwood">
-              {book.title}
-            </span>
-          </div>
-        )}
+        <BookCover
+          title={book.title}
+          cover={book.cover}
+          isbn={book.isbn}
+          source={book.source}
+          fallback="title"
+          className="h-full w-full"
+          imageClassName="h-full w-full object-cover"
+        />
       </div>
 
       <div className="flex flex-1 flex-col px-0.5 pt-3">

@@ -1,4 +1,9 @@
 import { fetchJsonOnce } from '../utils/inFlightRequest'
+import {
+  getBestGoogleCover,
+  getIndustryIdentifierIsbns,
+  getPreferredIsbn,
+} from './coverUtils.js'
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes'
 const API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
@@ -370,11 +375,10 @@ function cleanBookDescription(description = '') {
  */
 function formatBook(item) {
   const volumeInfo = item.volumeInfo || {}
-
-  const isbns =
-    volumeInfo.industryIdentifiers
-      ?.map((identifier) => identifier.identifier)
-      .filter(Boolean) || []
+  const isbns = getIndustryIdentifierIsbns(
+    volumeInfo.industryIdentifiers || []
+  )
+  const isbn = getPreferredIsbn(isbns)
 
   return {
     id: item.id,
@@ -382,17 +386,11 @@ function formatBook(item) {
     title: volumeInfo.title || 'Titre inconnu',
     subtitle: volumeInfo.subtitle || '',
     authors: volumeInfo.authors || ['Auteur inconnu'],
-    isbn: isbns[0] || null,
+    isbn,
     isbns,
 
     cover: normalizeGoogleBooksCoverUrl(
-      volumeInfo.imageLinks?.extraLarge ||
-        volumeInfo.imageLinks?.large ||
-        volumeInfo.imageLinks?.medium ||
-        volumeInfo.imageLinks?.small ||
-        volumeInfo.imageLinks?.thumbnail ||
-        volumeInfo.imageLinks?.smallThumbnail ||
-        null
+      getBestGoogleCover(volumeInfo.imageLinks || {})
     ),
 
     description: cleanBookDescription(
@@ -403,6 +401,7 @@ function formatBook(item) {
     publishedDate: volumeInfo.publishedDate || '',
     language: volumeInfo.language || '',
     printType: volumeInfo.printType || '',
+    source: 'google-books',
   }
 }
 

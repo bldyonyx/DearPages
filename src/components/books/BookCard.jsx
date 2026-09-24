@@ -1,100 +1,32 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
+
 import StatusBadge from '../ui/StatusBadge'
-
-function isGooglePlaceholderCover(coverUrl) {
-  if (!coverUrl) return false
-
-  try {
-    const urlText = new URL(coverUrl).toString().toLowerCase()
-
-    return (
-      urlText.includes('/googlebooks/images/no_cover') ||
-      urlText.includes('no_cover_thumb') ||
-      urlText.includes('image_not_available')
-    )
-  } catch {
-    return false
-  }
-}
+import BookCover from './BookCover.jsx'
 
 function BookCard({
   bookId,
   title,
   author,
   cover,
+  isbn,
+  source,
   status,
   coverLoading = 'eager',
 }) {
-  const [failedCover, setFailedCover] = useState(null)
-  const shouldShowCover =
-    Boolean(cover) &&
-    failedCover !== cover &&
-    !isGooglePlaceholderCover(cover)
-
   const coverContent = (
-    <div className="aspect-2/3 overflow-hidden rounded-xl bg-cream">
-      {shouldShowCover ? (
-        <img
-          src={cover}
-          alt={`Couverture de ${title}`}
-          loading={coverLoading}
-          decoding="async"
-          onError={() => setFailedCover(cover)}
-          className="
-            h-full w-full object-cover
-            transition-transform duration-200
-            group-hover:scale-[1.02]
-          "
-        />
-      ) : (
-        <div
-          className="
-            relative
-            flex h-full w-full
-            items-center justify-center
-           bg-sage/20
-            p-4
-          "
-        >
-          {/* Bordure intérieure façon couverture de livre */}
-          <div
-            className="
-              absolute inset-2
-              rounded-lg
-              border border-olive/20
-            "
-          />
-
-          {/* Contenu du fallback */}
-          <div className="relative text-center">
-            <span
-              aria-hidden="true"
-              className="
-                font-heading
-                text-3xl
-                text-olive/40
-              "
-            >
-              ♡
-            </span>
-
-            <p
-              className="
-                mt-3
-                font-ui text-[10px]
-                leading-relaxed
-                text-darkwood/40
-              "
-            >
-              Couverture
-              <br />
-              indisponible
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
+    <BookCover
+      title={title}
+      cover={cover}
+      isbn={isbn}
+      source={source}
+      coverLoading={coverLoading}
+      className="aspect-2/3 overflow-hidden rounded-xl bg-cream"
+      imageClassName="
+        h-full w-full object-cover
+        transition-transform duration-200
+        group-hover:scale-[1.02]
+      "
+    />
   )
 
   return (
