@@ -7,6 +7,8 @@ import {
 
 import { database } from './firebase.js'
 
+const MAX_ANNUAL_GOAL = 200
+
 function createCompletedOnboardingPreferences(
   favoriteGenres,
   annualGoal
@@ -124,6 +126,65 @@ export async function saveOnboardingPreferences(
   )
 
   await set(preferencesRef, preferences)
+
+  return preferences
+}
+
+/**
+ * Updates reading preferences from Settings without replacing the full
+ * preferences object, so onboardingCompleted and future fields are preserved.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {{ favoriteGenres?: string[], annualGoal?: number }} changes
+ * Reading preference fields to update.
+ * @returns {Promise<Object>} Partial preferences saved to Firebase.
+ * @throws {Error} If required user information is missing or changes are invalid.
+ */
+export async function updateReadingPreferences(userId, changes) {
+  if (!userId) {
+    throw new Error('Missing user information.')
+  }
+
+  if (!changes || Object.keys(changes).length === 0) {
+    throw new Error('Missing preference changes.')
+  }
+
+  const preferences = {
+    updatedAt: Date.now(),
+  }
+
+  if (Object.hasOwn(changes, 'favoriteGenres')) {
+    if (
+      !Array.isArray(changes.favoriteGenres) ||
+      changes.favoriteGenres.length === 0 ||
+      changes.favoriteGenres.some(
+        (genre) => typeof genre !== 'string'
+      )
+    ) {
+      throw new Error('Missing favorite genres.')
+    }
+
+    preferences.favoriteGenres = changes.favoriteGenres
+  }
+
+  if (Object.hasOwn(changes, 'annualGoal')) {
+    if (
+      !Number.isInteger(changes.annualGoal) ||
+      changes.annualGoal < 1 ||
+      changes.annualGoal > MAX_ANNUAL_GOAL
+    ) {
+      throw new Error('Invalid annual reading goal.')
+    }
+
+    preferences.annualGoal = changes.annualGoal
+  }
+
+  const preferencesRef = ref(
+    database,
+    `users/${userId}/preferences`
+  )
+
+  await update(preferencesRef, preferences)
 
   return preferences
 }
