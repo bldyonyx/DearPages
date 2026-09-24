@@ -52,7 +52,7 @@ export const AVAILABLE_GENRES = [
     subject: 'poetry',
   },
   {
-    label: 'Bandes dessinées',
+    label: 'Bandes dessinées & mangas',
     subject: 'comics',
   },
   {
