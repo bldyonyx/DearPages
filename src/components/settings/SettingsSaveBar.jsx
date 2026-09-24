@@ -6,39 +6,48 @@ function SettingsSaveBar({
   onSave,
   successMessage,
 }) {
+  let statusMessage = 'Tout est à jour.'
+
+  if (hasChanges) {
+    statusMessage =
+      'Des modifications sont prêtes à être enregistrées.'
+  }
+
+  if (successMessage) {
+    statusMessage = successMessage
+  }
+
+  if (error) {
+    statusMessage = error
+  }
+
+  if (isSaving) {
+    statusMessage = 'Enregistrement...'
+  }
+
+  const isStatusError = Boolean(error)
+  const isStatusSuccess = Boolean(successMessage) && !error
+
   return (
-    <section
+    <div
       className="
-        rounded-3xl border border-walnut/15
-        bg-cream/90 p-5 shadow-sm
-        sm:flex sm:items-center sm:justify-between
-        sm:gap-5 sm:p-6
+        border-t border-walnut/15 pt-5
+        sm:flex sm:items-center sm:justify-between sm:gap-5
       "
     >
       <div className="min-w-0">
-        <h2 className="font-heading text-2xl font-bold text-darkwood">
-          Modifications
-        </h2>
-
-        <p className="mt-2 text-sm font-semibold text-darkwood/60">
-          {hasChanges
-            ? 'Des changements attendent leur sauvegarde.'
-            : 'Tout est à jour.'}
+        <p
+          className={[
+            'text-sm font-bold',
+            isStatusError
+              ? 'text-walnut'
+              : isStatusSuccess
+                ? 'text-forest'
+                : 'text-darkwood/60',
+          ].join(' ')}
+        >
+          {statusMessage}
         </p>
-
-        <div className="mt-3 min-h-5">
-          {successMessage && (
-            <p className="text-sm font-bold text-forest">
-              {successMessage}
-            </p>
-          )}
-
-          {error && (
-            <p className="text-sm font-bold text-walnut">
-              {error}
-            </p>
-          )}
-        </div>
       </div>
 
       <button
@@ -57,7 +66,7 @@ function SettingsSaveBar({
       >
         {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
       </button>
-    </section>
+    </div>
   )
 }
 

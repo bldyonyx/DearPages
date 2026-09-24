@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom'
 import AccountCard from '../components/settings/AccountCard.jsx'
 import ProfileCard from '../components/settings/ProfileCard.jsx'
 import ReadingPreferencesCard from '../components/settings/ReadingPreferencesCard.jsx'
-import SettingsSaveBar from '../components/settings/SettingsSaveBar.jsx'
 import { AVAILABLE_GENRES } from '../constants/genres.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { logOut } from '../services/authService.js'
@@ -116,14 +115,24 @@ function Settings() {
     isPreferencesLoading || isSaving || !hasChanges || !user?.uid
 
   function toggleGenre(subject) {
-    setSaveError('')
     setSuccessMessage('')
 
-    setSelectedGenres((currentGenres) =>
-      currentGenres.includes(subject)
-        ? currentGenres.filter((genre) => genre !== subject)
-        : [...currentGenres, subject]
-    )
+    if (
+      selectedGenres.includes(subject) &&
+      selectedGenres.length === 1
+    ) {
+      setSaveError('Garde au moins un genre préféré.')
+      return
+    }
+
+    setSaveError('')
+    setSelectedGenres((currentGenres) => {
+      if (!currentGenres.includes(subject)) {
+        return [...currentGenres, subject]
+      }
+
+      return currentGenres.filter((genre) => genre !== subject)
+    })
   }
 
   function handleAnnualGoalChange(value) {
@@ -195,7 +204,7 @@ function Settings() {
       updatePreferences(nextPreferences)
       setOriginalGenres(selectedGenres)
       setOriginalAnnualGoal(normalizedAnnualGoal)
-      setSuccessMessage('Tes préférences ont été enregistrées.')
+      setSuccessMessage('Modifications enregistrées ♡')
     } catch (firebaseError) {
       console.error(firebaseError)
       setSaveError(
@@ -245,20 +254,17 @@ function Settings() {
 
           <ReadingPreferencesCard
             annualGoal={annualGoal}
+            saveError={saveError}
             goalError={goalError}
-            isLoading={isPreferencesLoading}
-            selectedGenres={selectedGenres}
-            onAnnualGoalChange={handleAnnualGoalChange}
-            onToggleGenre={toggleGenre}
-          />
-
-          <SettingsSaveBar
-            error={saveError}
             hasChanges={hasChanges}
-            isDisabled={isSaveDisabled}
+            isLoading={isPreferencesLoading}
+            isSaveDisabled={isSaveDisabled}
             isSaving={isSaving}
+            selectedGenres={selectedGenres}
             successMessage={successMessage}
+            onAnnualGoalChange={handleAnnualGoalChange}
             onSave={handleSave}
+            onToggleGenre={toggleGenre}
           />
 
           <AccountCard
