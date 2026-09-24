@@ -6,11 +6,15 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import AccountCard from '../components/settings/AccountCard.jsx'
+import AccountDeleteModal from '../components/settings/AccountDeleteModal.jsx'
 import ProfileCard from '../components/settings/ProfileCard.jsx'
 import ReadingPreferencesCard from '../components/settings/ReadingPreferencesCard.jsx'
 import { AVAILABLE_GENRES } from '../constants/genres.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { logOut } from '../services/authService.js'
+import {
+  deleteCurrentUserAccount,
+  logOut,
+} from '../services/authService.js'
 import { updateReadingPreferences } from '../services/preferencesService.js'
 
 const DEFAULT_ANNUAL_GOAL = 24
@@ -79,6 +83,11 @@ function Settings() {
   const [isSaving, setIsSaving] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] =
+    useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [isDeletingAccount, setIsDeletingAccount] =
+    useState(false)
 
   useEffect(() => {
     if (isPreferencesLoading) return
@@ -231,6 +240,46 @@ function Settings() {
     }
   }
 
+  function getDeleteAccountErrorMessage(firebaseError) {
+    if (firebaseError?.code === 'auth/requires-recent-login') {
+      return 'Reconnecte-toi avant de supprimer ton compte, puis reviens dans Paramètres.'
+    }
+
+    if (
+      firebaseError?.code === 'auth/wrong-password' ||
+      firebaseError?.code === 'auth/invalid-credential'
+    ) {
+      return 'Mot de passe incorrect. Vérifie-le avant de supprimer ton compte.'
+    }
+
+    if (firebaseError?.code === 'auth/popup-closed-by-user') {
+      return 'La confirmation Google a été fermée avant la suppression.'
+    }
+
+    if (firebaseError?.code === 'auth/user-mismatch') {
+      return 'Le compte confirmé ne correspond pas au compte Dear Pages connecté.'
+    }
+
+    return 'Impossible de supprimer ton compte pour le moment.'
+  }
+
+  async function handleDeleteAccount({ password } = {}) {
+    if (!user || isDeletingAccount) return
+
+    setDeleteError('')
+    setIsDeletingAccount(true)
+
+    try {
+      await deleteCurrentUserAccount(user, { password })
+      updatePreferences(null)
+      navigate('/login', { replace: true })
+    } catch (firebaseError) {
+      console.error(firebaseError)
+      setDeleteError(getDeleteAccountErrorMessage(firebaseError))
+      setIsDeletingAccount(false)
+    }
+  }
+
   return (
     <div className="p-6">
       <header className="py-4">
@@ -268,12 +317,30 @@ function Settings() {
           />
 
           <AccountCard
+            deleteError={deleteError}
             error={logoutError}
+            isDeletingAccount={isDeletingAccount}
             isLoggingOut={isLoggingOut}
+            onDeleteRequest={() => {
+              setDeleteError('')
+              setIsDeleteModalOpen(true)
+            }}
             onLogout={handleLogout}
           />
         </div>
       )}
+
+      <AccountDeleteModal
+        error={deleteError}
+        isDeleting={isDeletingAccount}
+        isOpen={isDeleteModalOpen}
+        user={user}
+        onClose={() => {
+          setDeleteError('')
+          setIsDeleteModalOpen(false)
+        }}
+        onDelete={handleDeleteAccount}
+      />
     </div>
   )
 }

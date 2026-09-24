@@ -1,13 +1,17 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
+  EmailAuthProvider,
   getAdditionalUserInfo,
   GoogleAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   updateProfile,
 } from 'firebase/auth'
-import { get, ref, set, update } from 'firebase/database'
+import { get, ref, remove, set, update } from 'firebase/database'
 import { auth, database } from './firebase.js'
 import { initializeOnboardingPreferences } from './preferencesService.js'
 
@@ -134,4 +138,59 @@ export async function signInWithGoogle() {
  */
 export async function logOut() {
   await signOut(auth)
+}
+
+async function reauthenticateForAccountDeletion(user, password = '') {
+  const providerIds = user.providerData.map(
+    (provider) => provider.providerId
+  )
+
+  if (providerIds.includes('password')) {
+    if (!user.email || !password) {
+      throw new Error('Missing password reauthentication data.')
+    }
+
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      password
+    )
+
+    await reauthenticateWithCredential(user, credential)
+    return
+  }
+
+  if (providerIds.includes(GoogleAuthProvider.PROVIDER_ID)) {
+    await reauthenticateWithPopup(user, googleProvider)
+    return
+  }
+
+  throw new Error('Unsupported reauthentication provider.')
+}
+
+/**
+ * Deletes the signed-in user's private RTDB data and Firebase Auth account.
+ *
+ * The user is reauthenticated first so `auth/requires-recent-login` is
+ * handled before deleting `users/{uid}`. With client-side Firebase only, this
+ * is the safest available order: RTDB rules still allow removing the private
+ * data while the account exists, then Auth deletion signs the user out.
+ *
+ * @param {import('firebase/auth').User} user - Current Firebase user.
+ * @param {{ password?: string }} [options] - Reauthentication details.
+ * @returns {Promise<void>}
+ */
+export async function deleteCurrentUserAccount(
+  user,
+  { password = '' } = {}
+) {
+  if (!user?.uid) {
+    throw new Error('Missing authenticated user.')
+  }
+
+  await reauthenticateForAccountDeletion(user, password)
+
+  const userRef = ref(database, `users/${user.uid}`)
+
+  await remove(userRef)
+  await deleteUser(user)
 }

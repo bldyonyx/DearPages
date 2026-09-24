@@ -1,6 +1,9 @@
 function AccountCard({
+  deleteError,
   error,
+  isDeletingAccount,
   isLoggingOut,
+  onDeleteRequest,
   onLogout,
 }) {
   return (
@@ -44,6 +47,44 @@ function AccountCard({
           {error}
         </p>
       )}
+
+      <div className="mt-6 border-t border-walnut/10 pt-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-ui text-sm font-bold text-darkwood">
+              Supprimer mon compte
+            </h3>
+
+            <p className="mt-1 max-w-xl font-ui text-sm leading-6 text-darkwood/60">
+              Supprime définitivement ton compte et toutes tes
+              données Dear Pages.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onDeleteRequest}
+            disabled={isDeletingAccount}
+            className="
+              w-full rounded-2xl border border-dustyrose/60
+              bg-dustyrose/35 px-5 py-3 font-ui text-sm
+              font-bold text-darkwood transition
+              hover:bg-dustyrose/55 focus-visible:outline-none
+              focus-visible:ring-2 focus-visible:ring-dustyrose/60
+              disabled:cursor-not-allowed disabled:opacity-50
+              sm:w-auto
+            "
+          >
+            Supprimer mon compte
+          </button>
+        </div>
+
+        {deleteError && (
+          <p className="mt-4 text-sm font-bold text-walnut">
+            {deleteError}
+          </p>
+        )}
+      </div>
     </section>
   )
 }
