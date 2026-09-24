@@ -69,6 +69,7 @@ function SearchResults({
               {books.map((book) => (
                 <div key={book.id} className="w-full max-w-40">
                   <BookCard
+                    book={book}
                     bookId={book.id}
                     title={book.title}
                     author={book.authors.join(', ')}

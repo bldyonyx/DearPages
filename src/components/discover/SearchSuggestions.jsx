@@ -39,6 +39,7 @@ function SearchSuggestions({ suggestions, isLoading }) {
         <Link
           key={book.id}
           to={`/books/${book.id}`}
+          state={{ book }}
           className="
             flex items-center gap-3
             border-b border-walnut/10

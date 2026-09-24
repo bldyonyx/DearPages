@@ -4,6 +4,7 @@ import StatusBadge from '../ui/StatusBadge'
 import BookCover from './BookCover.jsx'
 
 function BookCard({
+  book,
   bookId,
   title,
   author,
@@ -13,6 +14,29 @@ function BookCard({
   status,
   coverLoading = 'eager',
 }) {
+  const routeBook =
+    book ||
+    (bookId
+      ? {
+          id: bookId,
+          googleBooksId: bookId,
+          title,
+          authors: author ? [author] : ['Auteur inconnu'],
+          cover: cover || null,
+          isbn: isbn || null,
+          isbns: isbn ? [isbn] : [],
+          source: source || null,
+          status,
+        }
+      : null)
+  const linkState = routeBook
+    ? {
+        book: routeBook,
+        ...(routeBook.status
+          ? { libraryBook: routeBook }
+          : {}),
+      }
+    : undefined
   const coverContent = (
     <BookCover
       title={title}
@@ -34,6 +58,7 @@ function BookCard({
       {bookId ? (
         <Link
           to={`/books/${bookId}`}
+          state={linkState}
           className="group block"
           aria-label={`Voir ${title}`}
         >
@@ -48,6 +73,7 @@ function BookCard({
           <h3 className="line-clamp-3 wrap-break-word font-heading text-lg font-bold leading-tight text-darkwood">
             <Link
               to={`/books/${bookId}`}
+              state={linkState}
               className="transition-colors hover:text-walnut"
             >
               {title}

@@ -7,6 +7,10 @@ function LibraryBookCard({ book }) {
   return (
     <Link
       to={`/books/${book.googleBooksId}`}
+      state={{
+        book,
+        libraryBook: book,
+      }}
       className="
         group flex h-full min-w-0
         flex-col rounded-[20px]

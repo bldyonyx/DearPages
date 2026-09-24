@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 
 import BookDetails from '../components/books/BookDetails.jsx'
 import BookPersonalSpace from '../components/books/BookPersonalSpace.jsx'
@@ -62,15 +66,47 @@ async function getBookDetails(bookId) {
   return getBookById(bookId)
 }
 
+function getBookRouteId(book) {
+  return book?.googleBooksId || book?.id || null
+}
+
+function getRouteStateBook(routeState, bookId) {
+  const routeBook = routeState?.book
+
+  return getBookRouteId(routeBook) === bookId
+    ? routeBook
+    : null
+}
+
+function getRouteStateLibraryBook(routeState, bookId) {
+  const routeLibraryBook = routeState?.libraryBook
+
+  return getBookRouteId(routeLibraryBook) === bookId
+    ? routeLibraryBook
+    : null
+}
+
 function BookPage() {
   const { id } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const userId = user?.uid
+  const routeState = location.state
+  const routeBook = getRouteStateBook(routeState, id)
+  const routeLibraryBook = getRouteStateLibraryBook(
+    routeState,
+    id
+  )
 
-  const [book, setBook] = useState(null)
-  const [libraryBook, setLibraryBook] = useState(null)
+  const [book, setBook] = useState(routeBook)
+  const [libraryBook, setLibraryBook] =
+    useState(routeLibraryBook)
 
-  const [isLoading, setIsLoading] = useState(true)
+  const [isBookLoading, setIsBookLoading] =
+    useState(!routeBook)
+  const [isLibraryLoading, setIsLibraryLoading] =
+    useState(Boolean(userId))
   const [isSaving, setIsSaving] = useState(false)
   const [isRemoveModalOpen, setIsRemoveModalOpen] =
     useState(false)
@@ -81,22 +117,24 @@ function BookPage() {
   useEffect(() => {
     let isCancelled = false
 
-    async function loadBookPage() {
-      setIsLoading(true)
+    async function loadBookDetails() {
+      const optimisticBook = getRouteStateBook(
+        routeState,
+        id
+      )
+
+      setBook(optimisticBook)
+      setIsBookLoading(!optimisticBook)
       setError('')
 
       try {
-        const [bookData, storedBook] = await Promise.all([
-          getBookDetails(id),
-          user ? getLibraryBook(user.uid, id) : null,
-        ])
+        const bookData = await getBookDetails(id)
 
         if (isCancelled) {
           return
         }
 
         setBook(bookData)
-        setLibraryBook(storedBook)
       } catch (fetchError) {
         console.error(fetchError)
 
@@ -105,20 +143,69 @@ function BookPage() {
         }
       } finally {
         if (!isCancelled) {
-          setIsLoading(false)
+          setIsBookLoading(false)
         }
       }
     }
 
-    loadBookPage()
+    loadBookDetails()
 
     return () => {
       isCancelled = true
     }
-  }, [id, user])
+  }, [id, location.key, routeState])
+
+  useEffect(() => {
+    let isCancelled = false
+    const optimisticLibraryBook = getRouteStateLibraryBook(
+      routeState,
+      id
+    )
+
+    // Reset immediately so the previous book's private state never flashes.
+    setLibraryBook(optimisticLibraryBook)
+    setLibraryError('')
+
+    if (!userId) {
+      setIsLibraryLoading(false)
+      return () => {
+        isCancelled = true
+      }
+    }
+
+    async function loadLibraryBook() {
+      setIsLibraryLoading(true)
+
+      try {
+        const storedBook = await getLibraryBook(userId, id)
+
+        if (!isCancelled) {
+          setLibraryBook(storedBook)
+        }
+      } catch (firebaseError) {
+        console.error(firebaseError)
+
+        if (!isCancelled) {
+          setLibraryError(
+            'Impossible de charger ta bibliotheque pour ce livre.'
+          )
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLibraryLoading(false)
+        }
+      }
+    }
+
+    loadLibraryBook()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [id, location.key, routeState, userId])
 
   async function handleAddToLibrary() {
-    if (!user || !book) {
+    if (!userId || !book) {
       return
     }
 
@@ -127,13 +214,13 @@ function BookPage() {
 
     try {
       await addBookToLibrary(
-        user.uid,
+        userId,
         book,
         BOOK_STATUSES.TO_READ
       )
 
       const storedBook = await getLibraryBook(
-        user.uid,
+        userId,
         book.googleBooksId
       )
 
@@ -150,7 +237,7 @@ function BookPage() {
   }
 
   async function handleStatusChange(newStatus) {
-    if (!user || !book || !newStatus) {
+    if (!userId || !book || !newStatus) {
       return
     }
 
@@ -160,7 +247,7 @@ function BookPage() {
     try {
       if (libraryBook) {
         await updateBookStatus(
-          user.uid,
+          userId,
           book.googleBooksId,
           newStatus
         )
@@ -172,13 +259,13 @@ function BookPage() {
         }))
       } else {
         await addBookToLibrary(
-          user.uid,
+          userId,
           book,
           newStatus
         )
 
         const storedBook = await getLibraryBook(
-          user.uid,
+          userId,
           book.googleBooksId
         )
 
@@ -209,7 +296,7 @@ function BookPage() {
   }
 
   async function handleConfirmRemove() {
-    if (!user || !book || !libraryBook) {
+    if (!userId || !book || !libraryBook) {
       return
     }
 
@@ -218,7 +305,7 @@ function BookPage() {
 
     try {
       await removeBookFromLibrary(
-        user.uid,
+        userId,
         book.googleBooksId
       )
 
@@ -237,7 +324,7 @@ function BookPage() {
     }
   }
 
-  if (isLoading) {
+  if (isBookLoading && !book) {
     return (
       <main className="px-5 py-6 sm:px-7 lg:px-9">
         <p className="font-handwritten text-xl text-walnut">
@@ -247,7 +334,7 @@ function BookPage() {
     )
   }
 
-  if (error || !book) {
+  if (!book) {
     return (
       <main className="px-5 py-6 sm:px-7 lg:px-9">
         <p className="font-ui text-sm text-red-700">
@@ -292,6 +379,7 @@ function BookPage() {
         <BookDetails
           book={book}
           libraryBook={libraryBook}
+          isLibraryLoading={isLibraryLoading}
           isSaving={isSaving}
           libraryError={libraryError}
           statusOptions={STATUS_OPTIONS}
@@ -299,6 +387,12 @@ function BookPage() {
           onStatusChange={handleStatusChange}
           onRemoveFromLibrary={handleOpenRemoveModal}
         />
+
+        {error && (
+          <p className="mt-4 font-ui text-sm text-red-700">
+            {error}
+          </p>
+        )}
 
         {book.description && (
           <section className="mt-14 w-full max-w-4xl min-w-0">
@@ -325,13 +419,29 @@ function BookPage() {
           </section>
         )}
 
-        {libraryBook ? (
+        {libraryBook && userId ? (
           <BookPersonalSpace
-            userId={user.uid}
+            userId={userId}
             bookId={book.googleBooksId}
             libraryBook={libraryBook}
             onLibraryBookChange={setLibraryBook}
           />
+        ) : isLibraryLoading ? (
+          <section className="mt-14 w-full max-w-4xl min-w-0">
+            <p className="font-handwritten text-lg text-olive">
+              entre toi et les pages
+            </p>
+
+            <h2 className="font-heading text-3xl font-bold text-darkwood">
+              Mon espace
+            </h2>
+
+            <div className="mt-3 h-px w-full bg-walnut/15" />
+
+            <p className="mt-5 font-ui text-sm text-walnut">
+              Chargement de ton espace...
+            </p>
+          </section>
         ) : (
           <section className="mt-14 w-full max-w-4xl min-w-0">
             <p className="font-handwritten text-lg text-olive">

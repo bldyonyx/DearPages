@@ -74,6 +74,10 @@ function CollectionBookCard({
 
       <Link
         to={`/books/${bookId}`}
+        state={{
+          book,
+          libraryBook: book,
+        }}
         className="
           flex h-full min-w-0
           flex-col rounded-[20px]

@@ -117,6 +117,7 @@ function ForYouSection({
             `}
           >
             <BookCard
+              book={book}
               bookId={book.id}
               title={book.title}
               author={book.authors.join(', ')}

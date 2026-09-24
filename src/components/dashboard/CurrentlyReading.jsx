@@ -153,6 +153,10 @@ function CurrentlyReading({
           <div className="mt-5 flex flex-wrap items-start gap-2">
             <Link
               to={`/books/${currentBook.googleBooksId}`}
+              state={{
+                book: currentBook,
+                libraryBook: currentBook,
+              }}
               className="rounded-full bg-darkwood px-4 py-2 font-ui text-xs font-bold text-cream transition-transform hover:-translate-y-0.5"
             >
               Voir la fiche

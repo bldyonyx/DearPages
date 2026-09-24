@@ -36,6 +36,7 @@ function RecentlyAdded({ books }) {
               className="w-36 shrink-0 sm:w-40 lg:mx-auto lg:w-full lg:max-w-40"
             >
               <BookCard
+                book={book}
                 bookId={book.googleBooksId}
                 title={book.title}
                 author={book.authors?.join(', ')}

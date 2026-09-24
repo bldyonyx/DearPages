@@ -103,6 +103,7 @@ function getTitleSize(title = '') {
 function BookDetails({
   book,
   libraryBook,
+  isLibraryLoading = false,
   isSaving,
   libraryError,
   statusOptions,
@@ -115,6 +116,8 @@ function BookDetails({
   )
 
   const titleSize = getTitleSize(book.title)
+  const isLibraryActionDisabled =
+    isSaving || isLibraryLoading
 
   return (
     <section
@@ -237,7 +240,7 @@ function BookDetails({
                 <button
                   type="button"
                   onClick={onAddToLibrary}
-                  disabled={isSaving}
+                  disabled={isLibraryActionDisabled}
                   className="
                     w-full rounded-2xl
                     bg-lime
@@ -251,7 +254,9 @@ function BookDetails({
                     disabled:opacity-60
                   "
                 >
-                  {isSaving
+                  {isLibraryLoading
+                    ? 'Chargement...'
+                    : isSaving
                     ? 'Ajout...'
                     : '+ Ajouter à ma bibliothèque'}
                 </button>
@@ -272,7 +277,7 @@ function BookDetails({
                   <BookStatusSelect
                     value=""
                     options={statusOptions}
-                    disabled={isSaving}
+                    disabled={isLibraryActionDisabled}
                     onChange={onStatusChange}
                   />
                 </div>
@@ -308,7 +313,7 @@ function BookDetails({
                       <BookStatusSelect
                         value={libraryBook.status}
                         options={statusOptions}
-                        disabled={isSaving}
+                        disabled={isLibraryActionDisabled}
                         onChange={onStatusChange}
                       />
                     </div>
@@ -316,7 +321,7 @@ function BookDetails({
                     <button
                       type="button"
                       onClick={onRemoveFromLibrary}
-                      disabled={isSaving}
+                      disabled={isLibraryActionDisabled}
                       className="
                         inline-flex w-full shrink-0
                         items-center justify-center
