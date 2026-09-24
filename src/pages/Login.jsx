@@ -11,6 +11,7 @@ import AuthLayout from '../components/auth/AuthLayout.jsx'
 import GoogleIcon from '../components/auth/GoogleIcon.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import {
+  getEmailSignInErrorMessage,
   signInWithEmail,
   signInWithGoogle,
 } from '../services/authService.js'
@@ -36,7 +37,7 @@ function Login() {
       navigate('/')
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError('E-mail ou mot de passe incorrect.')
+      setError(getEmailSignInErrorMessage(firebaseError))
     } finally {
       setIsLoading(false)
     }

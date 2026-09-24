@@ -100,6 +100,34 @@ export async function signInWithEmail(email, password) {
 }
 
 /**
+ * Returns a French login error message without inferring details Firebase does
+ * not reliably expose when email enumeration protection is enabled.
+ *
+ * @param {{ code?: string }} firebaseError
+ * @returns {string}
+ */
+export function getEmailSignInErrorMessage(firebaseError) {
+  switch (firebaseError?.code) {
+    case 'auth/user-not-found':
+      return 'Aucun compte n’existe avec cette adresse e-mail.'
+    case 'auth/wrong-password':
+      return 'Mot de passe incorrect.'
+    case 'auth/invalid-email':
+      return 'Adresse e-mail invalide.'
+    case 'auth/user-disabled':
+      return 'Ce compte a été désactivé.'
+    case 'auth/too-many-requests':
+      return 'Trop de tentatives. Réessaie dans quelques minutes.'
+    case 'auth/network-request-failed':
+      return 'Connexion impossible. Vérifie ta connexion internet.'
+    case 'auth/invalid-credential':
+      return 'E-mail ou mot de passe incorrect.'
+    default:
+      return 'Impossible de se connecter pour le moment.'
+  }
+}
+
+/**
  * Signs in with Google and creates or updates
  * the user's Dear Pages profile.
  *
