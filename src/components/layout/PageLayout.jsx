@@ -5,7 +5,7 @@ import stripesBrown from '../../assets/textures/stripes-brown.jpg'
 import stripesBrownWide from '../../assets/textures/stripes-brown-wide.jpg'
 
 import MobileNav from './MobileNav'
-import Sidebar from './Sidebar'
+import Sidebar from './sidebar/Sidebar'
 
 function PageLayout() {
   return (
@@ -83,7 +83,7 @@ function PageLayout() {
           [@media(min-height:1000px)]:lg:ml-80
           [@media(min-height:1000px)]:lg:w-[calc(100%-20rem)]
 
-          [@media(min-height:1200px)]:lg:ml-[22rem]
+          [@media(min-height:1200px)]:lg:ml-88
           [@media(min-height:1200px)]:lg:w-[calc(100%-22rem)]
 
           [@media(min-height:1400px)]:lg:ml-96
