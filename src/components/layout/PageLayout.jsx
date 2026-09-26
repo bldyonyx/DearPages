@@ -1,9 +1,9 @@
+import { BookOpen, Settings } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import greenBackground from '../../assets/textures/green-bg.jpg'
 import stripesBrown from '../../assets/textures/stripes-brown.jpg'
 import stripesBrownWide from '../../assets/textures/stripes-brown-wide.jpg'
-
 import MobileNav from './MobileNav'
 import Sidebar from './sidebar/Sidebar'
 
@@ -25,15 +25,22 @@ function PageLayout() {
     >
       <Sidebar />
 
-      {/* Header mobile + tablette portrait */}
-      <div
+      {/* Mobile + tablette header */}
+      <header
         className="
           fixed left-0 top-0 z-20
-          flex h-14 w-full
-          items-center justify-between gap-3
+          flex h-16 w-full
+          items-center justify-between
+
           border-b border-walnut/20
-          bg-darkwood bg-cover bg-center bg-no-repeat
-          px-4 text-cream
+
+          bg-darkwood
+          bg-cover
+          bg-center
+          bg-no-repeat
+
+          px-5
+          text-cream
 
           lg:hidden
         "
@@ -41,31 +48,60 @@ function PageLayout() {
       >
         <NavLink
           to="/"
+          aria-label="Dear Pages — Accueil"
           className="
-            min-w-0 truncate
-            font-heading
-            text-xl
-            font-bold
+            flex min-w-0
+            items-center
+            gap-2.5
             text-cream
           "
         >
-          Dear Pages
+          <BookOpen
+            aria-hidden="true"
+            className="
+              size-5
+              shrink-0
+              text-dustyrose
+            "
+            strokeWidth={1.8}
+          />
+
+          <span
+            className="
+              truncate
+              font-heading
+              text-[22px]
+              font-semibold
+              leading-none
+            "
+          >
+            Dear Pages
+          </span>
         </NavLink>
 
         <NavLink
           to="/settings"
+          aria-label="Paramètres"
+          title="Paramètres"
           className={({ isActive }) =>
             [
-              'shrink-0 rounded-md px-3 py-2 text-xs font-bold transition-colors',
+              'flex size-10 shrink-0',
+              'items-center justify-center',
+              'rounded-full',
+              'transition-colors',
               isActive
-                ? 'bg-lime text-ink shadow-sm'
-                : 'text-cream hover:text-lime',
+                ? 'bg-lime text-ink'
+                : 'text-cream hover:bg-cream/10 hover:text-lime',
             ].join(' ')
           }
         >
-          Paramètres
+          <Settings
+            aria-hidden="true"
+            className="size-5"
+            strokeWidth={1.8}
+          />
         </NavLink>
-      </div>
+      </header>
 
       {/* Page content */}
       <main
@@ -73,26 +109,19 @@ function PageLayout() {
           w-full
           min-w-0
           overflow-x-hidden
-          pt-14
+
+          pt-16
           text-darkwood
 
           lg:ml-72
           lg:w-[calc(100%-18rem)]
           lg:p-4
-
-          [@media(min-height:1000px)]:lg:ml-80
-          [@media(min-height:1000px)]:lg:w-[calc(100%-20rem)]
-
-          [@media(min-height:1200px)]:lg:ml-88
-          [@media(min-height:1200px)]:lg:w-[calc(100%-22rem)]
-
-          [@media(min-height:1400px)]:lg:ml-96
-          [@media(min-height:1400px)]:lg:w-[calc(100%-24rem)]
+          lg:pt-4
         "
       >
         <div
           className="
-            min-h-[calc(100vh-3.5rem)]
+            min-h-[calc(100vh-4rem)]
             w-full
             min-w-0
 
