@@ -35,6 +35,8 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
       return
     }
 
+    let isActive = true
+
     async function loadBooks() {
       try {
         setIsLoading(true)
@@ -42,16 +44,26 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
 
         const results = await searchBooks(queryFromUrl)
 
-        setBooks(results)
+        if (isActive) {
+          setBooks(results)
+        }
       } catch (err) {
-        setError(err.message)
-        setBooks([])
+        if (isActive) {
+          setError(err.message)
+          setBooks([])
+        }
       } finally {
-        setIsLoading(false)
+        if (isActive) {
+          setIsLoading(false)
+        }
       }
     }
 
     loadBooks()
+
+    return () => {
+      isActive = false
+    }
   }, [queryFromUrl])
 
   useEffect(() => {

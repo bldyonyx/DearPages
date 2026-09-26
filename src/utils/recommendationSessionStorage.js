@@ -1,13 +1,27 @@
 const STORAGE_PREFIX = 'booktracker:recommendations'
 const FOR_YOU_CACHE_VERSION = 'v4'
 
+function getUserStorageScope(userId) {
+  return `user:${userId}`
+}
+
 export const RECOMMENDATION_STORAGE_KEYS = {
-  homeForYou: (signature) =>
-    `${STORAGE_PREFIX}:discover:home-for-you:${FOR_YOU_CACHE_VERSION}:${signature}`,
-  trending: `${STORAGE_PREFIX}:discover:trending`,
-  mustReads: `${STORAGE_PREFIX}:discover:must-reads`,
-  forYouGenre: (signature, subject) =>
-    `${STORAGE_PREFIX}:for-you:${FOR_YOU_CACHE_VERSION}:${signature}:${subject}`,
+  homeForYou: (userId, signature) =>
+    `${STORAGE_PREFIX}:${getUserStorageScope(
+      userId
+    )}:discover:home-for-you:${FOR_YOU_CACHE_VERSION}:${signature}`,
+  trending: (userId) =>
+    `${STORAGE_PREFIX}:${getUserStorageScope(
+      userId
+    )}:discover:trending`,
+  mustReads: (userId) =>
+    `${STORAGE_PREFIX}:${getUserStorageScope(
+      userId
+    )}:discover:must-reads`,
+  forYouGenre: (userId, signature, subject) =>
+    `${STORAGE_PREFIX}:${getUserStorageScope(
+      userId
+    )}:for-you:${FOR_YOU_CACHE_VERSION}:${signature}:${subject}`,
 }
 
 function getSessionStorage() {

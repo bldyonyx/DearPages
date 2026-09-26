@@ -276,6 +276,52 @@ export async function removeBookFromCollection(
 }
 
 /**
+ * Removes a book reference from every collection owned by a user.
+ *
+ * This only cleans collection membership and does not remove the library book
+ * itself. Each write remains scoped to `users/{userId}/collections`.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} bookId - Book ID stored in the user's library.
+ * @returns {Promise<void>}
+ */
+export async function removeBookFromAllCollections(userId, bookId) {
+  if (!userId || !bookId) {
+    throw new Error('Missing user or book information.')
+  }
+
+  const collectionsRef = ref(
+    database,
+    `users/${userId}/collections`
+  )
+  const snapshot = await get(collectionsRef)
+
+  if (!snapshot.exists()) {
+    return
+  }
+
+  const updates = {}
+  const now = Date.now()
+
+  Object.entries(snapshot.val()).forEach(
+    ([collectionId, collection]) => {
+      if (!collection?.books?.[bookId]) {
+        return
+      }
+
+      updates[`${collectionId}/books/${bookId}`] = null
+      updates[`${collectionId}/updatedAt`] = now
+    }
+  )
+
+  if (Object.keys(updates).length === 0) {
+    return
+  }
+
+  await update(collectionsRef, updates)
+}
+
+/**
  * Removes every book reference from a collection.
  *
  * This keeps the collection itself and does not remove any book

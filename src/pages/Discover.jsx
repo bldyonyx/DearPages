@@ -67,7 +67,11 @@ function Discover() {
     refreshMustReadBooks,
   } = useDiscoverHomeBooks({
     isEnabled:
-      !isSearchMode && !isForYouMode && !isPreferencesLoading,
+      Boolean(user?.uid) &&
+      !isSearchMode &&
+      !isForYouMode &&
+      !isPreferencesLoading,
+    userId: user?.uid,
     personalizedSubject,
     forYouCacheSignature: discoverPreferencesSignature,
   })
@@ -130,9 +134,10 @@ function Discover() {
       {/* Mode recommandations personnalisees */}
       {isForYouMode && (
         <ForYouRecommendations
+          userId={user?.uid}
           preferences={discoverPreferences}
           cacheSignature={discoverPreferencesSignature}
-          isEnabled={!isPreferencesLoading}
+          isEnabled={Boolean(user?.uid) && !isPreferencesLoading}
         />
       )}
 

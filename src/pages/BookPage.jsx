@@ -86,6 +86,96 @@ function getRouteStateLibraryBook(routeState, bookId) {
     : null
 }
 
+function toSafeArray(value, fallback = []) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean)
+  }
+
+  return value ? [value] : fallback
+}
+
+function normalizeBookForPage(book) {
+  if (!book) {
+    return null
+  }
+
+  const routeId = getBookRouteId(book)
+  const isbns = toSafeArray(book.isbns)
+
+  return {
+    ...book,
+    id: book.id || routeId,
+    googleBooksId: book.googleBooksId || routeId,
+    authors: toSafeArray(book.authors, ['Auteur inconnu']),
+    categories: toSafeArray(book.categories),
+    isbn: book.isbn || isbns[0] || null,
+    isbns,
+    cover: book.cover || null,
+    source: book.source || null,
+  }
+}
+
+function hasUsefulAuthors(book) {
+  return (
+    Array.isArray(book?.authors) &&
+    book.authors.length > 0 &&
+    !(
+      book.authors.length === 1 &&
+      book.authors[0] === 'Auteur inconnu'
+    )
+  )
+}
+
+function mergeBookDetails(currentBook, nextBook) {
+  const normalizedNextBook = normalizeBookForPage(nextBook)
+
+  if (!normalizedNextBook) {
+    return normalizeBookForPage(currentBook)
+  }
+
+  const normalizedCurrentBook = normalizeBookForPage(currentBook)
+
+  if (!normalizedCurrentBook) {
+    return normalizedNextBook
+  }
+
+  const mergedBook = {
+    ...normalizedCurrentBook,
+    ...normalizedNextBook,
+  }
+
+  if (!nextBook.cover && normalizedCurrentBook.cover) {
+    mergedBook.cover = normalizedCurrentBook.cover
+  }
+
+  if (!nextBook.isbn && normalizedCurrentBook.isbn) {
+    mergedBook.isbn = normalizedCurrentBook.isbn
+  }
+
+  if (
+    !toSafeArray(nextBook.isbns).length &&
+    normalizedCurrentBook.isbns.length
+  ) {
+    mergedBook.isbns = normalizedCurrentBook.isbns
+  }
+
+  if (
+    !hasUsefulAuthors(nextBook) &&
+    hasUsefulAuthors(normalizedCurrentBook)
+  ) {
+    mergedBook.authors = normalizedCurrentBook.authors
+  }
+
+  if (
+    !toSafeArray(nextBook.categories).length &&
+    normalizedCurrentBook.categories.length
+  ) {
+    mergedBook.categories = normalizedCurrentBook.categories
+  }
+
+  return normalizeBookForPage(mergedBook)
+}
+
 function BookPage() {
   const { id } = useParams()
   const location = useLocation()
@@ -99,7 +189,9 @@ function BookPage() {
     id
   )
 
-  const [book, setBook] = useState(routeBook)
+  const [book, setBook] = useState(() =>
+    normalizeBookForPage(routeBook)
+  )
   const [libraryBook, setLibraryBook] =
     useState(routeLibraryBook)
 
@@ -123,7 +215,7 @@ function BookPage() {
         id
       )
 
-      setBook(optimisticBook)
+      setBook(normalizeBookForPage(optimisticBook))
       setIsBookLoading(!optimisticBook)
       setError('')
 
@@ -134,7 +226,9 @@ function BookPage() {
           return
         }
 
-        setBook(bookData)
+        setBook((currentBook) =>
+          mergeBookDetails(currentBook, bookData)
+        )
       } catch (fetchError) {
         console.error(fetchError)
 
@@ -246,17 +340,18 @@ function BookPage() {
 
     try {
       if (libraryBook) {
-        await updateBookStatus(
+        const updatedBook = await updateBookStatus(
           userId,
           book.googleBooksId,
           newStatus
         )
 
-        setLibraryBook((currentBook) => ({
-          ...currentBook,
-          status: newStatus,
-          updatedAt: Date.now(),
-        }))
+        if (updatedBook) {
+          setLibraryBook((currentBook) => ({
+            ...currentBook,
+            ...updatedBook,
+          }))
+        }
       } else {
         await addBookToLibrary(
           userId,

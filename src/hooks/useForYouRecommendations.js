@@ -42,6 +42,7 @@ function createSeenIdentitySetFromBooks(books) {
  * Persists the current genre shelf after a refresh attempt that advanced the
  * Google Books cursor without finding displayable books.
  *
+ * @param {string} userId - Firebase Authentication user ID.
  * @param {string} cacheSignature - Signature des preferences Discover.
  * @param {string} subject - Subject du genre concerne.
  * @param {Array<Object>} books - Livres actuellement affiches.
@@ -51,6 +52,7 @@ function createSeenIdentitySetFromBooks(books) {
  * @returns {void}
  */
 function writeGenreState(
+  userId,
   cacheSignature,
   subject,
   books,
@@ -60,6 +62,7 @@ function writeGenreState(
 ) {
   writeRecommendationState(
     RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+      userId,
       cacheSignature,
       subject
     ),
@@ -170,6 +173,7 @@ async function fetchRecommendationBatch({
  * ne recharge que la section concernee.
  *
  * @param {boolean} isEnabled - Indique si la vue recommandations est active.
+ * @param {string} userId - Firebase Authentication user ID.
  * @param {Array<{label: string, subject: string}>} preferences - Preferences Discover normalisees.
  * @param {string} cacheSignature - Signature des genres pour isoler le cache For You.
  * @param {Iterable<string|Object>} [excludedBookIds] - Identifiants a exclure plus tard depuis la bibliotheque.
@@ -177,6 +181,7 @@ async function fetchRecommendationBatch({
  */
 function useForYouRecommendations(
   isEnabled,
+  userId,
   preferences,
   cacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
@@ -187,7 +192,7 @@ function useForYouRecommendations(
   const shownIdentityKeysByGenreRef = useRef({})
 
   useEffect(() => {
-    if (!isEnabled) return
+    if (!isEnabled || !userId) return
 
     let isActive = true
     const savedStateBySubject =
@@ -196,6 +201,7 @@ function useForYouRecommendations(
           ...state,
           [subject]: readRecommendationState(
             RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+              userId,
               cacheSignature,
               subject
             )
@@ -315,6 +321,7 @@ function useForYouRecommendations(
           if (result.status === 'fulfilled' && books.length) {
             writeRecommendationState(
               RECOMMENDATION_STORAGE_KEYS.forYouGenre(
+                userId,
                 cacheSignature,
                 subject
               ),
@@ -351,7 +358,13 @@ function useForYouRecommendations(
     return () => {
       isActive = false
     }
-  }, [isEnabled, preferences, cacheSignature, excludedBookIds])
+  }, [
+    isEnabled,
+    userId,
+    preferences,
+    cacheSignature,
+    excludedBookIds,
+  ])
 
   async function refreshGenre(subject) {
     const currentGenre = genreState[subject]
@@ -402,6 +415,7 @@ function useForYouRecommendations(
           }
         }))
         writeGenreState(
+          userId,
           cacheSignature,
           subject,
           selectedBooks,
@@ -424,6 +438,7 @@ function useForYouRecommendations(
         },
       }))
       writeGenreState(
+        userId,
         cacheSignature,
         subject,
         currentGenre.books,

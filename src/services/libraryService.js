@@ -7,6 +7,7 @@ import {
 } from 'firebase/database'
 
 import { database } from './firebase.js'
+import { removeBookFromAllCollections } from './collectionsService.js'
 
 /**
  * Available reading statuses for books stored in Dear Pages.
@@ -197,6 +198,7 @@ export async function removeBookFromLibrary(userId, bookId) {
     `users/${userId}/library/${bookId}`
   )
 
+  await removeBookFromAllCollections(userId, bookId)
   await remove(bookRef)
 }
 

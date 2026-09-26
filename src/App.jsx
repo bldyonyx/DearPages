@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import PublicOnlyRoute from './components/auth/PublicOnlyRoute'
 import PageLayout from './components/layout/PageLayout'
 import BookPage from './pages/BookPage'
 import CollectionPage from './pages/CollectionPage'
@@ -33,8 +34,10 @@ function App() {
         <Route path="/onboarding" element={<Onboarding />} />
       </Route>
 
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<SignUp />} />
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+      </Route>
     </Routes>
   )
 }

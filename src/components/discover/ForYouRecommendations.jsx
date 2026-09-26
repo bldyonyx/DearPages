@@ -3,6 +3,7 @@ import BookCard from '../books/BookCard'
 import useForYouRecommendations from '../../hooks/useForYouRecommendations'
 
 function ForYouRecommendations({
+  userId,
   preferences,
   cacheSignature,
   isEnabled,
@@ -13,6 +14,7 @@ function ForYouRecommendations({
     refreshGenre,
   } = useForYouRecommendations(
     isEnabled,
+    userId,
     preferences,
     cacheSignature
   )

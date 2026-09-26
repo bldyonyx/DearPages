@@ -24,6 +24,26 @@ function createSeenIdentitySetFromBooks(books) {
   return seenIdentityKeys
 }
 
+function writeTrendingState(
+  userId,
+  {
+    books,
+    candidatePool,
+    seenIdentityKeys,
+    isPoolExhausted = false,
+  }
+) {
+  writeRecommendationState(
+    RECOMMENDATION_STORAGE_KEYS.trending(userId),
+    {
+      books,
+      seenIdentityKeys,
+      candidatePool,
+      isPoolExhausted,
+    }
+  )
+}
+
 /**
  * Charge les selections de la vue Decouvrir par defaut.
  *
@@ -33,6 +53,7 @@ function createSeenIdentitySetFromBooks(books) {
  *
  * @param {Object} options - Options de chargement de la home Discover.
  * @param {boolean} options.isEnabled - Indique si la home Discover est active.
+ * @param {string} options.userId - Firebase Authentication user ID.
  * @param {string} options.personalizedSubject - Subject Google Books pour l'aperçu personnalisé.
  * @param {string} options.forYouCacheSignature - Signature des genres pour le cache For You.
  * @param {Iterable<string|Object>} [excludedBookIds] - Identifiants a exclure plus tard depuis la bibliotheque.
@@ -40,6 +61,7 @@ function createSeenIdentitySetFromBooks(books) {
  */
 function useDiscoverHomeBooks({
   isEnabled,
+  userId,
   personalizedSubject,
   forYouCacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
@@ -67,36 +89,23 @@ function useDiscoverHomeBooks({
   const isTrendingPoolExhaustedRef = useRef(false)
   const mustReadShownIdentityKeysRef = useRef(new Set())
 
-  function writeTrendingState({
-    books = trendingBooks,
-    candidatePool = trendingCandidatePoolRef.current,
-    seenIdentityKeys = trendingShownIdentityKeysRef.current,
-    isPoolExhausted = isTrendingPoolExhaustedRef.current,
-  }) {
-    writeRecommendationState(RECOMMENDATION_STORAGE_KEYS.trending, {
-      books,
-      seenIdentityKeys,
-      candidatePool,
-      isPoolExhausted,
-    })
-  }
-
   useEffect(() => {
-    if (!isEnabled || !personalizedSubject) return
+    if (!isEnabled || !userId || !personalizedSubject) return
 
     let isActive = true
 
     function loadDiscoverBooks() {
       const savedForYouState = readRecommendationState(
         RECOMMENDATION_STORAGE_KEYS.homeForYou(
+          userId,
           forYouCacheSignature
         )
       )
       const savedTrendingState = readRecommendationState(
-        RECOMMENDATION_STORAGE_KEYS.trending
+        RECOMMENDATION_STORAGE_KEYS.trending(userId)
       )
       const savedMustReadState = readRecommendationState(
-        RECOMMENDATION_STORAGE_KEYS.mustReads
+        RECOMMENDATION_STORAGE_KEYS.mustReads(userId)
       )
 
       setIsDiscoverLoading(true)
@@ -221,6 +230,7 @@ function useDiscoverHomeBooks({
         if (selectedForYouBooks.length) {
           writeRecommendationState(
             RECOMMENDATION_STORAGE_KEYS.homeForYou(
+              userId,
               forYouCacheSignature
             ),
             {
@@ -257,7 +267,12 @@ function useDiscoverHomeBooks({
         )
         setTrendingBooks(selectedTrendingBooks)
         if (selectedTrendingBooks.length) {
-          writeTrendingState({ books: selectedTrendingBooks })
+          writeTrendingState(userId, {
+            books: selectedTrendingBooks,
+            candidatePool: trendingCandidatePoolRef.current,
+            seenIdentityKeys: trendingShownIdentityKeysRef.current,
+            isPoolExhausted: isTrendingPoolExhaustedRef.current,
+          })
         }
       } else {
         setTrendingBooks([])
@@ -287,7 +302,7 @@ function useDiscoverHomeBooks({
         setMustReadStartIndex(HOME_GOOGLE_CANDIDATE_POOL_SIZE)
         if (selectedMustReadBooks.length) {
           writeRecommendationState(
-            RECOMMENDATION_STORAGE_KEYS.mustReads,
+            RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
             {
               books: selectedMustReadBooks,
               startIndex: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
@@ -321,6 +336,7 @@ function useDiscoverHomeBooks({
     }
   }, [
     isEnabled,
+    userId,
     personalizedSubject,
     forYouCacheSignature,
     excludedBookIds,
@@ -360,7 +376,7 @@ function useDiscoverHomeBooks({
         trendingShownIdentityKeysRef.current = shownIdentityKeys
         setTrendingBooks(selectedBooks)
         setTrendingRefreshError('')
-        writeTrendingState({
+        writeTrendingState(userId, {
           books: selectedBooks,
           candidatePool,
           seenIdentityKeys: shownIdentityKeys,
@@ -371,7 +387,7 @@ function useDiscoverHomeBooks({
         setTrendingRefreshError(
           'Aucune nouvelle tendance disponible pour le moment.'
         )
-        writeTrendingState({
+        writeTrendingState(userId, {
           books: trendingBooks,
           candidatePool,
           seenIdentityKeys: shownIdentityKeys,
@@ -422,7 +438,7 @@ function useDiscoverHomeBooks({
         setMustReadStartIndex(nextStartIndex)
         setMustReadRefreshError('')
         writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.mustReads,
+          RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
           {
             books: selectedBooks,
             startIndex: nextStartIndex,
@@ -440,7 +456,7 @@ function useDiscoverHomeBooks({
           'Aucun nouvel incontournable disponible pour le moment.'
         )
         writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.mustReads,
+          RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
           {
             books: mustReadBooks,
             startIndex: 0,
@@ -454,7 +470,7 @@ function useDiscoverHomeBooks({
         if (shouldAdvanceStartIndex) {
           setMustReadStartIndex(nextStartIndex)
           writeRecommendationState(
-            RECOMMENDATION_STORAGE_KEYS.mustReads,
+            RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
             {
               books: mustReadBooks,
               startIndex: nextStartIndex,
