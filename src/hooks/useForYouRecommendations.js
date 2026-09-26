@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { getBooksBySubjectWindow } from '../services/booksApi'
-import {
-  addBooksToIdentitySet,
-  selectRecommendationBooks,
-} from '../utils/recommendationSelection'
+import { fetchRecommendationBatch } from '../utils/recommendationBatching'
+import { addBooksToIdentitySet } from '../utils/recommendationSelection'
 import {
   readRecommendationState,
   RECOMMENDATION_STORAGE_KEYS,
@@ -28,14 +25,6 @@ function createInitialGenreState(preferences) {
     }),
     {}
   )
-}
-
-function createSeenIdentitySetFromBooks(books) {
-  const seenIdentityKeys = new Set()
-
-  addBooksToIdentitySet(seenIdentityKeys, books)
-
-  return seenIdentityKeys
 }
 
 /**
@@ -82,88 +71,6 @@ function shouldFetchGenreRecommendations(savedState) {
     savedState.books.length < RECOMMENDATIONS_PER_GENRE &&
     !savedState.isPoolExhausted
   )
-}
-
-async function fetchRecommendationBatch({
-  subject,
-  startIndex = 0,
-  limit = RECOMMENDATIONS_PER_GENRE,
-  shownIdentityKeys = new Set(),
-  excludedBookIds,
-  currentBooks = [],
-}) {
-  if (limit <= 0) {
-    return {
-      books: [],
-      didResetCycle: false,
-      isPoolExhausted: false,
-      seenIdentityKeys: shownIdentityKeys,
-      startIndex,
-    }
-  }
-
-  let requestedStartIndex = startIndex
-  let nextStartIndex = startIndex
-  let selectedBooks = []
-  let candidateBooks = []
-  let didResetCycle = false
-  let didReachEnd = false
-  let activeShownIdentityKeys = shownIdentityKeys
-
-  for (
-    let attempt = 0;
-    attempt < MAX_REFRESH_WINDOW_ATTEMPTS;
-    attempt += 1
-  ) {
-    const {
-      books,
-      returnedCount,
-      nextStartIndex: windowNextStartIndex,
-    } = await getBooksBySubjectWindow(
-      subject,
-      CANDIDATE_POOL_SIZE,
-      requestedStartIndex
-    )
-
-    if (returnedCount === 0) {
-      didReachEnd = true
-
-      if (requestedStartIndex === 0) {
-        break
-      }
-
-      didResetCycle = true
-      activeShownIdentityKeys =
-        createSeenIdentitySetFromBooks(currentBooks)
-      requestedStartIndex = 0
-      nextStartIndex = 0
-      continue
-    }
-
-    candidateBooks = [...candidateBooks, ...books]
-    nextStartIndex = windowNextStartIndex
-    selectedBooks = selectRecommendationBooks(candidateBooks, {
-      limit,
-      alreadyShownIdentityKeys: activeShownIdentityKeys,
-      excludedBookIds,
-      preferBooksWithCovers: true,
-    })
-
-    if (selectedBooks.length >= limit) {
-      break
-    }
-
-    requestedStartIndex = windowNextStartIndex
-  }
-
-  return {
-    books: selectedBooks,
-    didResetCycle,
-    isPoolExhausted:
-      didReachEnd && selectedBooks.length < limit,
-    seenIdentityKeys: activeShownIdentityKeys,
-    startIndex: nextStartIndex,
-  }
 }
 
 /**
@@ -285,6 +192,8 @@ function useForYouRecommendations(
               shownIdentityKeys,
               excludedBookIds,
               currentBooks: savedState?.books || [],
+              windowSize: CANDIDATE_POOL_SIZE,
+              maxAttempts: MAX_REFRESH_WINDOW_ATTEMPTS,
             })
           }
         )
@@ -393,9 +302,12 @@ function useForYouRecommendations(
       } = await fetchRecommendationBatch({
         subject,
         startIndex: currentGenre.startIndex,
+        limit: RECOMMENDATIONS_PER_GENRE,
         shownIdentityKeys,
         excludedBookIds,
         currentBooks: currentGenre.books,
+        windowSize: CANDIDATE_POOL_SIZE,
+        maxAttempts: MAX_REFRESH_WINDOW_ATTEMPTS,
       })
 
       shownIdentityKeys = seenIdentityKeys

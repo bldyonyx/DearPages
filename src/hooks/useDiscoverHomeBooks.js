@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getBooksBySubject } from '../services/booksApi'
 import { getTrendingBooksDetails } from '../services/trendingBooksApi'
+import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import {
   addBooksToIdentitySet,
   selectRecommendationBooks,
@@ -13,6 +14,7 @@ import {
 
 const HOME_SHELF_BOOK_LIMIT = 5
 const HOME_GOOGLE_CANDIDATE_POOL_SIZE = 40
+const HOME_MAX_GOOGLE_WINDOW_ATTEMPTS = 4
 const HOME_TRENDING_CANDIDATE_POOL_SIZE = 100
 const EMPTY_EXCLUDED_BOOK_IDS = []
 
@@ -41,6 +43,15 @@ function writeTrendingState(
       candidatePool,
       isPoolExhausted,
     }
+  )
+}
+
+function shouldFetchHomeForYou(savedState) {
+  if (!savedState) return true
+
+  return (
+    savedState.books.length < HOME_SHELF_BOOK_LIMIT &&
+    !savedState.isPoolExhausted
   )
 }
 
@@ -107,6 +118,8 @@ function useDiscoverHomeBooks({
       const savedMustReadState = readRecommendationState(
         RECOMMENDATION_STORAGE_KEYS.mustReads(userId)
       )
+      const shouldFetchForYou =
+        shouldFetchHomeForYou(savedForYouState)
 
       setIsDiscoverLoading(true)
       setDiscoverError('')
@@ -167,7 +180,7 @@ function useDiscoverHomeBooks({
       }
 
       if (
-        savedForYouState &&
+        !shouldFetchForYou &&
         savedTrendingState &&
         savedMustReadState
       ) {
@@ -175,13 +188,27 @@ function useDiscoverHomeBooks({
       }
 
       Promise.allSettled([
-        savedForYouState
-          ? Promise.resolve(savedForYouState.books)
-          : getBooksBySubject(
-              personalizedSubject,
-              HOME_GOOGLE_CANDIDATE_POOL_SIZE,
-              0
-            ),
+        shouldFetchForYou
+          ? fetchRecommendationBatch({
+              subject: personalizedSubject,
+              startIndex: savedForYouState?.startIndex || 0,
+              limit:
+                HOME_SHELF_BOOK_LIMIT -
+                (savedForYouState?.books.length || 0),
+              shownIdentityKeys:
+                forYouShownIdentityKeysRef.current,
+              excludedBookIds,
+              currentBooks: savedForYouState?.books || [],
+              windowSize: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
+              maxAttempts: HOME_MAX_GOOGLE_WINDOW_ATTEMPTS,
+            })
+          : Promise.resolve({
+              books: [],
+              startIndex: savedForYouState.startIndex,
+              seenIdentityKeys:
+                forYouShownIdentityKeysRef.current,
+              isPoolExhausted: savedForYouState.isPoolExhausted,
+            }),
         savedTrendingState
           ? Promise.resolve(savedTrendingState.books)
           : getTrendingBooksDetails(
@@ -205,27 +232,23 @@ function useDiscoverHomeBooks({
       ] = results
 
       // Peut-être pour toi
-      if (savedForYouState) {
-        forYouStartIndexRef.current = savedForYouState.startIndex
-        setForYouBooks(savedForYouState.books)
-      } else if (forYouResult.status === 'fulfilled') {
-        const selectedForYouBooks = selectRecommendationBooks(
-          forYouResult.value,
-          {
-            limit: HOME_SHELF_BOOK_LIMIT,
-            alreadyShownIdentityKeys:
-              forYouShownIdentityKeysRef.current,
-            excludedBookIds,
-            preferBooksWithCovers: true,
-          }
-        )
+      if (forYouResult.status === 'fulfilled') {
+        const selectedForYouBooks = [
+          ...(savedForYouState?.books || []),
+          ...forYouResult.value.books,
+        ].slice(0, HOME_SHELF_BOOK_LIMIT)
+        const nextForYouShownIdentityKeys =
+          forYouResult.value.seenIdentityKeys ||
+          forYouShownIdentityKeysRef.current
 
         addBooksToIdentitySet(
-          forYouShownIdentityKeysRef.current,
+          nextForYouShownIdentityKeys,
           selectedForYouBooks
         )
+        forYouShownIdentityKeysRef.current =
+          nextForYouShownIdentityKeys
         forYouStartIndexRef.current =
-          HOME_GOOGLE_CANDIDATE_POOL_SIZE
+          forYouResult.value.startIndex
         setForYouBooks(selectedForYouBooks)
         if (selectedForYouBooks.length) {
           writeRecommendationState(
@@ -237,11 +260,13 @@ function useDiscoverHomeBooks({
               books: selectedForYouBooks,
               startIndex: forYouStartIndexRef.current,
               seenIdentityKeys: forYouShownIdentityKeysRef.current,
+              isPoolExhausted:
+                forYouResult.value.isPoolExhausted,
             }
           )
         }
       } else {
-        setForYouBooks([])
+        setForYouBooks(savedForYouState?.books || [])
       }
 
       // Tendances du moment
