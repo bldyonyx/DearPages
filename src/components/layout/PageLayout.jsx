@@ -1,7 +1,9 @@
 import { NavLink, Outlet } from 'react-router-dom'
+
 import greenBackground from '../../assets/textures/green-bg.jpg'
 import stripesBrown from '../../assets/textures/stripes-brown.jpg'
 import stripesBrownWide from '../../assets/textures/stripes-brown-wide.jpg'
+
 import MobileNav from './MobileNav'
 import Sidebar from './Sidebar'
 
@@ -23,7 +25,7 @@ function PageLayout() {
     >
       <Sidebar />
 
-      {/* Mobile header */}
+      {/* Header mobile + tablette portrait */}
       <div
         className="
           fixed left-0 top-0 z-20
@@ -32,13 +34,20 @@ function PageLayout() {
           border-b border-walnut/20
           bg-darkwood bg-cover bg-center bg-no-repeat
           px-4 text-cream
-          md:hidden
+
+          lg:hidden
         "
         style={{ backgroundImage: `url(${stripesBrown})` }}
       >
         <NavLink
           to="/"
-          className="min-w-0 truncate font-heading text-xl font-bold text-cream"
+          className="
+            min-w-0 truncate
+            font-heading
+            text-xl
+            font-bold
+            text-cream
+          "
         >
           Dear Pages
         </NavLink>
@@ -66,12 +75,19 @@ function PageLayout() {
           overflow-x-hidden
           pt-14
           text-darkwood
-          md:ml-46
-          md:w-[calc(100%-11.5rem)]
-          md:pt-0
+
           lg:ml-72
           lg:w-[calc(100%-18rem)]
           lg:p-4
+
+          [@media(min-height:1000px)]:lg:ml-80
+          [@media(min-height:1000px)]:lg:w-[calc(100%-20rem)]
+
+          [@media(min-height:1200px)]:lg:ml-[22rem]
+          [@media(min-height:1200px)]:lg:w-[calc(100%-22rem)]
+
+          [@media(min-height:1400px)]:lg:ml-96
+          [@media(min-height:1400px)]:lg:w-[calc(100%-24rem)]
         "
       >
         <div
@@ -79,14 +95,17 @@ function PageLayout() {
             min-h-[calc(100vh-3.5rem)]
             w-full
             min-w-0
+
             bg-mintcream
             bg-size-[100%_auto]
             bg-top
             bg-repeat-y
+
             pb-19
-            md:pb-0
+
             lg:min-h-[calc(100vh-2rem)]
             lg:rounded-2xl
+            lg:pb-0
           "
           style={{ backgroundImage: `url(${greenBackground})` }}
         >

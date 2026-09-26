@@ -63,13 +63,14 @@
 }
 
 
-/* Edu NSW ACT Foundation */
+/* Patrick Hand */
 
 @font-face {
-  font-family: "Edu NSW ACT Foundation";
-  src: url("./assets/fonts/EduNswActFondation/EduNSWACTFoundation-Regular.woff2") format("woff2");
+  font-family: "Patrick Hand";
+  src: url("./assets/fonts/PatrickHand/PatrickHand-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 @theme {
@@ -98,7 +99,7 @@
   /* Fonts */
   --font-heading: "Frank Ruhl Libre", serif;
   --font-ui: "Comfortaa", sans-serif;
-  --font-handwritten: "Edu NSW ACT Foundation", cursive;
+  --font-handwritten: "Patrick Hand", cursive;
 }
 
 .app-background {
