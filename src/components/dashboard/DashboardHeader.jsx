@@ -1,5 +1,7 @@
+import { Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+
 import flower from '../../assets/images/flower.png'
 import Input from '../ui/Input'
 import { dashboardLarge } from './dashboardResponsive.js'
@@ -66,18 +68,34 @@ function DashboardHeader({ user }) {
         {/* Actions */}
         <div className="flex min-w-0 items-center gap-3 md:flex-1 md:justify-end">
           {/* Recherche tablette + desktop */}
-            <form
-              onSubmit={handleSubmit}
+          <form
+            onSubmit={handleSubmit}
+            className="
+              relative hidden min-w-0
+              md:block md:w-56
+              lg:w-64
+              xl:w-80
+              2xl:w-96
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-[28rem]
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-[32rem]
+            "
+          >
+            <Search
+              aria-hidden="true"
+              strokeWidth={1.8}
               className="
-                hidden min-w-0
-                md:block md:w-56
-                lg:w-64
-                xl:w-80
-                2xl:w-96
-                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-[28rem]
-                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-[32rem]
+                pointer-events-none absolute
+                left-5 top-1/2 z-10
+                h-4 w-4
+                -translate-y-1/2
+                text-darkwood/50
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:h-5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-5
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:h-6
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-6
               "
-            >
+            />
+
             <Input
               id="dashboard-search"
               type="search"
@@ -86,12 +104,15 @@ function DashboardHeader({ user }) {
               placeholder="Rechercher un livre..."
               aria-label="Rechercher un livre"
               className="
-                w-full rounded-full! px-6 py-3
-                [@media_(min-width:2200px)_and_(min-height:1100px)]:px-7
+                w-full rounded-full!
+                py-3 pl-12 pr-6
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:pl-14
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:pr-7
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
-                [@media_(min-width:2400px)_and_(min-height:1300px)]:px-8
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:py-4
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:pl-16
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:pr-8
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
               "
             />
@@ -116,43 +137,18 @@ function DashboardHeader({ user }) {
             "
           >
             {isSearchOpen ? (
-              <span className="text-xl leading-none">×</span>
-            ) : (
-              <svg
-                viewBox="0 0 24 24"
+              <X
                 aria-hidden="true"
                 className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              >
-                <circle cx="11" cy="11" r="6" />
-                <path d="m16 16 4 4" />
-              </svg>
+                strokeWidth={1.8}
+              />
+            ) : (
+              <Search
+                aria-hidden="true"
+                className="h-5 w-5"
+                strokeWidth={1.8}
+              />
             )}
-          </button>
-
-          {/* Notifications */}
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="
-              flex h-11 w-11 shrink-0 cursor-pointer
-              items-center justify-center
-              rounded-full border border-walnut/30
-              bg-cream text-xl text-darkwood
-              transition-transform
-              hover:-translate-y-0.5
-              md:h-12 md:w-12
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-14
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-14
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-2xl
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-16
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-16
-            "
-          >
-            ♡
           </button>
 
           {/* Profil */}
@@ -184,17 +180,17 @@ function DashboardHeader({ user }) {
                 items-center justify-center
                 rounded-full bg-cream
                 font-heading text-base font-bold text-darkwood
-            md:h-10 md:w-10 md:text-lg
-            [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
-            [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
-            [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
-            [@media_(min-width:2400px)_and_(min-height:1300px)]:h-14
-            [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
-            [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
-          "
-        >
-          {avatarInitial}
-        </span>
+                md:h-10 md:w-10 md:text-lg
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:h-14
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
+              "
+            >
+              {avatarInitial}
+            </span>
           </Link>
         </div>
       </div>
@@ -203,8 +199,20 @@ function DashboardHeader({ user }) {
       {isSearchOpen && (
         <form
           onSubmit={handleSubmit}
-          className="mt-4 w-full md:hidden"
+          className="relative mt-4 w-full md:hidden"
         >
+          <Search
+            aria-hidden="true"
+            className="
+              pointer-events-none absolute
+              left-5 top-1/2 z-10
+              h-4 w-4
+              -translate-y-1/2
+              text-darkwood/50
+            "
+            strokeWidth={1.8}
+          />
+
           <Input
             id="dashboard-search-mobile"
             type="search"
@@ -213,7 +221,7 @@ function DashboardHeader({ user }) {
             placeholder="Rechercher un livre..."
             aria-label="Rechercher un livre"
             autoFocus
-            className="w-full rounded-full! px-6 py-3"
+            className="w-full rounded-full! py-3 pl-12 pr-6"
           />
         </form>
       )}

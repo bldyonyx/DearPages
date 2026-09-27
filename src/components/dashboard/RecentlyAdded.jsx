@@ -1,4 +1,6 @@
+import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
 import BookCard from '../books/BookCard'
 import { dashboardLarge } from './dashboardResponsive.js'
 
@@ -36,13 +38,26 @@ function RecentlyAdded({ books }) {
         <Link
           to="/library"
           className="
-            shrink-0 font-ui text-sm font-bold text-darkwood
+            flex shrink-0 items-center gap-1.5
+            font-ui text-sm font-bold text-darkwood
             transition-opacity hover:opacity-60
             [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
             [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
           "
         >
-          Voir tout →
+          <span>Voir tout</span>
+
+          <ArrowRight
+            aria-hidden="true"
+            className="
+              h-4 w-4
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-5
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-5
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-6
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-6
+            "
+            strokeWidth={1.8}
+          />
         </Link>
       </div>
 
@@ -71,13 +86,13 @@ function RecentlyAdded({ books }) {
           {books.map((book) => (
             <div
               key={book.googleBooksId}
-              className={`
+              className="
                 w-36 shrink-0
                 sm:w-40
                 lg:mx-auto lg:w-full lg:max-w-40
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-48
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-56
-              `}
+              "
             >
               <BookCard
                 book={book}
