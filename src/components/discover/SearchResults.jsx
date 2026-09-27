@@ -1,4 +1,7 @@
+import { ArrowLeft } from 'lucide-react'
+
 import BookCard from '../books/BookCard'
+import { discoverLarge } from './discoverResponsive'
 
 function SearchResults({
   query,
@@ -8,29 +11,47 @@ function SearchResults({
   onBackToDiscover,
 }) {
   return (
-    <section className="mt-6">
+    <section className={`mt-6 ${discoverLarge.sectionGap}`}>
       <button
         type="button"
         onClick={onBackToDiscover}
         className="
-          cursor-pointer
+          inline-flex cursor-pointer items-center gap-1.5
           font-ui text-sm font-bold
           text-darkwood/60
           transition-colors
           hover:text-darkwood
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        ← Retour aux découvertes
+        <ArrowLeft
+          aria-hidden="true"
+          className="size-4"
+          strokeWidth={1.8}
+        />
+
+        <span>Retour aux découvertes</span>
       </button>
 
       {isLoading && (
-        <p className="mt-8 font-ui text-sm text-darkwood/60">
+        <p
+          className={`
+            mt-8 font-ui text-sm text-darkwood/60
+            ${discoverLarge.description}
+          `}
+        >
           Recherche en cours...
         </p>
       )}
 
       {error && (
-        <p className="mt-8 font-ui text-sm text-darkwood">
+        <p
+          className={`
+            mt-8 font-ui text-sm text-darkwood
+            ${discoverLarge.description}
+          `}
+        >
           {error}
         </p>
       )}
@@ -38,13 +59,23 @@ function SearchResults({
       {!isLoading && !error && (
         <>
           {/* Header des résultats */}
-          <div className="mt-5">
+          <div className="mt-5 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8">
             <div>
-              <h2 className="font-heading text-2xl font-bold text-darkwood">
+              <h2
+                className={`
+                  font-heading text-2xl font-bold text-darkwood
+                  ${discoverLarge.title}
+                `}
+              >
                 Résultats pour « {query} »
               </h2>
 
-              <p className="mt-1 font-ui text-sm text-darkwood/60">
+              <p
+                className={`
+                  mt-1 font-ui text-sm text-darkwood/60
+                  ${discoverLarge.description}
+                `}
+              >
                 {books.length} livre
                 {books.length > 1 ? 's' : ''} trouvé
                 {books.length > 1 ? 's' : ''}
@@ -55,7 +86,7 @@ function SearchResults({
           {/* Livres trouvés */}
           {books.length > 0 && (
             <div
-              className="
+              className={`
                 mt-6 grid
                 grid-cols-2
                 justify-items-center
@@ -64,10 +95,17 @@ function SearchResults({
                 sm:justify-start
                 sm:justify-items-start
                 sm:gap-x-5
-              "
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:grid-cols-[repeat(auto-fit,minmax(12rem,12rem))]
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:grid-cols-[repeat(auto-fit,minmax(14rem,14rem))]
+                ${discoverLarge.stackGap}
+                ${discoverLarge.gridGap}
+              `}
             >
               {books.map((book) => (
-                <div key={book.id} className="w-full max-w-40">
+                <div
+                  key={book.id}
+                  className={`w-full max-w-40 ${discoverLarge.bookWrap}`}
+                >
                   <BookCard
                     book={book}
                     bookId={book.id}
@@ -76,6 +114,8 @@ function SearchResults({
                     cover={book.cover}
                     isbn={book.isbn}
                     source={book.source}
+                    titleClassName={discoverLarge.bookTitle}
+                    authorClassName={discoverLarge.bookAuthor}
                   />
                 </div>
               ))}
@@ -93,11 +133,21 @@ function SearchResults({
                 text-center
               "
             >
-              <p className="font-heading text-xl font-bold text-darkwood">
+              <p
+                className={`
+                  font-heading text-xl font-bold text-darkwood
+                  ${discoverLarge.title}
+                `}
+              >
                 Aucun livre trouvé
               </p>
 
-              <p className="mt-2 font-ui text-sm text-darkwood/60">
+              <p
+                className={`
+                  mt-2 font-ui text-sm text-darkwood/60
+                  ${discoverLarge.description}
+                `}
+              >
                 Essaie avec un autre titre, auteur ou mot-clé.
               </p>
             </div>

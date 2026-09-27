@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+
 import flower from '../../assets/images/flower.png'
 
 function getDisplayName(user) {
@@ -15,27 +16,10 @@ function HeaderActions({ className = '', user = null }) {
   return (
     <div
       className={[
-        'flex min-w-0 items-center gap-3 md:flex-1 md:justify-end',
+        'flex min-w-0 items-center md:flex-1 md:justify-end',
         className,
       ].join(' ')}
     >
-      {/* Notifications */}
-      <button
-        type="button"
-        aria-label="Notifications"
-        className="
-          flex h-11 w-11 shrink-0 cursor-pointer
-          items-center justify-center
-          rounded-full border border-walnut/30
-          bg-cream text-xl text-darkwood
-          transition-transform
-          hover:-translate-y-0.5
-          md:h-12 md:w-12
-        "
-      >
-        ♡
-      </button>
-
       {/* Profil */}
       <Link
         to="/settings"

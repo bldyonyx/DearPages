@@ -1,5 +1,6 @@
 import DiscoverShelf from './DiscoverShelf'
 import ForYouSection from './ForYouSection'
+import { discoverLarge } from './discoverResponsive'
 
 function DiscoverHome({
   forYouBooks,
@@ -16,15 +17,27 @@ function DiscoverHome({
   onRefreshMustReads,
 }) {
   return (
-    <div className="mt-10 space-y-12">
+    <div className={`mt-10 space-y-12 ${discoverLarge.sectionStack}`}>
       {isLoading && (
-        <p className="max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm text-darkwood/60 md:max-w-full">
+        <p
+          className={`
+            max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm
+            text-darkwood/60 md:max-w-full
+            ${discoverLarge.description}
+          `}
+        >
           Préparation de tes découvertes...
         </p>
       )}
 
       {!isLoading && error && (
-        <p className="max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm text-darkwood/60 md:max-w-full">
+        <p
+          className={`
+            max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm
+            text-darkwood/60 md:max-w-full
+            ${discoverLarge.description}
+          `}
+        >
           {error}
         </p>
       )}

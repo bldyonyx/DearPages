@@ -4,6 +4,7 @@ import DiscoverHome from '../components/discover/DiscoverHome'
 import DiscoverSearch from '../components/discover/DiscoverSearch'
 import ForYouRecommendations from '../components/discover/ForYouRecommendations'
 import SearchResults from '../components/discover/SearchResults'
+import { discoverLarge } from '../components/discover/discoverResponsive'
 import HeaderActions from '../components/layout/HeaderActions'
 import { useAuth } from '../context/AuthContext'
 import useDiscoverHomeBooks from '../hooks/useDiscoverHomeBooks'
@@ -77,9 +78,9 @@ function Discover() {
   })
 
   return (
-    <div className="p-6">
+    <div className={`p-6 ${discoverLarge.shell}`}>
       {/* Header */}
-      <header className="py-4">
+      <header className={`py-4 ${discoverLarge.headerTop}`}>
         <div
           className="
             flex flex-col gap-4
@@ -87,11 +88,22 @@ function Discover() {
           "
         >
           <div className="min-w-0">
-            <h1 className="font-heading text-3xl font-bold text-darkwood md:text-4xl">
+            <h1
+              className={`
+                font-heading text-3xl font-bold text-darkwood md:text-4xl
+                ${discoverLarge.pageTitle}
+              `}
+            >
               Découvrir
             </h1>
 
-            <p className="mt-2 font-ui text-sm font-semibold text-darkwood/60 md:text-base">
+            <p
+              className={`
+                mt-2 font-ui text-sm font-semibold text-darkwood/60
+                md:text-base
+                ${discoverLarge.pageDescription}
+              `}
+            >
               Trouve ta prochaine lecture.
             </p>
           </div>
@@ -101,7 +113,13 @@ function Discover() {
       </header>
 
       {/* Recherche */}
-      <section className={isSearchMode ? 'mt-6' : 'mt-8'}>
+      <section
+        className={
+          isSearchMode
+            ? `mt-6 ${discoverLarge.sectionGap}`
+            : `mt-8 ${discoverLarge.firstSectionGap}`
+        }
+      >
         <DiscoverSearch
           search={search}
           onSearchChange={setSearch}

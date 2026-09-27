@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import BookCover from '../books/BookCover.jsx'
+import { discoverLarge } from './discoverResponsive'
 
 function SearchSuggestions({ suggestions, isLoading }) {
   if (isLoading) {
@@ -14,7 +15,12 @@ function SearchSuggestions({ suggestions, isLoading }) {
           shadow-lg
         "
       >
-        <p className="font-ui text-sm text-darkwood/60">
+        <p
+          className={`
+            font-ui text-sm text-darkwood/60
+            ${discoverLarge.description}
+          `}
+        >
           Recherche...
         </p>
       </div>
@@ -55,6 +61,10 @@ function SearchSuggestions({ suggestions, isLoading }) {
               items-center justify-center
               overflow-hidden rounded-md
               bg-parchment
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-20
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-14
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-24
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-16
             "
           >
             <BookCover
@@ -68,11 +78,22 @@ function SearchSuggestions({ suggestions, isLoading }) {
           </div>
 
           <div className="min-w-0">
-            <p className="truncate font-heading text-base font-bold text-darkwood">
+            <p
+              className={`
+                truncate font-heading text-base font-bold text-darkwood
+                ${discoverLarge.bookTitle}
+              `}
+            >
               {book.title}
             </p>
 
-            <p className="mt-1 truncate font-ui text-xs text-darkwood/60">
+            <p
+              className={`
+                mt-1 truncate font-ui text-xs text-darkwood/60
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+              `}
+            >
               {book.authors.join(', ')}
             </p>
           </div>

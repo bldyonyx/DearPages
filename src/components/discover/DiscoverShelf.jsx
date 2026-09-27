@@ -1,4 +1,7 @@
+import { Info, RefreshCw } from 'lucide-react'
+
 import BookCard from '../books/BookCard'
+import { discoverLarge } from './discoverResponsive'
 
 function DiscoverShelf({
   title,
@@ -12,16 +15,17 @@ function DiscoverShelf({
 }) {
   if (books.length === 0) return null
 
-  const refreshIconClass = `inline-block origin-center leading-none ${
-    isRefreshing ? 'animate-spin' : ''
-  }`
-
   return (
     <section>
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="font-heading text-2xl font-bold text-darkwood">
+            <h2
+              className={`
+                font-heading text-2xl font-bold text-darkwood
+                ${discoverLarge.title}
+              `}
+            >
               {title}
             </h2>
 
@@ -33,14 +37,24 @@ function DiscoverShelf({
                   className="
                     grid size-5 place-items-center
                     rounded-full border border-darkwood/25
-                    font-ui text-[11px] font-bold text-darkwood/55
+                    text-darkwood/55
                     transition
                     hover:border-darkwood/40 hover:text-darkwood
                     focus-visible:outline-none
                     focus-visible:ring-2 focus-visible:ring-olive/30
+                    [@media_(min-width:2200px)_and_(min-height:1100px)]:size-6
+                    [@media_(min-width:2400px)_and_(min-height:1300px)]:size-7
                   "
                 >
-                  ?
+                  <Info
+                    aria-hidden="true"
+                    className="
+                      size-3
+                      [@media_(min-width:2200px)_and_(min-height:1100px)]:size-3.5
+                      [@media_(min-width:2400px)_and_(min-height:1300px)]:size-4
+                    "
+                    strokeWidth={1.8}
+                  />
                 </button>
 
                 <div
@@ -74,7 +88,12 @@ function DiscoverShelf({
           </div>
 
           {description && (
-            <p className="mt-1 font-ui text-sm text-darkwood/60">
+            <p
+              className={`
+                mt-1 font-ui text-sm text-darkwood/60
+                ${discoverLarge.description}
+              `}
+            >
               {description}
             </p>
           )}
@@ -86,34 +105,41 @@ function DiscoverShelf({
             onClick={onRefresh}
             disabled={isRefreshing}
             aria-label={`Rafraichir ${title}`}
-            className="
+            className={`
               grid size-10 shrink-0 place-items-center
               rounded-full border border-walnut/20
               bg-mintcream
-              font-ui text-xl font-bold text-darkwood
+              text-darkwood
               transition
               hover:bg-lime
               disabled:cursor-wait disabled:opacity-60
-            "
+              ${discoverLarge.iconButton}
+            `}
           >
-            <span
-              className={refreshIconClass}
+            <RefreshCw
               aria-hidden="true"
-            >
-              ↻
-            </span>
+              className={`size-4 ${
+                isRefreshing ? 'animate-spin' : ''
+              }`}
+              strokeWidth={1.8}
+            />
           </button>
         )}
       </div>
 
       {error && (
-        <p className="mt-3 font-ui text-sm text-darkwood/55">
+        <p
+          className={`
+            mt-3 font-ui text-sm text-darkwood/55
+            ${discoverLarge.description}
+          `}
+        >
           {error}
         </p>
       )}
 
       <div
-        className="
+        className={`
           mt-6 grid
           grid-cols-2
           gap-5
@@ -121,13 +147,16 @@ function DiscoverShelf({
           lg:grid-cols-4
           xl:grid-cols-5
           lg:gap-8
-        "
+          ${discoverLarge.stackGap}
+          ${discoverLarge.gridGap}
+        `}
       >
         {books.map((book, index) => (
           <div
             key={book.id}
             className={`
               mx-auto w-full max-w-40
+              ${discoverLarge.bookWrap}
               ${index >= 2 ? 'hidden md:block' : ''}
               ${index >= 3 ? 'md:hidden lg:block' : ''}
               ${index >= 4 ? 'lg:hidden xl:block' : ''}
@@ -142,6 +171,8 @@ function DiscoverShelf({
               isbn={book.isbn}
               source={book.source}
               coverLoading={coverLoading}
+              titleClassName={discoverLarge.bookTitle}
+              authorClassName={discoverLarge.bookAuthor}
             />
           </div>
         ))}
