@@ -1,10 +1,11 @@
 import sleepingCat from '../../assets/images/cats/sleeping-cat.png'
 import noteArea from '../../assets/images/note-area.png'
+import { dashboardLarge } from './dashboardResponsive.js'
 
 function ReadingCompanion() {
   return (
     <section
-      className="
+      className={`
         flex w-full
         flex-col items-center justify-center
         gap-5
@@ -12,9 +13,10 @@ function ReadingCompanion() {
         min-[1380px]:w-auto
         min-[1380px]:flex-none
         min-[1380px]:gap-6
+        [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-4
         [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-8
         [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-10
-      "
+      `}
     >
       {/* Chat */}
       <div
@@ -26,7 +28,7 @@ function ReadingCompanion() {
         <img
           src={sleepingCat}
           alt="Petit chat tortoiseshell endormi"
-          className="
+          className={`
             h-auto
             w-64
             shrink-0
@@ -34,22 +36,24 @@ function ReadingCompanion() {
             lg:w-72
             min-[1380px]:w-64
             min-[1750px]:w-72
+            ${dashboardLarge.compactCompanion}
             [@media_(min-width:2200px)_and_(min-height:1100px)]:w-80
             [@media_(min-width:2400px)_and_(min-height:1300px)]:w-96
-          "
+          `}
         />
       </div>
 
       {/* Petite note */}
       <div
-        className="
+        className={`
           relative
           w-64
           shrink-0
           min-[1750px]:w-72
+          ${dashboardLarge.compactCompanion}
           [@media_(min-width:2200px)_and_(min-height:1100px)]:w-80
           [@media_(min-width:2400px)_and_(min-height:1300px)]:w-96
-        "
+        `}
       >
         <img
           src={noteArea}

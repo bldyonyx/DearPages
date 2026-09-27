@@ -36,7 +36,15 @@ function ReadingStats({
       </div>
 
       {/* Statistiques */}
-      <div className="mt-6 md:flex md:items-stretch [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10">
+      <div
+        className={`
+          mt-6
+          md:flex md:items-stretch
+          ${dashboardLarge.compactStackGap}
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
+        `}
+      >
         {/* Deux premières stats */}
         <div className="flex w-full min-w-0 md:flex-1">
           {/* Livres */}

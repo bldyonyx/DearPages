@@ -29,6 +29,7 @@ function DashboardCover({
         aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
         transition-all duration-300
         md:w-36 lg:w-40
+        [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:w-36
         [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
         [@media_(min-width:2400px)_and_(min-height:1300px)]:w-56
         ${
@@ -138,14 +139,16 @@ function CurrentlyReading({
       </div>
 
       <div
-        className="
+        className={`
           mt-6 grid items-center gap-8
           sm:grid-cols-2
+          ${dashboardLarge.compactStackGap}
+          ${dashboardLarge.compactCardInnerGap}
           [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
           [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-10
           [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
           [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-12
-        "
+        `}
       >
         {/* Stack de couvertures */}
         <div
@@ -169,7 +172,7 @@ function CurrentlyReading({
                 }}
                 className={`
                   relative cursor-pointer transition-all duration-300 ease-out
-                  ${index === 0 ? '' : '-ml-20 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'}
+                  ${index === 0 ? '' : '-ml-20 [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:-ml-18 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'}
                   ${isSelected ? '-translate-y-3' : 'hover:-translate-y-1'}
                 `}
                 style={{
@@ -193,6 +196,7 @@ function CurrentlyReading({
           className="
             flex min-w-0 flex-col justify-center
             sm:min-h-52
+            [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:min-h-48
             [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-60
             [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-72
           "
@@ -235,6 +239,7 @@ function CurrentlyReading({
           <div
             className="
               mt-5 flex flex-wrap items-start gap-2
+              [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:mt-4
               [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6
               [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3
               [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8
@@ -312,7 +317,7 @@ function CurrentlyReading({
 
           {/* Navigation entre les lectures */}
           {books.length > 1 && (
-            <div className="mt-6 flex flex-wrap items-center gap-4 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-5">
+            <div className="mt-6 flex flex-wrap items-center gap-4 [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:mt-4 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-5">
               <div className="flex gap-2">
                 {books.map((book) => (
                   <button

@@ -15,6 +15,7 @@ function BookCard({
   coverLoading = 'eager',
   titleClassName = '',
   authorClassName = '',
+  contentClassName = '',
 }) {
   const routeBook =
     book ||
@@ -70,7 +71,7 @@ function BookCard({
         coverContent
       )}
 
-      <div className="mt-3 text-center">
+      <div className={`mt-3 text-center ${contentClassName}`}>
         {bookId ? (
           <h3
             className={`
