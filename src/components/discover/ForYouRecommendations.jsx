@@ -157,6 +157,7 @@ function ForYouRecommendations({
                   lg:gap-8
                   ${discoverLarge.stackGap}
                   ${discoverLarge.gridGap}
+                  ${discoverLarge.bookGrid}
                 `}
               >
                 {books.map((book, index) => (

@@ -147,16 +147,18 @@ function DiscoverShelf({
           lg:grid-cols-4
           xl:grid-cols-5
           lg:gap-8
+          ${discoverLarge.bookGrid}
           ${discoverLarge.stackGap}
           ${discoverLarge.gridGap}
         `}
       >
-        {books.map((book, index) => (
+        {books.slice(0, 7).map((book, index) => (
           <div
             key={book.id}
             className={`
               mx-auto w-full max-w-40
               ${discoverLarge.bookWrap}
+              ${discoverLarge.bookVisibility}
               ${index >= 2 ? 'hidden md:block' : ''}
               ${index >= 3 ? 'md:hidden lg:block' : ''}
               ${index >= 4 ? 'lg:hidden xl:block' : ''}

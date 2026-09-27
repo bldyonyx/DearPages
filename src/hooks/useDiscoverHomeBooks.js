@@ -12,7 +12,7 @@ import {
   writeRecommendationState,
 } from '../utils/recommendationSessionStorage'
 
-const HOME_SHELF_BOOK_LIMIT = 5
+const HOME_SHELF_BOOK_LIMIT = 7
 const HOME_GOOGLE_CANDIDATE_POOL_SIZE = 40
 const HOME_MAX_GOOGLE_WINDOW_ATTEMPTS = 4
 const HOME_TRENDING_CANDIDATE_POOL_SIZE = 100

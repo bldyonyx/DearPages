@@ -22,7 +22,6 @@ function ForYouSection({
         ${discoverLarge.card}
       `}
     >
-      {/* Header */}
       <div
         className="
           flex flex-col gap-5
@@ -57,7 +56,6 @@ function ForYouSection({
             Quelques livres qui pourraient te plaire.
           </p>
 
-          {/* Préférences */}
           <div className="mt-4 flex flex-wrap items-center gap-2 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-5 [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3">
             {preferences.map((preference) => (
               <span
@@ -98,7 +96,6 @@ function ForYouSection({
           </div>
         </div>
 
-        {/* Action principale */}
         <Link
           to="/discover?view=for-you"
           className={`
@@ -129,7 +126,6 @@ function ForYouSection({
         </Link>
       </div>
 
-      {/* Livres recommandés */}
       <div
         className={`
           mt-7 grid
@@ -139,16 +135,18 @@ function ForYouSection({
           lg:grid-cols-4
           xl:grid-cols-5
           lg:gap-8
+          ${discoverLarge.bookGrid}
           ${discoverLarge.stackGap}
           ${discoverLarge.gridGap}
         `}
       >
-        {books.slice(0, 5).map((book, index) => (
+        {books.slice(0, 7).map((book, index) => (
           <div
             key={book.id}
             className={`
               mx-auto w-full max-w-40
               ${discoverLarge.bookWrap}
+              ${discoverLarge.bookVisibility}
               ${index >= 2 ? 'hidden md:block' : ''}
               ${index >= 3 ? 'md:hidden lg:block' : ''}
               ${index >= 4 ? 'lg:hidden xl:block' : ''}
