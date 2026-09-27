@@ -29,7 +29,7 @@ export function getBookApiSource(bookId) {
 }
 
 export function getBookRouteId(book) {
-  return book?.googleBooksId || book?.id || null
+  return book?.googleBooksId || book?.id || book?.openLibraryId || null
 }
 
 export function getRouteStateBook(routeState, bookId) {
@@ -88,12 +88,27 @@ export function hasUsefulAuthors(book) {
   )
 }
 
+function hasUsefulString(value) {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function hasUsefulTitle(value) {
+  return hasUsefulString(value) && value !== 'Titre inconnu'
+}
+
+function hasUsefulArray(value) {
+  return Array.isArray(value) && value.filter(Boolean).length > 0
+}
+
+function getPreferredValue(currentValue, nextValue, isUseful) {
+  return isUseful(currentValue) ? currentValue : nextValue
+}
+
 /**
- * Merges canonical metadata over the optimistic route-state book.
+ * Merges canonical metadata into the optimistic route-state book.
  *
- * Canonical data wins, except when it is missing fields that are useful for
- * the first paint. This keeps temporary route metadata, like covers or
- * categories, from disappearing just because the follow-up source is sparse.
+ * Route-state data represents the exact book the user selected, so canonical
+ * data only fills fields that are missing from the current page book.
  *
  * @param {Object|null} currentBook - Current optimistic/canonical page book.
  * @param {Object|null} nextBook - Newly loaded canonical book.
@@ -114,37 +129,81 @@ export function mergeBookDetails(currentBook, nextBook) {
   }
 
   const mergedBook = {
-    ...normalizedCurrentBook,
     ...normalizedNextBook,
-  }
-
-  if (!nextBook.cover && normalizedCurrentBook.cover) {
-    mergedBook.cover = normalizedCurrentBook.cover
-  }
-
-  if (!nextBook.isbn && normalizedCurrentBook.isbn) {
-    mergedBook.isbn = normalizedCurrentBook.isbn
-  }
-
-  if (
-    !toSafeArray(nextBook.isbns).length &&
-    normalizedCurrentBook.isbns.length
-  ) {
-    mergedBook.isbns = normalizedCurrentBook.isbns
-  }
-
-  if (
-    !hasUsefulAuthors(nextBook) &&
-    hasUsefulAuthors(normalizedCurrentBook)
-  ) {
-    mergedBook.authors = normalizedCurrentBook.authors
-  }
-
-  if (
-    !toSafeArray(nextBook.categories).length &&
-    normalizedCurrentBook.categories.length
-  ) {
-    mergedBook.categories = normalizedCurrentBook.categories
+    ...normalizedCurrentBook,
+    id: getPreferredValue(
+      normalizedCurrentBook.id,
+      normalizedNextBook.id,
+      hasUsefulString
+    ),
+    googleBooksId: getPreferredValue(
+      normalizedCurrentBook.googleBooksId,
+      normalizedNextBook.googleBooksId,
+      hasUsefulString
+    ),
+    openLibraryId: getPreferredValue(
+      normalizedCurrentBook.openLibraryId,
+      normalizedNextBook.openLibraryId,
+      hasUsefulString
+    ),
+    source: getPreferredValue(
+      normalizedCurrentBook.source,
+      normalizedNextBook.source,
+      hasUsefulString
+    ),
+    title: getPreferredValue(
+      normalizedCurrentBook.title,
+      normalizedNextBook.title,
+      hasUsefulTitle
+    ),
+    subtitle: getPreferredValue(
+      normalizedCurrentBook.subtitle,
+      normalizedNextBook.subtitle,
+      hasUsefulString
+    ),
+    authors: hasUsefulAuthors(normalizedCurrentBook)
+      ? normalizedCurrentBook.authors
+      : normalizedNextBook.authors,
+    cover: getPreferredValue(
+      normalizedCurrentBook.cover,
+      normalizedNextBook.cover,
+      hasUsefulString
+    ),
+    isbn: getPreferredValue(
+      normalizedCurrentBook.isbn,
+      normalizedNextBook.isbn,
+      hasUsefulString
+    ),
+    isbns: getPreferredValue(
+      normalizedCurrentBook.isbns,
+      normalizedNextBook.isbns,
+      hasUsefulArray
+    ),
+    description: getPreferredValue(
+      normalizedCurrentBook.description,
+      normalizedNextBook.description,
+      hasUsefulString
+    ),
+    categories: getPreferredValue(
+      normalizedCurrentBook.categories,
+      normalizedNextBook.categories,
+      hasUsefulArray
+    ),
+    publishedDate: getPreferredValue(
+      normalizedCurrentBook.publishedDate,
+      normalizedNextBook.publishedDate,
+      hasUsefulString
+    ),
+    language: getPreferredValue(
+      normalizedCurrentBook.language,
+      normalizedNextBook.language,
+      hasUsefulString
+    ),
+    printType: getPreferredValue(
+      normalizedCurrentBook.printType,
+      normalizedNextBook.printType,
+      hasUsefulString
+    ),
   }
 
   return normalizeBookForPage(mergedBook)

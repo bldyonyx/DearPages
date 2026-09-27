@@ -3,6 +3,12 @@ const OPEN_LIBRARY_ISBN_COVERS_URL =
 
 const openLibraryCoverCache = new Map()
 
+export const OPEN_LIBRARY_COVER_CACHE_STATUS = {
+  RESOLVED: 'resolved',
+  MISSING: 'missing',
+  PENDING: 'pending',
+}
+
 export const GOOGLE_COVER_PRIORITY = [
   'extraLarge',
   'large',
@@ -72,6 +78,14 @@ export function getOpenLibraryIsbnCoverUrl(isbn) {
     : null
 }
 
+export function getCachedOpenLibraryCoverByIsbn(isbn) {
+  const normalizedIsbn = normalizeIsbn(isbn)
+
+  return normalizedIsbn
+    ? openLibraryCoverCache.get(normalizedIsbn) || null
+    : null
+}
+
 export function isOpenLibraryCoverUrl(coverUrl) {
   if (!coverUrl) return false
 
@@ -97,14 +111,34 @@ function loadImage(url) {
 }
 
 export function resolveOpenLibraryCoverByIsbn(isbn) {
+  const normalizedIsbn = normalizeIsbn(isbn)
   const coverUrl = getOpenLibraryIsbnCoverUrl(isbn)
 
-  if (!coverUrl) {
+  if (!normalizedIsbn || !coverUrl) {
     return Promise.resolve(null)
   }
 
-  if (openLibraryCoverCache.has(coverUrl)) {
-    return openLibraryCoverCache.get(coverUrl)
+  const cachedCover = openLibraryCoverCache.get(normalizedIsbn)
+
+  if (
+    cachedCover?.status ===
+    OPEN_LIBRARY_COVER_CACHE_STATUS.RESOLVED
+  ) {
+    return Promise.resolve(cachedCover.cover)
+  }
+
+  if (
+    cachedCover?.status ===
+    OPEN_LIBRARY_COVER_CACHE_STATUS.MISSING
+  ) {
+    return Promise.resolve(null)
+  }
+
+  if (
+    cachedCover?.status ===
+    OPEN_LIBRARY_COVER_CACHE_STATUS.PENDING
+  ) {
+    return cachedCover.promise
   }
 
   const request =
@@ -112,7 +146,30 @@ export function resolveOpenLibraryCoverByIsbn(isbn) {
       ? Promise.resolve(coverUrl)
       : loadImage(coverUrl)
 
-  openLibraryCoverCache.set(coverUrl, request)
+  const cachedRequest = request.then((resolvedCover) => {
+    openLibraryCoverCache.set(
+      normalizedIsbn,
+      resolvedCover
+        ? {
+            status:
+              OPEN_LIBRARY_COVER_CACHE_STATUS.RESOLVED,
+            cover: resolvedCover,
+          }
+        : {
+            status:
+              OPEN_LIBRARY_COVER_CACHE_STATUS.MISSING,
+            cover: null,
+          }
+    )
 
-  return request
+    return resolvedCover
+  })
+
+  openLibraryCoverCache.set(normalizedIsbn, {
+    status: OPEN_LIBRARY_COVER_CACHE_STATUS.PENDING,
+    cover: null,
+    promise: cachedRequest,
+  })
+
+  return cachedRequest
 }

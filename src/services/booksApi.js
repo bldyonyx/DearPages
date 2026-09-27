@@ -517,11 +517,6 @@ function mergeFrenchMetadata(originalBook, frenchItem) {
   return {
     ...originalBook,
 
-    title:
-      frenchBook.title !== 'Titre inconnu'
-        ? frenchBook.title
-        : originalBook.title,
-
     description:
       frenchBook.description ||
       originalBook.description,
@@ -536,8 +531,8 @@ function mergeFrenchMetadata(originalBook, frenchItem) {
       originalBook.publishedDate,
 
     cover:
-      frenchBook.cover ||
-      originalBook.cover,
+      originalBook.cover ||
+      frenchBook.cover,
 
     language: 'fr',
   }

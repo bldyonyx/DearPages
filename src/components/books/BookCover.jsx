@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  getCachedOpenLibraryCoverByIsbn,
+  OPEN_LIBRARY_COVER_CACHE_STATUS,
   isOpenLibraryCoverUrl,
   resolveOpenLibraryCoverByIsbn,
 } from '../../services/coverUtils.js'
@@ -43,60 +45,82 @@ function BookCover({
     Boolean(isbn) &&
     source !== 'open-library' &&
     !isOpenLibraryCoverUrl(usableCover)
-  const coverStateKey = `${isbn || ''}|${usableCover || ''}|${
+  const openLibraryResolutionKey = `${isbn || ''}|${
     source || ''
   }`
-  const [openLibraryCoverState, setOpenLibraryCoverState] =
-    useState({
-      key: coverStateKey,
-      cover: null,
-    })
-  const [failedCoverState, setFailedCoverState] = useState(
-    () => ({
-      key: coverStateKey,
-      covers: new Set(),
-    })
-  )
-  const openLibraryCover =
-    openLibraryCoverState.key === coverStateKey
-      ? openLibraryCoverState.cover
+  const failedCoverKey = `${openLibraryResolutionKey}|${
+    usableCover || ''
+  }`
+
+  const [failedCoverState, setFailedCoverState] = useState({
+    key: failedCoverKey,
+    covers: new Set(),
+  })
+  const [, setCacheVersion] = useState(0)
+  const cachedOpenLibraryCover =
+    shouldTryOpenLibraryCover
+      ? getCachedOpenLibraryCoverByIsbn(isbn)
       : null
+  const hasResolvedOpenLibraryCover =
+    cachedOpenLibraryCover?.status ===
+    OPEN_LIBRARY_COVER_CACHE_STATUS.RESOLVED
+  const hasMissingOpenLibraryCover =
+    cachedOpenLibraryCover?.status ===
+    OPEN_LIBRARY_COVER_CACHE_STATUS.MISSING
+  const isOpenLibraryResolved =
+    !shouldTryOpenLibraryCover ||
+    hasResolvedOpenLibraryCover ||
+    hasMissingOpenLibraryCover
+  const openLibraryCover = hasResolvedOpenLibraryCover
+    ? cachedOpenLibraryCover.cover
+    : null
+
   const failedCovers =
-    failedCoverState.key === coverStateKey
+    failedCoverState.key === failedCoverKey
       ? failedCoverState.covers
       : new Set()
 
   useEffect(() => {
     let isActive = true
 
-    if (!shouldTryOpenLibraryCover) {
+    if (!shouldTryOpenLibraryCover || isOpenLibraryResolved) {
       return () => {
         isActive = false
       }
     }
 
-    resolveOpenLibraryCoverByIsbn(isbn).then((resolvedCover) => {
-      if (isActive) {
-        setOpenLibraryCoverState({
-          key: coverStateKey,
-          cover: resolvedCover,
-        })
+    resolveOpenLibraryCoverByIsbn(isbn).then(() => {
+      if (!isActive) {
+        return
       }
+
+      setCacheVersion((currentVersion) => currentVersion + 1)
     })
 
     return () => {
       isActive = false
     }
-  }, [coverStateKey, isbn, shouldTryOpenLibraryCover])
+  }, [
+    isOpenLibraryResolved,
+    isbn,
+    openLibraryResolutionKey,
+    shouldTryOpenLibraryCover,
+  ])
 
-  const coverCandidates = useMemo(
-    () =>
-      [openLibraryCover, usableCover].filter(
-        (candidate, index, candidates) =>
-          candidate && candidates.indexOf(candidate) === index
-      ),
-    [openLibraryCover, usableCover]
-  )
+  const coverCandidates = useMemo(() => {
+    if (!isOpenLibraryResolved) {
+      return []
+    }
+
+    return [openLibraryCover, usableCover].filter(
+      (candidate, index, candidates) =>
+        candidate && candidates.indexOf(candidate) === index
+    )
+  }, [
+    isOpenLibraryResolved,
+    openLibraryCover,
+    usableCover,
+  ])
 
   const visibleCover = coverCandidates.find(
     (candidate) => !failedCovers.has(candidate)
@@ -107,7 +131,7 @@ function BookCover({
 
     setFailedCoverState((currentState) => {
       const nextCovers = new Set(
-        currentState.key === coverStateKey
+        currentState.key === failedCoverKey
           ? currentState.covers
           : []
       )
@@ -115,15 +139,28 @@ function BookCover({
       nextCovers.add(visibleCover)
 
       return {
-        key: coverStateKey,
+        key: failedCoverKey,
         covers: nextCovers,
       }
     })
   }
 
+  const isResolvingCover =
+    shouldTryOpenLibraryCover && !isOpenLibraryResolved
+
   return (
     <div className={className}>
-      {visibleCover ? (
+      {isResolvingCover ? (
+        <div
+          className="
+            h-full w-full
+            animate-pulse
+            rounded-[inherit]
+            bg-sage/15
+          "
+          aria-label={`Chargement de la couverture de ${title}`}
+        />
+      ) : visibleCover ? (
         <img
           src={visibleCover}
           alt={`Couverture de ${title}`}
