@@ -1,4 +1,4 @@
-function StatusBadge({ status }) {
+function StatusBadge({ status, className = '' }) {
   const statuses = {
     'to-read': {
       label: 'À lire',
@@ -33,6 +33,7 @@ function StatusBadge({ status }) {
         px-3 py-1
         font-ui text-xs font-bold
         ${currentStatus.className}
+        ${className}
       `}
     >
       {currentStatus.label}

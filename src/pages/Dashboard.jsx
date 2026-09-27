@@ -6,6 +6,7 @@ import ReadingCompanion from '../components/dashboard/ReadingCompanion'
 import ReadingGoal from '../components/dashboard/ReadingGoal'
 import RecentlyAdded from '../components/dashboard/RecentlyAdded'
 import ReadingStats from '../components/dashboard/ReadingStats'
+import { dashboardLarge } from '../components/dashboard/dashboardResponsive.js'
 import { AVAILABLE_GENRES } from '../constants/genres.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import {
@@ -286,7 +287,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="p-6">
+    <div className={`p-6 ${dashboardLarge.shell}`}>
       <DashboardHeader user={user} />
 
       {isLibraryLoading && (
@@ -313,7 +314,14 @@ function Dashboard() {
       {!isLibraryLoading && !libraryError && (
         <>
           {/* Lecture en cours + objectif */}
-          <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          <div
+            className={`
+              mt-8 grid gap-6
+              xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]
+              ${dashboardLarge.firstSectionGap}
+              ${dashboardLarge.gridGap}
+            `}
+          >
             <CurrentlyReading
               books={readingBooks}
               updatingBookId={updatingBookId}
@@ -327,18 +335,20 @@ function Dashboard() {
           </div>
 
           {/* Livres récemment ajoutés */}
-          <div className="mt-6">
+          <div className={`mt-6 ${dashboardLarge.sectionGap}`}>
             <RecentlyAdded books={recentBooks} />
           </div>
 
           {/* Statistiques + compagnon */}
           <div
-            className="
+            className={`
               mt-6
               flex flex-col gap-6
               min-[1380px]:flex-row
               min-[1380px]:items-center
-            "
+              ${dashboardLarge.sectionGap}
+              ${dashboardLarge.gridGap}
+            `}
           >
             <div className="min-w-0 flex-1">
               <ReadingStats

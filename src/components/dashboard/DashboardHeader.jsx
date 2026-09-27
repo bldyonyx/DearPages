@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import flower from '../../assets/images/flower.png'
 import Input from '../ui/Input'
+import { dashboardLarge } from './dashboardResponsive.js'
 
 function getDisplayName(user) {
   return user?.displayName?.trim() || user?.email || 'lectrice'
@@ -29,7 +30,7 @@ function DashboardHeader({ user }) {
   }
 
   return (
-    <header className="py-4">
+    <header className={`py-4 ${dashboardLarge.headerTop}`}>
       <div
         className="
           flex flex-col gap-4
@@ -38,11 +39,26 @@ function DashboardHeader({ user }) {
       >
         {/* Bonjour */}
         <div className="min-w-0">
-          <h1 className="font-heading text-3xl font-bold text-darkwood md:text-4xl">
+          <h1
+            className="
+              font-heading text-3xl font-bold text-darkwood
+              md:text-4xl
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-5xl
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-6xl
+            "
+          >
             Bonjour, {displayName}
           </h1>
 
-          <p className="mt-2 font-ui text-sm font-semibold text-darkwood/60 md:text-base">
+          <p
+            className="
+              mt-2 font-ui text-sm font-semibold text-darkwood/60
+              md:text-base
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-3
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-lg
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-xl
+            "
+          >
             Voici un aperçu de tes lectures.
           </p>
         </div>
@@ -58,6 +74,8 @@ function DashboardHeader({ user }) {
                 lg:w-64
                 xl:w-80
                 2xl:w-96
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-[28rem]
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-[32rem]
               "
             >
             <Input
@@ -67,7 +85,15 @@ function DashboardHeader({ user }) {
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Rechercher un livre..."
               aria-label="Rechercher un livre"
-              className="w-full rounded-full! px-6 py-3"
+              className="
+                w-full rounded-full! px-6 py-3
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:px-7
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:px-8
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:py-4
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
+              "
             />
           </form>
 
@@ -119,6 +145,11 @@ function DashboardHeader({ user }) {
               transition-transform
               hover:-translate-y-0.5
               md:h-12 md:w-12
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-14
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-14
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-2xl
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-16
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-16
             "
           >
             ♡
@@ -134,6 +165,10 @@ function DashboardHeader({ user }) {
               transition-transform
               hover:-translate-y-0.5
               md:h-16 md:w-16
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-18
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-18
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-20
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-20
             "
           >
             <img
@@ -150,6 +185,12 @@ function DashboardHeader({ user }) {
                 rounded-full bg-cream
                 font-heading text-base font-bold text-darkwood
             md:h-10 md:w-10 md:text-lg
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:h-14
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
           "
         >
           {avatarInitial}

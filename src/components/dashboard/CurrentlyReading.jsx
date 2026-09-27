@@ -5,6 +5,7 @@ import {
 } from '../../services/libraryService'
 import BookCover from '../books/BookCover'
 import StatusBadge from '../ui/StatusBadge'
+import { dashboardLarge } from './dashboardResponsive.js'
 
 const statusOptions = [
   { value: BOOK_STATUSES.TO_READ, label: 'À lire' },
@@ -28,6 +29,8 @@ function DashboardCover({
         aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
         transition-all duration-300
         md:w-36 lg:w-40
+        [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
+        [@media_(min-width:2400px)_and_(min-height:1300px)]:w-56
         ${
           isSelected
             ? 'scale-105 shadow-lg'
@@ -76,12 +79,28 @@ function CurrentlyReading({
 
   if (books.length === 0) {
     return (
-      <section className="rounded-3xl border border-darkwood/10 bg-cream/80 p-5 md:p-6">
-        <h2 className="font-heading text-2xl font-bold text-darkwood">
+      <section
+        className={`
+          rounded-3xl border border-darkwood/10 bg-cream/80 p-5
+          md:p-6
+          ${dashboardLarge.card}
+        `}
+      >
+        <h2
+          className={`
+            font-heading text-2xl font-bold text-darkwood
+            ${dashboardLarge.title}
+          `}
+        >
           Lecture en cours
         </h2>
 
-        <p className="mt-1 font-ui text-sm text-darkwood/60">
+        <p
+          className={`
+            mt-1 font-ui text-sm text-darkwood/60
+            ${dashboardLarge.description}
+          `}
+        >
           Aucun livre en cours pour le moment.
         </p>
       </section>
@@ -89,20 +108,53 @@ function CurrentlyReading({
   }
 
   return (
-    <section className="rounded-3xl border border-darkwood/10 bg-cream/80 p-5 md:p-6">
+    <section
+      className={`
+        rounded-3xl border border-darkwood/10 bg-cream/80 p-5
+        md:p-6
+        [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-[24rem]
+        [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-[30rem]
+        ${dashboardLarge.card}
+      `}
+    >
       <div>
-        <h2 className="font-heading text-2xl font-bold text-darkwood">
+        <h2
+          className={`
+            font-heading text-2xl font-bold text-darkwood
+            ${dashboardLarge.title}
+          `}
+        >
           Lecture en cours
         </h2>
 
-        <p className="mt-1 font-ui text-sm text-darkwood/60">
+        <p
+          className={`
+            mt-1 font-ui text-sm text-darkwood/60
+            ${dashboardLarge.description}
+          `}
+        >
           Les livres que tu lis en ce moment.
         </p>
       </div>
 
-      <div className="mt-6 grid items-center gap-8 sm:grid-cols-2">
+      <div
+        className="
+          mt-6 grid items-center gap-8
+          sm:grid-cols-2
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-10
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-12
+        "
+      >
         {/* Stack de couvertures */}
-        <div className="flex items-center justify-center px-4">
+        <div
+          className="
+            flex items-center justify-center px-4
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:px-6
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:px-8
+          "
+        >
           {books.map((book, index) => {
             const isSelected =
               book.googleBooksId === currentBook.googleBooksId
@@ -117,7 +169,7 @@ function CurrentlyReading({
                 }}
                 className={`
                   relative cursor-pointer transition-all duration-300 ease-out
-                  ${index === 0 ? '' : '-ml-20'}
+                  ${index === 0 ? '' : '-ml-20 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'}
                   ${isSelected ? '-translate-y-3' : 'hover:-translate-y-1'}
                 `}
                 style={{
@@ -137,27 +189,74 @@ function CurrentlyReading({
         </div>
 
         {/* Informations du livre sélectionné */}
-        <div className="flex min-w-0 flex-col justify-center sm:min-h-52">
+        <div
+          className="
+            flex min-w-0 flex-col justify-center
+            sm:min-h-52
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-60
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-72
+          "
+        >
           <div>
-            <StatusBadge status={currentBook.status} />
+            <StatusBadge
+              status={currentBook.status}
+              className="
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:px-4
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:py-1.5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+              "
+            />
           </div>
 
-          <h3 className="mt-3 line-clamp-3 wrap-break-word font-heading text-2xl font-bold leading-tight text-darkwood">
+          <h3
+            className="
+              mt-3 line-clamp-3 wrap-break-word font-heading text-2xl
+              font-bold leading-tight text-darkwood
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-4
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-3xl
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-4xl
+            "
+          >
             {currentBook.title}
           </h3>
 
-          <p className="mt-1 line-clamp-2 wrap-break-word font-ui text-sm text-darkwood/60">
+          <p
+            className="
+              mt-1 line-clamp-2 wrap-break-word font-ui text-sm
+              text-darkwood/60
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
+            "
+          >
             {currentBook.authors?.join(', ') || 'Auteur inconnu'}
           </p>
 
-          <div className="mt-5 flex flex-wrap items-start gap-2">
+          <div
+            className="
+              mt-5 flex flex-wrap items-start gap-2
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8
+            "
+          >
             <Link
               to={`/books/${currentBook.googleBooksId}`}
               state={{
                 book: currentBook,
                 libraryBook: currentBook,
               }}
-              className="rounded-full bg-darkwood px-4 py-2 font-ui text-xs font-bold text-cream transition-transform hover:-translate-y-0.5"
+              className="
+                rounded-full bg-darkwood px-4 py-2 font-ui text-xs
+                font-bold text-cream transition-transform
+                hover:-translate-y-0.5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:px-5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:py-2.5
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:px-6
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:py-3
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+              "
             >
               Voir la fiche
             </Link>
@@ -167,7 +266,18 @@ function CurrentlyReading({
                 type="button"
                 onClick={() => setIsStatusOpen((current) => !current)}
                 disabled={updatingBookId === currentBook.googleBooksId}
-                className="cursor-pointer rounded-full border border-darkwood/20 px-4 py-2 font-ui text-xs font-bold text-darkwood transition-transform hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60"
+                className="
+                  cursor-pointer rounded-full border border-darkwood/20 px-4
+                  py-2 font-ui text-xs font-bold text-darkwood
+                  transition-transform hover:-translate-y-0.5
+                  disabled:cursor-wait disabled:opacity-60
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:px-5
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:py-2.5
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
+                  [@media_(min-width:2400px)_and_(min-height:1300px)]:px-6
+                  [@media_(min-width:2400px)_and_(min-height:1300px)]:py-3
+                  [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+                "
               >
                 {updatingBookId === currentBook.googleBooksId
                   ? 'Modification...'
@@ -175,7 +285,7 @@ function CurrentlyReading({
               </button>
 
               {isStatusOpen && (
-                <div className="absolute left-0 top-full z-20 mt-2 min-w-40 overflow-hidden rounded-2xl border border-darkwood/10 bg-cream p-2 shadow-lg">
+                <div className="absolute left-0 top-full z-20 mt-2 min-w-40 overflow-hidden rounded-2xl border border-darkwood/10 bg-cream p-2 shadow-lg [@media_(min-width:2200px)_and_(min-height:1100px)]:min-w-48">
                   {statusOptions.map((status) => (
                     <button
                       key={status.value}
@@ -184,7 +294,7 @@ function CurrentlyReading({
                       disabled={
                         updatingBookId === currentBook.googleBooksId
                       }
-                      className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10 disabled:cursor-wait disabled:opacity-60"
+                      className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10 disabled:cursor-wait disabled:opacity-60 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm"
                     >
                       {status.label}
                     </button>
@@ -195,14 +305,14 @@ function CurrentlyReading({
           </div>
 
           {statusError && (
-            <p className="mt-3 font-ui text-sm text-red-700">
+            <p className="mt-3 font-ui text-sm text-red-700 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base">
               {statusError}
             </p>
           )}
 
           {/* Navigation entre les lectures */}
           {books.length > 1 && (
-            <div className="mt-6 flex flex-wrap items-center gap-4">
+            <div className="mt-6 flex flex-wrap items-center gap-4 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-5">
               <div className="flex gap-2">
                 {books.map((book) => (
                   <button
@@ -215,6 +325,8 @@ function CurrentlyReading({
                     className={`
                       h-2.5 w-2.5 cursor-pointer rounded-full
                       transition-all duration-300
+                      [@media_(min-width:2200px)_and_(min-height:1100px)]:h-3
+                      [@media_(min-width:2200px)_and_(min-height:1100px)]:w-3
                       ${
                         book.googleBooksId === currentBook.googleBooksId
                           ? 'scale-125 bg-darkwood'
@@ -226,7 +338,7 @@ function CurrentlyReading({
                 ))}
               </div>
 
-              <p className="font-ui text-xs text-darkwood/50">
+              <p className="font-ui text-xs text-darkwood/50 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm">
                 {books.length}{' '}
                 {books.length === 1
                   ? 'lecture en cours'

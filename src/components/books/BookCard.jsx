@@ -13,6 +13,8 @@ function BookCard({
   source,
   status,
   coverLoading = 'eager',
+  titleClassName = '',
+  authorClassName = '',
 }) {
   const routeBook =
     book ||
@@ -70,7 +72,13 @@ function BookCard({
 
       <div className="mt-3 text-center">
         {bookId ? (
-          <h3 className="line-clamp-3 wrap-break-word font-heading text-lg font-bold leading-tight text-darkwood">
+          <h3
+            className={`
+              line-clamp-3 wrap-break-word font-heading text-lg font-bold
+              leading-tight text-darkwood
+              ${titleClassName}
+            `}
+          >
             <Link
               to={`/books/${bookId}`}
               state={linkState}
@@ -80,12 +88,24 @@ function BookCard({
             </Link>
           </h3>
         ) : (
-          <h3 className="line-clamp-3 wrap-break-word font-heading text-lg font-bold leading-tight text-darkwood">
+          <h3
+            className={`
+              line-clamp-3 wrap-break-word font-heading text-lg font-bold
+              leading-tight text-darkwood
+              ${titleClassName}
+            `}
+          >
             {title}
           </h3>
         )}
 
-        <p className="mt-1 line-clamp-2 wrap-break-word font-ui text-sm text-darkwood/60">
+        <p
+          className={`
+            mt-1 line-clamp-2 wrap-break-word font-ui text-sm
+            text-darkwood/60
+            ${authorClassName}
+          `}
+        >
           {author || 'Auteur inconnu'}
         </p>
 
