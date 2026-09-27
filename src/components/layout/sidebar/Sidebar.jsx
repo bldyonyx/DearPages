@@ -38,7 +38,7 @@ function Sidebar() {
         [@media(min-height:1000px)]:lg:w-80
         [@media(min-height:1000px)]:lg:py-7
 
-        [@media(min-height:1200px)]:lg:w-[22rem]
+        [@media(min-height:1200px)]:lg:w-88
         [@media(min-height:1200px)]:lg:px-6
         [@media(min-height:1200px)]:lg:py-8
 

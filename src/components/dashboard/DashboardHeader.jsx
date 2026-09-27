@@ -80,8 +80,8 @@ function DashboardHeader({ user }) {
               lg:w-64
               xl:w-80
               2xl:w-96
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-[28rem]
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-[32rem]
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-md
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-lg
             "
           >
             <Search

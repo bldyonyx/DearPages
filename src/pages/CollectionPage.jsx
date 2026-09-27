@@ -536,7 +536,7 @@ function CollectionPage() {
         <section
           className="
             mt-8 max-w-3xl
-            rounded-[24px] border
+            rounded-3xl border
             border-walnut/10 bg-cream/80
             px-5 py-4 shadow-sm
             sm:px-6 sm:py-5

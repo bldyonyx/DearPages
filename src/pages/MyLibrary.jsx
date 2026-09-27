@@ -1,12 +1,90 @@
+import { Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import HeaderActions from '../components/layout/HeaderActions.jsx'
 import LibraryBookCard from '../components/library/LibraryBookCard.jsx'
 import LibraryEmptyState from '../components/library/LibraryEmptyState.jsx'
 import LibraryFilters from '../components/library/LibraryFilters.jsx'
+import { libraryLarge } from '../components/library/libraryResponsive.js'
 import Input from '../components/ui/Input.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getUserLibrary } from '../services/libraryService.js'
+
+function LibrarySearchField({
+  id,
+  search,
+  onSearchChange,
+  onClearSearch,
+  autoFocus = false,
+}) {
+  return (
+    <div className="relative">
+      <Search
+        aria-hidden="true"
+        strokeWidth={1.8}
+        className="
+          pointer-events-none
+          absolute left-5 top-1/2 z-10
+          h-5 w-5 -translate-y-1/2
+          text-darkwood/50
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:h-6
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:w-6
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:left-6
+        "
+      />
+
+      <Input
+        id={id}
+        type="search"
+        value={search}
+        onChange={(event) =>
+          onSearchChange(event.target.value)
+        }
+        placeholder="Rechercher dans ma bibliothèque..."
+        aria-label="Rechercher dans ma bibliothèque"
+        autoFocus={autoFocus}
+        className={`
+          w-full rounded-full!
+          py-3 pl-13 pr-12
+          ${libraryLarge.searchInput}
+        `}
+      />
+
+      {search && (
+        <button
+          type="button"
+          onClick={onClearSearch}
+          aria-label="Effacer la recherche"
+          className="
+            absolute right-4 top-1/2 z-10
+            flex h-7 w-7
+            -translate-y-1/2
+            cursor-pointer
+            items-center justify-center
+            rounded-full
+            text-darkwood/50
+            transition-colors
+            hover:text-darkwood
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:right-5
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:h-8
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:w-8
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:right-6
+          "
+        >
+          <X
+            aria-hidden="true"
+            strokeWidth={1.8}
+            className="
+              h-4 w-4
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-5
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-5
+            "
+          />
+        </button>
+      )}
+    </div>
+  )
+}
 
 function MyLibrary() {
   const { user } = useAuth()
@@ -104,9 +182,13 @@ function MyLibrary() {
     )
   })
 
+  function handleClearSearch() {
+    setSearch('')
+  }
+
   return (
-    <div className="p-6">
-      <header className="py-4">
+    <div className={`p-6 ${libraryLarge.shell}`}>
+      <header className={`py-4 ${libraryLarge.headerTop}`}>
         <div
           className="
             flex flex-col gap-4
@@ -114,11 +196,22 @@ function MyLibrary() {
           "
         >
           <div className="min-w-0">
-            <h1 className="font-heading text-3xl font-bold text-darkwood md:text-4xl">
+            <h1
+              className={`
+                font-heading text-3xl font-bold text-darkwood md:text-4xl
+                ${libraryLarge.pageTitle}
+              `}
+            >
               Ma bibliothèque
             </h1>
 
-            <p className="mt-2 font-ui text-sm font-semibold text-darkwood/60 md:text-base">
+            <p
+              className={`
+                mt-2 font-ui text-sm font-semibold text-darkwood/60
+                md:text-base
+                ${libraryLarge.pageDescription}
+              `}
+            >
               tous tes livres, au même endroit ♡
             </p>
           </div>
@@ -132,27 +225,20 @@ function MyLibrary() {
             "
           >
             <div
-              className="
+              className={`
                 hidden min-w-0
                 md:block md:w-56
                 lg:w-64
                 xl:w-80
                 2xl:w-96
-              "
+                ${libraryLarge.searchWrap}
+              `}
             >
-              <Input
+              <LibrarySearchField
                 id="library-search"
-                type="search"
-                value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
-                placeholder="Rechercher dans ma bibliothèque..."
-                aria-label="Rechercher dans ma bibliothèque"
-                className="
-                  w-full rounded-full!
-                  px-6 py-3
-                "
+                search={search}
+                onSearchChange={setSearch}
+                onClearSearch={handleClearSearch}
               />
             </div>
 
@@ -169,7 +255,7 @@ function MyLibrary() {
                   : 'Rechercher dans ma bibliothèque'
               }
               aria-expanded={isSearchOpen}
-              className="
+              className={`
                 flex h-11 w-11
                 shrink-0 cursor-pointer
                 items-center justify-center
@@ -177,25 +263,21 @@ function MyLibrary() {
                 border border-walnut/30
                 bg-cream text-darkwood
                 md:hidden
-              "
+                ${libraryLarge.iconButton}
+              `}
             >
               {isSearchOpen ? (
-                <span className="text-xl leading-none">
-                  ×
-                </span>
-              ) : (
-                <svg
-                  viewBox="0 0 24 24"
+                <X
                   aria-hidden="true"
+                  strokeWidth={1.8}
                   className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                >
-                  <circle cx="11" cy="11" r="6" />
-                  <path d="m16 16 4 4" />
-                </svg>
+                />
+              ) : (
+                <Search
+                  aria-hidden="true"
+                  strokeWidth={1.8}
+                  className="h-5 w-5"
+                />
               )}
             </button>
 
@@ -205,49 +287,49 @@ function MyLibrary() {
 
         {isSearchOpen && (
           <div className="mt-4 w-full md:hidden">
-            <Input
+            <LibrarySearchField
               id="library-search-mobile"
-              type="search"
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-              placeholder="Rechercher dans ma bibliothèque..."
-              aria-label="Rechercher dans ma bibliothèque"
+              search={search}
+              onSearchChange={setSearch}
+              onClearSearch={handleClearSearch}
               autoFocus
-              className="
-                w-full rounded-full!
-                px-6 py-3
-              "
             />
           </div>
         )}
       </header>
 
       {isLoading ? (
-        <p className="mt-8 font-ui text-sm text-walnut/65">
+        <p
+          className={`
+            mt-8 font-ui text-sm text-walnut/65
+            ${libraryLarge.description}
+            ${libraryLarge.sectionGap}
+          `}
+        >
           Chargement de ta bibliothèque...
         </p>
       ) : error ? (
         <div
-          className="
+          className={`
             mt-8 rounded-3xl
             border border-dustyrose/30
             bg-dustyrose/20
             px-5 py-4
             font-ui text-sm
             text-darkwood
-          "
+            ${libraryLarge.description}
+            ${libraryLarge.sectionGap}
+          `}
         >
           {error}
         </div>
       ) : books.length === 0 ? (
-        <div className="mt-8">
+        <div className={`mt-8 ${libraryLarge.sectionGap}`}>
           <LibraryEmptyState />
         </div>
       ) : (
         <section
-          className="
+          className={`
             mt-8
             rounded-[28px]
             border border-walnut/10
@@ -257,7 +339,9 @@ function MyLibrary() {
             backdrop-blur-[2px]
             sm:p-7
             lg:p-8
-          "
+            ${libraryLarge.sectionGap}
+            ${libraryLarge.panel}
+          `}
         >
           <LibraryFilters
             activeFilter={activeFilter}
@@ -268,14 +352,16 @@ function MyLibrary() {
 
           {visibleBooks.length > 0 ? (
             <div
-              className="
+              className={`
                 mt-7 grid
                 grid-cols-2
                 gap-x-5 gap-y-14
                 sm:grid-cols-3
                 md:grid-cols-4
                 xl:grid-cols-5
-              "
+                ${libraryLarge.gridGap}
+                ${libraryLarge.bookGrid}
+              `}
             >
               {visibleBooks.map((book) => (
                 <LibraryBookCard
@@ -286,29 +372,32 @@ function MyLibrary() {
             </div>
           ) : (
             <div
-              className="
+              className={`
                 flex min-h-52
                 items-center justify-center
                 px-5 py-12
                 text-center
-              "
+                ${libraryLarge.emptyPanel}
+              `}
             >
               <div>
                 <p
-                  className="
+                  className={`
                     font-heading text-xl
                     font-bold text-darkwood
-                  "
+                    ${libraryLarge.emptyTitle}
+                  `}
                 >
                   Aucun livre trouvé
                 </p>
 
                 <p
-                  className="
+                  className={`
                     mt-1
                     font-ui text-sm
                     text-walnut/60
-                  "
+                    ${libraryLarge.description}
+                  `}
                 >
                   {search.trim()
                     ? 'Essaie une autre recherche ou un autre filtre.'

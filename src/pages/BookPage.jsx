@@ -541,7 +541,7 @@ function BookPage() {
                 mt-5
                 font-ui text-sm
                 leading-7 text-ink
-                break-words
+                wrap-break-word
               "
             >
               {descriptionTranslation.displayedDescription}

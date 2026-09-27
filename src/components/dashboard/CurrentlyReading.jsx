@@ -112,8 +112,8 @@ function CurrentlyReading({
       className={`
         rounded-3xl border border-darkwood/10 bg-cream/80 p-5
         md:p-6
-        [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-[24rem]
-        [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-[30rem]
+        [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-96
+        [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-120
         ${dashboardLarge.card}
       `}
     >

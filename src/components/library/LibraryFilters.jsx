@@ -1,3 +1,5 @@
+import { libraryLarge } from './libraryResponsive.js'
+
 const FILTERS = [
   {
     value: 'all',
@@ -103,6 +105,7 @@ function LibraryFilters({
                   pb-3
                   font-ui text-sm
                   transition-colors
+                  ${libraryLarge.filterText}
                   ${
                     isActive
                       ? 'font-bold text-darkwood'
@@ -122,6 +125,7 @@ function LibraryFilters({
                     px-2 py-1
                     text-xs
                     ${filter.countStyle}
+                    ${libraryLarge.filterCount}
                     ${
                       isActive
                         ? 'opacity-100'
@@ -149,13 +153,14 @@ function LibraryFilters({
 
         {/* Compteur tablette + desktop */}
         <p
-          className="
+          className={`
             hidden shrink-0
             pb-3 pl-6
             font-ui text-sm
             text-walnut/55
             md:block
-          "
+            ${libraryLarge.description}
+          `}
         >
           {totalBooks}{' '}
           {totalBooks === 1 ? 'livre' : 'livres'}

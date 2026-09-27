@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import BookCover from '../books/BookCover.jsx'
 import StatusBadge from '../ui/StatusBadge.jsx'
+import { libraryLarge } from './libraryResponsive.js'
 
 function LibraryBookCard({ book }) {
   return (
@@ -41,12 +42,13 @@ function LibraryBookCard({ book }) {
       <div className="flex flex-1 flex-col px-0.5 pt-3">
         <h2
           title={book.title}
-          className="
+          className={`
             overflow-hidden
             font-heading text-lg
             font-bold leading-snug
             text-darkwood
-          "
+            ${libraryLarge.bookTitle}
+          `}
           style={{
             display: '-webkit-box',
             WebkitBoxOrient: 'vertical',
@@ -56,7 +58,12 @@ function LibraryBookCard({ book }) {
           {book.title}
         </h2>
 
-        <p className="mt-1 truncate font-ui text-xs text-walnut/60">
+        <p
+          className={`
+            mt-1 truncate font-ui text-xs text-walnut/60
+            ${libraryLarge.bookAuthor}
+          `}
+        >
           {book.authors?.join(', ') || 'Auteur inconnu'}
         </p>
 

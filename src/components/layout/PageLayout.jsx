@@ -121,7 +121,7 @@ function PageLayout() {
           [@media(min-height:1000px)]:lg:ml-80
           [@media(min-height:1000px)]:lg:w-[calc(100%-20rem)]
 
-          [@media(min-height:1200px)]:lg:ml-[22rem]
+          [@media(min-height:1200px)]:lg:ml-88
           [@media(min-height:1200px)]:lg:w-[calc(100%-22rem)]
 
           [@media(min-height:1400px)]:lg:ml-96
