@@ -40,7 +40,7 @@ function ReadingStats({
         className={`
           mt-6
           md:flex md:items-stretch
-          ${dashboardLarge.compactStackGap}
+          ${dashboardLarge.stackGap}
           [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
           [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
         `}

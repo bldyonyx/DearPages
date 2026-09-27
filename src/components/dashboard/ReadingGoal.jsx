@@ -39,7 +39,7 @@ function ReadingGoal({
         className={`
           mt-4 flex flex-col items-center justify-center
           sm:mt-6
-          ${dashboardLarge.compactStackGap}
+          ${dashboardLarge.stackGap}
           [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
           [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
         `}
@@ -49,8 +49,6 @@ function ReadingGoal({
           className="
             relative h-36 w-36
             sm:h-48 sm:w-48
-            [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:h-40
-            [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:w-40
             [@media_(min-width:2200px)_and_(min-height:1100px)]:h-56
             [@media_(min-width:2200px)_and_(min-height:1100px)]:w-56
             [@media_(min-width:2400px)_and_(min-height:1300px)]:h-64
@@ -108,7 +106,7 @@ function ReadingGoal({
           </div>
         </div>
 
-        <p className="mt-4 text-center font-ui text-xs text-darkwood/60 sm:mt-5 sm:text-sm [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:mt-3 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg">
+        <p className="mt-4 text-center font-ui text-xs text-darkwood/60 sm:mt-5 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg">
           {completedBooks} livre{completedBooks > 1 ? 's' : ''}{' '}
           terminé{completedBooks > 1 ? 's' : ''} cette année
         </p>
