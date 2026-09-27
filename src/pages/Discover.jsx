@@ -22,11 +22,13 @@ function Discover() {
   const isSearchMode = Boolean(queryFromUrl)
   const isForYouMode =
     searchParams.get('view') === 'for-you' && !isSearchMode
+
   const discoverPreferences = useMemo(
     () =>
       normalizeDiscoverPreferences(preferences?.favoriteGenres),
     [preferences]
   )
+
   const discoverPreferenceLabels = useMemo(
     () =>
       discoverPreferences.map(
@@ -34,11 +36,13 @@ function Discover() {
       ),
     [discoverPreferences]
   )
+
   const discoverPreferencesSignature = useMemo(
     () =>
       createDiscoverPreferencesSignature(discoverPreferences),
     [discoverPreferences]
   )
+
   const personalizedSubject = discoverPreferences[0].subject
 
   const {
@@ -83,8 +87,8 @@ function Discover() {
       <header className={`py-4 ${discoverLarge.headerTop}`}>
         <div
           className="
-            flex flex-col gap-4
-            md:flex-row md:items-center md:justify-between
+            flex items-start justify-between gap-4
+            md:items-center
           "
         >
           <div className="min-w-0">
@@ -108,7 +112,10 @@ function Discover() {
             </p>
           </div>
 
-          <HeaderActions user={user} />
+          <HeaderActions
+            user={user}
+            className="shrink-0"
+          />
         </div>
       </header>
 
