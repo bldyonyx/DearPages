@@ -117,6 +117,14 @@ function PageLayout() {
           lg:w-[calc(100%-18rem)]
           lg:p-4
           lg:pt-4
+
+          [@media(min-width:2200px)_and_(min-height:1100px)]:ml-80
+          [@media(min-width:2200px)_and_(min-height:1100px)]:w-[calc(100%-20rem)]
+          [@media(min-width:2200px)_and_(min-height:1100px)]:p-5
+
+          [@media(min-width:2400px)_and_(min-height:1300px)]:ml-96
+          [@media(min-width:2400px)_and_(min-height:1300px)]:w-[calc(100%-24rem)]
+          [@media(min-width:2400px)_and_(min-height:1300px)]:p-6
         "
       >
         <div
@@ -135,6 +143,10 @@ function PageLayout() {
             lg:min-h-[calc(100vh-2rem)]
             lg:rounded-2xl
             lg:pb-0
+
+            [@media(min-width:2200px)_and_(min-height:1100px)]:min-h-[calc(100vh-2.5rem)]
+
+            [@media(min-width:2400px)_and_(min-height:1300px)]:min-h-[calc(100vh-3rem)]
           "
           style={{ backgroundImage: `url(${greenBackground})` }}
         >
