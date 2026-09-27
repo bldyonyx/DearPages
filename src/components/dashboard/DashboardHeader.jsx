@@ -31,6 +31,10 @@ function DashboardHeader({ user }) {
     navigate(`/discover?q=${encodeURIComponent(trimmedSearch)}`)
   }
 
+  function handleClearSearch() {
+    setSearch('')
+  }
+
   return (
     <header className={`py-4 ${dashboardLarge.headerTop}`}>
       <div
@@ -105,17 +109,50 @@ function DashboardHeader({ user }) {
               aria-label="Rechercher un livre"
               className="
                 w-full rounded-full!
-                py-3 pl-12 pr-6
+                py-3 pl-12 pr-12
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:pl-14
-                [@media_(min-width:2200px)_and_(min-height:1100px)]:pr-7
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:pr-14
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:py-4
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:pl-16
-                [@media_(min-width:2400px)_and_(min-height:1300px)]:pr-8
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:pr-16
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
               "
             />
+
+            {search && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                aria-label="Effacer la recherche"
+                className="
+                  absolute right-4 top-1/2 z-10
+                  flex h-7 w-7
+                  -translate-y-1/2
+                  cursor-pointer
+                  items-center justify-center
+                  rounded-full
+                  text-darkwood/50
+                  transition-colors
+                  hover:text-darkwood
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:right-5
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:h-8
+                  [@media_(min-width:2200px)_and_(min-height:1100px)]:w-8
+                  [@media_(min-width:2400px)_and_(min-height:1300px)]:right-6
+                "
+              >
+                <X
+                  aria-hidden="true"
+                  strokeWidth={1.8}
+                  className="
+                    h-4 w-4
+                    [@media_(min-width:2200px)_and_(min-height:1100px)]:h-5
+                    [@media_(min-width:2200px)_and_(min-height:1100px)]:w-5
+                  "
+                />
+              </button>
+            )}
           </form>
 
           {/* Recherche mobile */}
@@ -203,6 +240,7 @@ function DashboardHeader({ user }) {
         >
           <Search
             aria-hidden="true"
+            strokeWidth={1.8}
             className="
               pointer-events-none absolute
               left-5 top-1/2 z-10
@@ -210,7 +248,6 @@ function DashboardHeader({ user }) {
               -translate-y-1/2
               text-darkwood/50
             "
-            strokeWidth={1.8}
           />
 
           <Input
@@ -221,8 +258,33 @@ function DashboardHeader({ user }) {
             placeholder="Rechercher un livre..."
             aria-label="Rechercher un livre"
             autoFocus
-            className="w-full rounded-full! py-3 pl-12 pr-6"
+            className="w-full rounded-full! py-3 pl-12 pr-12"
           />
+
+          {search && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              aria-label="Effacer la recherche"
+              className="
+                absolute right-4 top-1/2 z-10
+                flex h-7 w-7
+                -translate-y-1/2
+                cursor-pointer
+                items-center justify-center
+                rounded-full
+                text-darkwood/50
+                transition-colors
+                hover:text-darkwood
+              "
+            >
+              <X
+                aria-hidden="true"
+                className="h-4 w-4"
+                strokeWidth={1.8}
+              />
+            </button>
+          )}
         </form>
       )}
     </header>
