@@ -14,6 +14,10 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useBookLibraryState } from '../hooks/useBookLibraryState.js'
 import { useBookPageData } from '../hooks/useBookPageData.js'
 import { BOOK_STATUSES } from '../services/libraryService.js'
+import {
+  hasCompleteInitialBookDetails,
+  hasUsefulBookDescription,
+} from '../utils/bookPageUtils.js'
 
 const STATUS_OPTIONS = [
   {
@@ -33,6 +37,38 @@ const STATUS_OPTIONS = [
     label: 'Abandonné',
   },
 ]
+
+function BookDetailsLoadingState() {
+  return (
+    <section
+      className="
+        min-h-[360px]
+        rounded-[28px]
+        border border-walnut/10
+        bg-cream/70
+        px-5 py-6
+        shadow-sm
+        backdrop-blur-[2px]
+        sm:px-7 sm:py-8
+        md:px-8
+        lg:px-11 lg:py-10
+      "
+      aria-label="Chargement des details du livre"
+    >
+      <div
+        className="
+          flex h-full min-h-[300px]
+          items-center justify-center
+          text-center
+        "
+      >
+        <p className="font-handwritten text-xl text-walnut">
+          Ouverture du livre...
+        </p>
+      </div>
+    </section>
+  )
+}
 
 function BookPage() {
   const { id } = useParams()
@@ -76,17 +112,15 @@ function BookPage() {
     userId,
   })
 
-  if (isBookLoading && !book) {
-    return (
-      <main className="px-5 py-6 sm:px-7 lg:px-9">
-        <p className="font-handwritten text-xl text-walnut">
-          Ouverture du livre...
-        </p>
-      </main>
-    )
-  }
+  const canRenderBookDetails =
+    Boolean(book) &&
+    (!isBookLoading ||
+      hasCompleteInitialBookDetails(book))
+  const canRenderSupportingSections =
+    Boolean(book) &&
+    (!isBookLoading || hasUsefulBookDescription(book))
 
-  if (!book) {
+  if (!isBookLoading && !book) {
     return (
       <main className="px-5 py-6 sm:px-7 lg:px-9">
         <p className="font-ui text-sm text-red-700">
@@ -128,33 +162,43 @@ function BookPage() {
           Retour
         </button>
 
-        <BookDetails
-          book={book}
-          libraryBook={libraryBook}
-          isLibraryLoading={isLibraryLoading}
-          isSaving={isSaving}
-          libraryError={libraryError}
-          statusOptions={STATUS_OPTIONS}
-          onAddToLibrary={handleAddToLibrary}
-          onStatusChange={handleStatusChange}
-          onRemoveFromLibrary={handleOpenRemoveModal}
-        />
+        {!canRenderBookDetails ? (
+          <BookDetailsLoadingState />
+        ) : (
+          <>
+            <BookDetails
+              book={book}
+              libraryBook={libraryBook}
+              isLibraryLoading={isLibraryLoading}
+              isSaving={isSaving}
+              libraryError={libraryError}
+              statusOptions={STATUS_OPTIONS}
+              onAddToLibrary={handleAddToLibrary}
+              onStatusChange={handleStatusChange}
+              onRemoveFromLibrary={handleOpenRemoveModal}
+            />
 
-        {error && (
-          <p className="mt-4 font-ui text-sm text-red-700">
-            {error}
-          </p>
+            {error && (
+              <p className="mt-4 font-ui text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            {canRenderSupportingSections && (
+              <>
+                <BookDescriptionSection book={book} />
+
+                <BookPersonalSection
+                  userId={userId}
+                  bookId={book.googleBooksId}
+                  libraryBook={libraryBook}
+                  isLibraryLoading={isLibraryLoading}
+                  onLibraryBookChange={setLibraryBook}
+                />
+              </>
+            )}
+          </>
         )}
-
-        <BookDescriptionSection book={book} />
-
-        <BookPersonalSection
-          userId={userId}
-          bookId={book.googleBooksId}
-          libraryBook={libraryBook}
-          isLibraryLoading={isLibraryLoading}
-          onLibraryBookChange={setLibraryBook}
-        />
       </main>
 
       <RemoveBookModal

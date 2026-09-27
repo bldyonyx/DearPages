@@ -421,124 +421,6 @@ async function getGoogleBooksData(url, message) {
 }
 
 /**
- * Choisit le meilleur résultat français parmi une liste Google Books.
- *
- * Les éditions françaises possédant une description sont privilégiées,
- * puis celles possédant une couverture.
- *
- * @param {Array} items - Résultats bruts Google Books.
- * @returns {Object|null} Meilleure édition française trouvée.
- */
-function findBestFrenchEdition(items = []) {
-  const frenchItems = items.filter(
-    (item) => item.volumeInfo?.language === 'fr'
-  )
-
-  if (frenchItems.length === 0) {
-    return null
-  }
-
-  return (
-    frenchItems.find(
-      (item) =>
-        item.volumeInfo?.description &&
-        item.volumeInfo?.imageLinks
-    ) ||
-    frenchItems.find(
-      (item) => item.volumeInfo?.description
-    ) ||
-    frenchItems.find(
-      (item) => item.volumeInfo?.imageLinks
-    ) ||
-    frenchItems[0]
-  )
-}
-
-/**
- * Recherche une édition française correspondant à un livre.
- *
- * La recherche essaie d'abord les ISBN, qui sont les identifiants
- * les plus précis. Si aucune édition française n'est trouvée,
- * une recherche titre + auteur est utilisée comme solution de repli.
- *
- * @param {Object} book - Livre Dear Pages formaté.
- * @returns {Promise<Object|null>} Édition française brute ou null.
- */
-async function findFrenchEdition(book) {
-  for (const isbn of book.isbns) {
-    const data = await getGoogleBooksData(
-      `${BASE_URL}?q=isbn:${encodeURIComponent(
-        isbn
-      )}&langRestrict=fr&maxResults=10&key=${API_KEY}`,
-      'Impossible de rechercher une édition française.'
-    )
-
-    const frenchEdition = findBestFrenchEdition(
-      data.items || []
-    )
-
-    if (frenchEdition) {
-      return frenchEdition
-    }
-  }
-
-  const mainAuthor = book.authors[0]
-
-  if (!book.title || !mainAuthor) {
-    return null
-  }
-
-  const query = `intitle:${book.title}+inauthor:${mainAuthor}`
-
-  const data = await getGoogleBooksData(
-    `${BASE_URL}?q=${encodeURIComponent(
-      query
-    )}&langRestrict=fr&maxResults=10&key=${API_KEY}`,
-    'Impossible de rechercher une édition française.'
-  )
-
-  return findBestFrenchEdition(data.items || [])
-}
-
-/**
- * Fusionne les métadonnées d'une édition française avec le volume
- * initialement sélectionné.
- *
- * L'identifiant Google Books original est conservé afin que les routes
- * et les livres déjà stockés dans Firebase restent cohérents.
- *
- * @param {Object} originalBook - Livre initial.
- * @param {Object} frenchItem - Édition française Google Books.
- * @returns {Object} Livre enrichi avec les métadonnées françaises.
- */
-function mergeFrenchMetadata(originalBook, frenchItem) {
-  const frenchBook = formatBook(frenchItem)
-
-  return {
-    ...originalBook,
-
-    description:
-      frenchBook.description ||
-      originalBook.description,
-
-    categories:
-      frenchBook.categories.length > 0
-        ? frenchBook.categories
-        : originalBook.categories,
-
-    publishedDate:
-      frenchBook.publishedDate ||
-      originalBook.publishedDate,
-
-    cover:
-      originalBook.cover ||
-      frenchBook.cover,
-
-    language: 'fr',
-  }
-}
-
-/**
  * Recherche des livres dans l'API Google Books.
  *
  * @param {string} query - Recherche saisie par l'utilisateur.
@@ -648,13 +530,7 @@ export async function getBookByIsbn(isbn) {
 }
 
 /**
- * Récupère la fiche complète d'un livre.
- *
- * Si le volume sélectionné n'est pas français, Dear Pages essaie
- * de trouver une édition française du même livre afin d'utiliser
- * son titre, sa description et ses métadonnées lorsqu'elles existent.
- *
- * L'identifiant Google Books du volume original reste inchangé.
+ * Récupère la fiche complète du volume Google Books sélectionné.
  *
  * @param {string} bookId - Identifiant Google Books du livre.
  * @returns {Promise<Object|null>} Livre formaté pour Dear Pages.
@@ -671,31 +547,5 @@ export async function getBookById(bookId) {
     'Impossible de récupérer ce livre.'
   )
 
-  const originalBook = formatBook(data)
-
-  if (originalBook.language === 'fr') {
-    return originalBook
-  }
-
-  try {
-    const frenchEdition = await findFrenchEdition(
-      originalBook
-    )
-
-    if (!frenchEdition) {
-      return originalBook
-    }
-
-    return mergeFrenchMetadata(
-      originalBook,
-      frenchEdition
-    )
-  } catch (error) {
-    console.warn(
-      'Édition française introuvable :',
-      error
-    )
-
-    return originalBook
-  }
+  return formatBook(data)
 }

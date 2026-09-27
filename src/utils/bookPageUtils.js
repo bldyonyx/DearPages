@@ -100,8 +100,45 @@ function hasUsefulArray(value) {
   return Array.isArray(value) && value.filter(Boolean).length > 0
 }
 
+function hasDisplayableCategory(categories = []) {
+  const ignoredCategories = [
+    'general',
+    'literary collections',
+  ]
+
+  return categories
+    .flatMap((category) => String(category || '').split('/'))
+    .map((category) => category.trim())
+    .filter(Boolean)
+    .some(
+      (category) =>
+        !ignoredCategories.includes(category.toLowerCase())
+    )
+}
+
 function getPreferredValue(currentValue, nextValue, isUseful) {
   return isUseful(currentValue) ? currentValue : nextValue
+}
+
+export function hasUsefulBookDescription(book) {
+  return hasUsefulString(book?.description)
+}
+
+export function hasCompleteInitialBookDetails(book) {
+  const normalizedBook = normalizeBookForPage(book)
+
+  if (!normalizedBook) {
+    return false
+  }
+
+  return (
+    hasUsefulTitle(normalizedBook.title) &&
+    hasUsefulAuthors(normalizedBook) &&
+    (hasUsefulString(normalizedBook.cover) ||
+      hasUsefulString(normalizedBook.isbn)) &&
+    hasUsefulString(normalizedBook.publishedDate) &&
+    hasDisplayableCategory(normalizedBook.categories)
+  )
 }
 
 /**

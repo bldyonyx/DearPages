@@ -30,9 +30,7 @@ export function useBookPageData({
     book: normalizeBookForPage(routeBook),
   }))
 
-  const [isBookLoading, setIsBookLoading] = useState(
-    !routeBook
-  )
+  const [isBookLoading, setIsBookLoading] = useState(true)
   const [error, setError] = useState('')
 
   const isCurrentBook = bookState.bookId === bookId
@@ -54,7 +52,7 @@ export function useBookPageData({
         book: normalizeBookForPage(optimisticBook),
       })
 
-      setIsBookLoading(!optimisticBook)
+      setIsBookLoading(true)
       setError('')
 
       try {
@@ -96,9 +94,7 @@ export function useBookPageData({
   return {
     book,
     isBookLoading:
-      !isCurrentBook && !routeBook
-        ? true
-        : isBookLoading,
+      !isCurrentBook ? true : isBookLoading,
     error: isCurrentBook ? error : '',
   }
 }
