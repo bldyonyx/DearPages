@@ -23,7 +23,7 @@ export const libraryLarge = {
     [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-y-16
     [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-x-8
     [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-y-[4.5rem]
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-x-10
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-x-9
     [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-y-20
   `,
 
@@ -83,14 +83,14 @@ export const libraryLarge = {
   `,
 
   bookGrid: `
-    [@media_(min-width:1800px)_and_(min-height:1050px)]:grid-cols-[repeat(auto-fill,minmax(10.5rem,1fr))]
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))]
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]
+    [@media_(min-width:1800px)_and_(max-width:2199px)]:grid-cols-6
+    [@media_(min-width:2200px)_and_(max-width:2399px)]:grid-cols-7
+    [@media_(min-width:2400px)]:grid-cols-7
   `,
 
   bookTitle: `
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-lg
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-xl
   `,
 
   bookAuthor: `
