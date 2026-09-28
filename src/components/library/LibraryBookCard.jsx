@@ -2,9 +2,18 @@ import { Link } from 'react-router-dom'
 
 import BookCover from '../books/BookCover.jsx'
 import StatusBadge from '../ui/StatusBadge.jsx'
+import { BOOK_STATUSES } from '../../services/libraryService.js'
+import { formatReadingMonthYear } from '../../utils/readingDateUtils.js'
 import { libraryLarge } from './libraryResponsive.js'
 
 function LibraryBookCard({ book }) {
+  const isFinished =
+    book.status === BOOK_STATUSES.FINISHED
+
+  const finishedDate = isFinished
+    ? formatReadingMonthYear(book.finishedAt)
+    : ''
+
   return (
     <Link
       to={`/books/${book.googleBooksId}`}
@@ -60,7 +69,8 @@ function LibraryBookCard({ book }) {
 
         <p
           className={`
-            mt-1 truncate font-ui text-xs text-walnut/60
+            mt-1 truncate
+            font-ui text-xs text-walnut/60
             ${libraryLarge.bookAuthor}
           `}
         >
@@ -69,6 +79,19 @@ function LibraryBookCard({ book }) {
 
         <div className="mt-auto pt-3">
           <StatusBadge status={book.status} />
+
+          {isFinished && (
+            <p
+              className={`
+                mt-1.5
+                font-ui text-xs
+                text-walnut/55
+                ${libraryLarge.bookAuthor}
+              `}
+            >
+              {finishedDate || 'Date inconnue'}
+            </p>
+          )}
         </div>
       </div>
     </Link>

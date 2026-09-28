@@ -246,7 +246,7 @@ function BookDetails({
                     mt-1.5
                     font-ui text-sm
                     text-forest/80
-                    break-words
+                    wrap-break-word
                     ${bookLarge.metadataText}
                   `}
                 >
