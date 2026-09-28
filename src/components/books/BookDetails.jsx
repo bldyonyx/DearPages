@@ -135,18 +135,19 @@ function BookDetails({
 
   return (
     <section
-      className={`
+      className="
         rounded-[28px]
-        border border-walnut/10
-        bg-cream/70
+        border border-walnut/12
+        bg-cream/75
         px-5 py-6
-        shadow-sm
+        shadow-[0_8px_30px_rgba(83,55,76,0.07)]
         backdrop-blur-[2px]
+        transition-shadow duration-300
+        hover:shadow-[0_10px_34px_rgba(83,55,76,0.09)]
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10
-        ${bookLarge.card}
-      `}
+      "
     >
       <div
         className={`

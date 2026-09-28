@@ -27,6 +27,7 @@ function BookPersonalSpace({
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [collectionCount, setCollectionCount] = useState(0)
+
   const [
     isCollectionsModalOpen,
     setIsCollectionsModalOpen,
@@ -51,6 +52,7 @@ function BookPersonalSpace({
     async function loadCollectionCount() {
       try {
         const collections = await getUserCollections(userId)
+
         const nextCollectionCount = collections.filter(
           (collection) => collection.books?.[bookId]
         ).length
@@ -154,7 +156,8 @@ function BookPersonalSpace({
     status === BOOK_STATUSES.FINISHED ||
     status === BOOK_STATUSES.ABANDONED
 
-  const showsRating = status === BOOK_STATUSES.FINISHED
+  const showsRating =
+    status === BOOK_STATUSES.FINISHED
 
   return (
     <section
@@ -171,7 +174,7 @@ function BookPersonalSpace({
             ${bookLarge.handwritten}
           `}
         >
-        entre toi et les pages ♡
+          entre toi et les pages ♡
         </p>
 
         <h2
@@ -188,8 +191,11 @@ function BookPersonalSpace({
         className={`
           rounded-[26px]
           border border-walnut/10
-          bg-cream/65
-          p-6 shadow-sm
+          bg-cream/75
+          p-6
+          shadow-[0_8px_30px_rgba(83,55,76,0.07)]
+          transition-shadow duration-300
+          hover:shadow-[0_10px_34px_rgba(83,55,76,0.09)]
           sm:p-7
           ${bookLarge.personalCard}
         `}
@@ -197,8 +203,10 @@ function BookPersonalSpace({
         <div
           className="
             mb-6 flex flex-col gap-3
-            border-b border-walnut/10
-            pb-5
+            rounded-2xl
+            border border-walnut/10
+            bg-mintcream/35
+            px-4 py-4
             lg:flex-row
             lg:items-center
             lg:justify-between
@@ -234,13 +242,17 @@ function BookPersonalSpace({
             className={`
               inline-flex w-full
               items-center justify-center gap-2
-              rounded-2xl border
-              border-walnut/15
-              bg-cream/70 px-4 py-2.5
+              rounded-2xl
+              border border-olive/20
+              bg-cream/80
+              px-4 py-2.5
               font-ui text-sm
               font-bold text-darkwood
-              transition
-              hover:bg-lime/45
+              shadow-[0_2px_8px_rgba(83,55,76,0.04)]
+              transition-all duration-200
+              hover:border-olive/30
+              hover:bg-lime/35
+              hover:shadow-[0_4px_12px_rgba(83,55,76,0.07)]
               sm:w-fit
               lg:shrink-0
               ${bookLarge.personalControl}
@@ -250,8 +262,12 @@ function BookPersonalSpace({
               size={17}
               strokeWidth={1.8}
               aria-hidden="true"
-              className={bookLarge.personalIcon}
+              className={`
+                text-olive
+                ${bookLarge.personalIcon}
+              `}
             />
+
             Gérer les collections
           </button>
         </div>
@@ -318,19 +334,25 @@ function BookPersonalSpace({
                 className={`
                   w-full
                   rounded-xl
+                  border border-olive/15
                   bg-lime
                   px-5 py-2.5
                   font-ui text-sm
                   font-bold text-darkwood
-                  transition
+                  shadow-[0_3px_10px_rgba(83,55,76,0.06)]
+                  transition-all duration-200
+                  hover:-translate-y-0.5
                   hover:brightness-95
+                  hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]
                   disabled:cursor-not-allowed
                   disabled:opacity-60
                   sm:w-auto
                   ${bookLarge.personalControl}
                 `}
               >
-                {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                {isSaving
+                  ? 'Enregistrement...'
+                  : 'Enregistrer'}
               </button>
             </div>
           </div>
@@ -357,7 +379,9 @@ function BookPersonalSpace({
                     type="button"
                     onClick={() => handleRatingChange(star)}
                     disabled={isSaving}
-                    aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
+                    aria-label={`${star} étoile${
+                      star > 1 ? 's' : ''
+                    }`}
                     className={`
                       transition
                       hover:-translate-y-0.5
@@ -372,7 +396,11 @@ function BookPersonalSpace({
                     <Star
                       size={30}
                       strokeWidth={1.6}
-                      fill={isSelected ? 'currentColor' : 'none'}
+                      fill={
+                        isSelected
+                          ? 'currentColor'
+                          : 'none'
+                      }
                       className={bookLarge.personalIcon}
                     />
                   </button>
@@ -444,19 +472,25 @@ function BookPersonalSpace({
                 className={`
                   w-full
                   rounded-xl
+                  border border-olive/15
                   bg-lime
                   px-5 py-2.5
                   font-ui text-sm
                   font-bold text-darkwood
-                  transition
+                  shadow-[0_3px_10px_rgba(83,55,76,0.06)]
+                  transition-all duration-200
+                  hover:-translate-y-0.5
                   hover:brightness-95
+                  hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]
                   disabled:cursor-not-allowed
                   disabled:opacity-60
                   sm:w-auto
                   ${bookLarge.personalControl}
                 `}
               >
-                {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                {isSaving
+                  ? 'Enregistrement...'
+                  : 'Enregistrer'}
               </button>
             </div>
           </div>

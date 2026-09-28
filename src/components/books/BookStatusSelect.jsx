@@ -1,6 +1,52 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+const STATUS_STYLES = {
+  'to-read': {
+    trigger: `
+      border-walnut/20
+      bg-parchment/70
+      hover:border-walnut/30
+      hover:bg-parchment
+    `,
+    selected: 'bg-parchment text-darkwood',
+    icon: 'text-walnut',
+  },
+
+  reading: {
+    trigger: `
+      border-lime/45
+      bg-lime/25
+      hover:border-lime/60
+      hover:bg-lime/35
+    `,
+    selected: 'bg-lime/50 text-darkwood',
+    icon: 'text-olive',
+  },
+
+  finished: {
+    trigger: `
+      border-olive/30
+      bg-olive/15
+      hover:border-olive/45
+      hover:bg-olive/20
+    `,
+    selected: 'bg-olive/25 text-darkwood',
+    icon: 'text-olive',
+  },
+
+  abandoned: {
+    trigger: `
+      border-dustyrose/40
+      bg-dustyrose/20
+      hover:border-dustyrose/55
+      hover:bg-dustyrose/30
+    `,
+    selected: 'bg-dustyrose/35 text-darkwood',
+    icon: 'text-dustyrose',
+  },
+}
+
 function BookStatusSelect({
   value,
   options,
@@ -13,6 +59,8 @@ function BookStatusSelect({
   const selectedOption = options.find(
     (option) => option.value === value
   )
+
+  const selectedStyle = STATUS_STYLES[value]
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -37,25 +85,43 @@ function BookStatusSelect({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full min-w-0">
+    <div
+      ref={containerRef}
+      className="relative w-full min-w-0"
+    >
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
         disabled={disabled}
         aria-expanded={isOpen}
-        className="
+        className={`
           flex w-full items-center justify-between
-          rounded-2xl border border-walnut/15
-          bg-cream/80 px-5 py-3.5
+          rounded-2xl border
+          px-5 py-3.5
           font-ui text-sm text-darkwood
-          shadow-sm outline-none
-          transition
-          hover:border-walnut/25
-          hover:bg-cream
-          focus:ring-2 focus:ring-lime/40
+          shadow-[0_2px_8px_rgba(83,55,76,0.04)]
+          outline-none
+          transition-all duration-200
+
+          ${
+            selectedStyle
+              ? selectedStyle.trigger
+              : `
+                border-walnut/15
+                bg-cream/80
+                hover:border-walnut/25
+                hover:bg-cream
+              `
+          }
+
+          hover:shadow-[0_4px_12px_rgba(83,55,76,0.07)]
+
+          focus:ring-2
+          focus:ring-lime/40
+
           disabled:cursor-not-allowed
           disabled:opacity-60
-        "
+        `}
       >
         <span className="min-w-0 truncate">
           {selectedOption?.label || 'Choisir un statut'}
@@ -65,7 +131,8 @@ function BookStatusSelect({
           size={18}
           strokeWidth={1.7}
           className={`
-            text-walnut transition-transform duration-200
+            transition-transform duration-200
+            ${selectedStyle?.icon || 'text-walnut'}
             ${isOpen ? 'rotate-180' : ''}
           `}
         />
@@ -76,12 +143,16 @@ function BookStatusSelect({
           className="
             absolute left-0 top-[calc(100%+8px)]
             z-30 w-full overflow-hidden
-            rounded-2xl border border-walnut/15
-            bg-cream p-1.5 shadow-lg
+            rounded-2xl
+            border border-walnut/15
+            bg-cream
+            p-1.5
+            shadow-lg
           "
         >
           {options.map((option) => {
             const isSelected = option.value === value
+            const optionStyle = STATUS_STYLES[option.value]
 
             return (
               <button
@@ -90,14 +161,20 @@ function BookStatusSelect({
                 onClick={() => handleSelect(option.value)}
                 className={`
                   flex w-full items-center justify-between
-                  rounded-xl px-4 py-3
-                  text-left font-ui text-sm
-                  transition
+                  rounded-xl
+                  px-4 py-3
+                  text-left
+                  font-ui text-sm
+                  transition-colors duration-150
+
                   ${
                     isSelected
-                      ? 'bg-lime/55 font-bold text-darkwood'
+                      ? optionStyle?.selected ||
+                        'bg-lime/55 text-darkwood'
                       : 'text-walnut hover:bg-mintcream'
                   }
+
+                  ${isSelected ? 'font-bold' : ''}
                 `}
               >
                 <span className="min-w-0 truncate">
@@ -108,7 +185,9 @@ function BookStatusSelect({
                   <Check
                     size={17}
                     strokeWidth={1.8}
-                    className="text-forest"
+                    className={
+                      optionStyle?.icon || 'text-forest'
+                    }
                   />
                 )}
               </button>

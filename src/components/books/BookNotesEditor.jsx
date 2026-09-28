@@ -128,14 +128,19 @@ function BookNotesEditor({
       className="
         overflow-visible rounded-2xl
         border border-walnut/15
-        bg-mintcream/40
+        bg-cream/70
+        shadow-[0_4px_16px_rgba(83,55,76,0.05)]
+        transition-shadow duration-200
+        focus-within:border-olive/25
+        focus-within:shadow-[0_6px_20px_rgba(83,55,76,0.08)]
       "
     >
       <div
         className="
           flex flex-wrap items-center gap-2
           rounded-t-2xl
-          border-b border-walnut/15
+          border-b border-walnut/10
+          bg-mintcream/55
           px-3 py-2
         "
       >
@@ -152,7 +157,7 @@ function BookNotesEditor({
             disabled:opacity-40
             ${
               isBold
-                ? 'bg-lime text-darkwood'
+                ? 'bg-lime text-darkwood shadow-sm'
                 : 'text-darkwood hover:bg-lime/40'
             }
           `}
@@ -173,7 +178,7 @@ function BookNotesEditor({
             disabled:opacity-40
             ${
               isItalic
-                ? 'bg-lime text-darkwood'
+                ? 'bg-lime text-darkwood shadow-sm'
                 : 'text-darkwood hover:bg-lime/40'
             }
           `}
@@ -205,7 +210,7 @@ function BookNotesEditor({
               disabled:opacity-40
               ${
                 isSizeMenuOpen
-                  ? 'bg-lime/50'
+                  ? 'bg-lime/50 shadow-sm'
                   : 'hover:bg-lime/40'
               }
             `}
@@ -312,6 +317,7 @@ function BookNotesEditor({
           className="
             min-h-44
             rounded-b-2xl
+            bg-cream/35
             px-4 py-4
             font-ui text-sm
             leading-7 text-ink
