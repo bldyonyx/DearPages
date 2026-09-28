@@ -11,6 +11,7 @@ import {
 } from '../../services/libraryService.js'
 
 import BookNotesEditor from './BookNotesEditor.jsx'
+import { bookLarge } from './bookResponsive.js'
 
 function BookPersonalSpace({
   userId,
@@ -156,25 +157,42 @@ function BookPersonalSpace({
   const showsRating = status === BOOK_STATUSES.FINISHED
 
   return (
-    <section className="mt-14 w-full max-w-4xl min-w-0">
-      <div className="mb-5">
-        <p className="font-handwritten text-lg text-olive">
+    <section
+      className={`
+        mt-14 w-full min-w-0
+        ${bookLarge.personalSection}
+        ${bookLarge.sectionGap}
+      `}
+    >
+      <div className={`mb-5 ${bookLarge.personalHeader}`}>
+        <p
+          className={`
+            font-handwritten text-lg text-olive
+            ${bookLarge.handwritten}
+          `}
+        >
         entre toi et les pages ♡
         </p>
 
-        <h2 className="font-heading text-3xl font-bold text-darkwood">
+        <h2
+          className={`
+            font-heading text-3xl font-bold text-darkwood
+            ${bookLarge.sectionTitle}
+          `}
+        >
           Mon espace
         </h2>
       </div>
 
       <div
-        className="
+        className={`
           rounded-[26px]
           border border-walnut/10
           bg-cream/65
           p-6 shadow-sm
           sm:p-7
-        "
+          ${bookLarge.personalCard}
+        `}
       >
         <div
           className="
@@ -187,11 +205,21 @@ function BookPersonalSpace({
           "
         >
           <div className="min-w-0">
-            <p className="font-ui text-sm font-bold text-darkwood">
+            <p
+              className={`
+                font-ui text-sm font-bold text-darkwood
+                ${bookLarge.personalText}
+              `}
+            >
               Collections
             </p>
 
-            <p className="mt-1 font-ui text-xs leading-5 text-walnut/65">
+            <p
+              className={`
+                mt-1 font-ui text-xs leading-5 text-walnut/65
+                ${bookLarge.personalSmallText}
+              `}
+            >
               {collectionCount > 0
                 ? `${collectionCount} collection${
                     collectionCount > 1 ? 's' : ''
@@ -203,7 +231,7 @@ function BookPersonalSpace({
           <button
             type="button"
             onClick={() => setIsCollectionsModalOpen(true)}
-            className="
+            className={`
               inline-flex w-full
               items-center justify-center gap-2
               rounded-2xl border
@@ -215,12 +243,14 @@ function BookPersonalSpace({
               hover:bg-lime/45
               sm:w-fit
               lg:shrink-0
-            "
+              ${bookLarge.personalControl}
+            `}
           >
             <BookMarked
               size={17}
               strokeWidth={1.8}
               aria-hidden="true"
+              className={bookLarge.personalIcon}
             />
             Gérer les collections
           </button>
@@ -229,11 +259,12 @@ function BookPersonalSpace({
         {showsNotes && (
           <div>
             <h3
-              className="
+              className={`
                 mb-4
                 font-heading text-2xl
                 font-bold text-darkwood
-              "
+                ${bookLarge.personalSubheading}
+              `}
             >
               Mes notes
             </h3>
@@ -258,13 +289,23 @@ function BookPersonalSpace({
             >
               <div>
                 {message && (
-                  <p className="font-handwritten text-lg leading-6 text-forest">
+                  <p
+                    className={`
+                      font-handwritten text-lg leading-6 text-forest
+                      ${bookLarge.handwritten}
+                    `}
+                  >
                     {message}
                   </p>
                 )}
 
                 {error && (
-                  <p className="font-ui text-sm text-red-700">
+                  <p
+                    className={`
+                      font-ui text-sm text-red-700
+                      ${bookLarge.personalText}
+                    `}
+                  >
                     {error}
                   </p>
                 )}
@@ -274,7 +315,7 @@ function BookPersonalSpace({
                 type="button"
                 onClick={handleSaveNote}
                 disabled={isSaving}
-                className="
+                className={`
                   w-full
                   rounded-xl
                   bg-lime
@@ -286,7 +327,8 @@ function BookPersonalSpace({
                   disabled:cursor-not-allowed
                   disabled:opacity-60
                   sm:w-auto
-                "
+                  ${bookLarge.personalControl}
+                `}
               >
                 {isSaving ? 'Enregistrement...' : 'Enregistrer'}
               </button>
@@ -296,7 +338,12 @@ function BookPersonalSpace({
 
         {showsRating && (
           <div>
-            <h3 className="font-heading text-2xl font-bold text-darkwood">
+            <h3
+              className={`
+                font-heading text-2xl font-bold text-darkwood
+                ${bookLarge.personalSubheading}
+              `}
+            >
               Ma note
             </h3>
 
@@ -326,6 +373,7 @@ function BookPersonalSpace({
                       size={30}
                       strokeWidth={1.6}
                       fill={isSelected ? 'currentColor' : 'none'}
+                      className={bookLarge.personalIcon}
                     />
                   </button>
                 )
@@ -337,11 +385,12 @@ function BookPersonalSpace({
         {showsReview && (
           <div className={showsRating ? 'mt-8' : ''}>
             <h3
-              className="
+              className={`
                 mb-4
                 font-heading text-2xl
                 font-bold text-darkwood
-              "
+                ${bookLarge.personalSubheading}
+              `}
             >
               Ma review
             </h3>
@@ -366,13 +415,23 @@ function BookPersonalSpace({
             >
               <div>
                 {message && (
-                  <p className="font-handwritten text-lg leading-6 text-forest">
+                  <p
+                    className={`
+                      font-handwritten text-lg leading-6 text-forest
+                      ${bookLarge.handwritten}
+                    `}
+                  >
                     {message}
                   </p>
                 )}
 
                 {error && (
-                  <p className="font-ui text-sm text-red-700">
+                  <p
+                    className={`
+                      font-ui text-sm text-red-700
+                      ${bookLarge.personalText}
+                    `}
+                  >
                     {error}
                   </p>
                 )}
@@ -382,7 +441,7 @@ function BookPersonalSpace({
                 type="button"
                 onClick={handleSaveReview}
                 disabled={isSaving}
-                className="
+                className={`
                   w-full
                   rounded-xl
                   bg-lime
@@ -394,7 +453,8 @@ function BookPersonalSpace({
                   disabled:cursor-not-allowed
                   disabled:opacity-60
                   sm:w-auto
-                "
+                  ${bookLarge.personalControl}
+                `}
               >
                 {isSaving ? 'Enregistrement...' : 'Enregistrer'}
               </button>

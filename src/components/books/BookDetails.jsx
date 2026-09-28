@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react'
 
 import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
+import { bookLarge } from './bookResponsive.js'
 
 const CATEGORY_TRANSLATIONS = {
   fiction: 'Fiction',
@@ -100,6 +101,18 @@ function getTitleSize(title = '') {
   return 'text-4xl sm:text-5xl'
 }
 
+function getLargeTitleSize(title = '') {
+  if (title.length > 140) {
+    return bookLarge.longTitle
+  }
+
+  if (title.length > 80) {
+    return bookLarge.mediumTitle
+  }
+
+  return bookLarge.title
+}
+
 function BookDetails({
   book,
   libraryBook,
@@ -116,12 +129,13 @@ function BookDetails({
   )
 
   const titleSize = getTitleSize(book.title)
+  const largeTitleSize = getLargeTitleSize(book.title)
   const isLibraryActionDisabled =
     isSaving || isLibraryLoading
 
   return (
     <section
-      className="
+      className={`
         rounded-[28px]
         border border-walnut/10
         bg-cream/70
@@ -131,25 +145,28 @@ function BookDetails({
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10
-      "
+        ${bookLarge.card}
+      `}
     >
       <div
-        className="
-          mx-auto flex max-w-5xl
+        className={`
+          flex w-full
           min-w-0 flex-col gap-7
           lg:flex-row
           lg:items-center
           lg:gap-10
           xl:gap-12
-        "
+          ${bookLarge.detailsInner}
+        `}
       >
         <div
-          className="
+          className={`
             mx-auto w-full
             max-w-44 shrink-0
             sm:max-w-52.5
             lg:mx-0
-          "
+            ${bookLarge.cover}
+          `}
         >
           <BookCover
             title={book.title}
@@ -178,6 +195,7 @@ function BookDetails({
               leading-tight
               text-darkwood
               ${titleSize}
+              ${largeTitleSize}
             `}
             style={{
               display: '-webkit-box',
@@ -189,13 +207,14 @@ function BookDetails({
           </h1>
 
           <p
-            className="
+            className={`
               mt-2
               overflow-hidden
               font-handwritten
               text-xl text-walnut
               sm:text-2xl
-            "
+              ${bookLarge.author}
+            `}
             style={{
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
@@ -207,13 +226,14 @@ function BookDetails({
 
           {(book.publishedDate ||
             visibleCategories.length > 0) && (
-            <div className="mt-5">
+            <div className={`mt-5 ${bookLarge.metadata}`}>
               {book.publishedDate && (
                 <p
-                  className="
+                  className={`
                     font-ui text-sm
                     text-walnut/65
-                  "
+                    ${bookLarge.metadataText}
+                  `}
                 >
                   {book.publishedDate}
                 </p>
@@ -221,12 +241,13 @@ function BookDetails({
 
               {visibleCategories.length > 0 && (
                 <p
-                  className="
+                  className={`
                     mt-1.5
                     font-ui text-sm
                     text-forest/80
                     break-words
-                  "
+                    ${bookLarge.metadataText}
+                  `}
                 >
                   {visibleCategories.join(' · ')}
                 </p>
@@ -234,9 +255,14 @@ function BookDetails({
             </div>
           )}
 
-          <div className="mt-8 lg:mt-10">
+          <div className={`mt-8 lg:mt-10 ${bookLarge.controls}`}>
             {!libraryBook ? (
-              <div className="w-full max-w-sm">
+              <div
+                className={`
+                  w-full max-w-sm
+                  ${bookLarge.primaryControls}
+                `}
+              >
                 <button
                   type="button"
                   onClick={onAddToLibrary}
@@ -263,13 +289,14 @@ function BookDetails({
 
                 <div className="mt-5">
                   <p
-                    className="
+                    className={`
                       mb-2
                       font-ui text-xs
                       font-bold uppercase
                       tracking-[0.12em]
                       text-walnut
-                    "
+                      ${bookLarge.controlLabel}
+                    `}
                   >
                     Statut
                   </p>
@@ -284,30 +311,37 @@ function BookDetails({
               </div>
             ) : (
               <>
-                <p className="font-ui text-sm text-forest">
+                <p
+                  className={`
+                    font-ui text-sm text-forest
+                    ${bookLarge.libraryStatus}
+                  `}
+                >
                   Dans ma bibliothèque ♡
                 </p>
 
                 <div className="mt-5">
                   <p
-                    className="
+                    className={`
                       mb-2
                       font-ui text-xs
                       font-bold uppercase
                       tracking-[0.12em]
                       text-walnut
-                    "
+                      ${bookLarge.controlLabel}
+                    `}
                   >
                     Statut
                   </p>
 
                   <div
-                    className="
+                    className={`
                       flex w-full max-w-xl
                       flex-col gap-3
                       xl:flex-row
                       xl:items-center
-                    "
+                      ${bookLarge.libraryControls}
+                    `}
                   >
                     <div className="w-full min-w-44 xl:min-w-48 xl:flex-1">
                       <BookStatusSelect

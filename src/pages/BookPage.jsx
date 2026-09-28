@@ -10,6 +10,7 @@ import BookDescriptionSection from '../components/books/BookDescriptionSection.j
 import BookDetails from '../components/books/BookDetails.jsx'
 import BookPersonalSection from '../components/books/BookPersonalSection.jsx'
 import RemoveBookModal from '../components/books/RemoveBookModal.jsx'
+import { bookLarge } from '../components/books/bookResponsive.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useBookLibraryState } from '../hooks/useBookLibraryState.js'
 import { useBookPageData } from '../hooks/useBookPageData.js'
@@ -42,7 +43,7 @@ function BookDetailsLoadingState() {
   return (
     <section
       className="
-        min-h-[360px]
+        min-h-90
         rounded-[28px]
         border border-walnut/10
         bg-cream/70
@@ -57,7 +58,7 @@ function BookDetailsLoadingState() {
     >
       <div
         className="
-          flex h-full min-h-[300px]
+          flex h-full min-h-75
           items-center justify-center
           text-center
         "
@@ -116,6 +117,7 @@ function BookPage() {
     Boolean(book) &&
     (!isBookLoading ||
       hasCompleteInitialBookDetails(book))
+
   const canRenderSupportingSections =
     Boolean(book) &&
     (!isBookLoading || hasUsefulBookDescription(book))
@@ -133,32 +135,39 @@ function BookPage() {
   return (
     <>
       <main
-        className="
-          mx-auto w-full max-w-6xl
+        className={`
+          w-full
           px-5 pb-14 pt-2
           sm:px-7
           lg:px-9
-        "
+          ${bookLarge.page}
+          ${bookLarge.pagePadding}
+        `}
       >
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="
-            mb-5 inline-flex
-            items-center gap-2
-            rounded-full
-            bg-cream/75
-            px-4 py-2
+          className={`
+            group mb-5 inline-flex
+            items-center gap-1.5
+            px-1 py-2
             font-ui text-sm
             text-walnut
-            shadow-sm
-            transition
-            hover:-translate-x-0.5
-            hover:bg-cream
+            transition-colors
+            duration-200
             hover:text-darkwood
-          "
+            ${bookLarge.backButton}
+          `}
         >
-          <ArrowLeft size={16} strokeWidth={1.8} />
+          <ArrowLeft
+            size={16}
+            strokeWidth={1.8}
+            className="
+              transition-transform
+              duration-200
+              group-hover:-translate-x-1
+            "
+          />
           Retour
         </button>
 

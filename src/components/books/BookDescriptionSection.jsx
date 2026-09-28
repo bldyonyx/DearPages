@@ -1,12 +1,24 @@
 import { useBookDescriptionTranslation } from '../../hooks/useBookDescriptionTranslation.js'
+import { bookLarge } from './bookResponsive.js'
 
 function BookDescriptionSection({ book }) {
   const descriptionTranslation =
     useBookDescriptionTranslation(book)
 
   return (
-    <section className="mt-14 w-full max-w-4xl min-w-0">
-      <p className="font-handwritten text-lg text-olive">
+    <section
+      className={`
+        mt-14 w-full min-w-0
+        ${bookLarge.section}
+        ${bookLarge.sectionGap}
+      `}
+    >
+      <p
+        className={`
+          font-handwritten text-lg text-olive
+          ${bookLarge.handwritten}
+        `}
+      >
         quelques mots sur ce livre ♡
       </p>
 
@@ -16,7 +28,12 @@ function BookDescriptionSection({ book }) {
           gap-x-4 gap-y-2
         "
       >
-        <h2 className="font-heading text-3xl font-bold text-darkwood">
+        <h2
+          className={`
+            font-heading text-3xl font-bold text-darkwood
+            ${bookLarge.sectionTitle}
+          `}
+        >
           À propos
         </h2>
 
@@ -29,7 +46,7 @@ function BookDescriptionSection({ book }) {
                 : descriptionTranslation.translateDescription
             }
             disabled={descriptionTranslation.isTranslating}
-            className="
+            className={`
               font-ui text-xs font-semibold
               text-olive underline-offset-4
               transition
@@ -37,7 +54,8 @@ function BookDescriptionSection({ book }) {
               disabled:cursor-not-allowed
               disabled:text-walnut/60
               disabled:no-underline
-            "
+              ${bookLarge.personalSmallText}
+            `}
           >
             {descriptionTranslation.isTranslating
               ? 'Traduction...'
@@ -50,17 +68,24 @@ function BookDescriptionSection({ book }) {
 
       {descriptionTranslation.hasDescription ? (
         <p
-          className="
+          className={`
             mt-5
+            max-w-4xl
             font-ui text-sm
             leading-7 text-ink
-            wrap-break-word
-          "
+            wrap-anywhere
+            ${bookLarge.description}
+          `}
         >
           {descriptionTranslation.displayedDescription}
         </p>
       ) : (
-        <p className="mt-5 font-ui text-sm text-walnut">
+        <p
+          className={`
+            mt-5 font-ui text-sm text-walnut
+            ${bookLarge.personalText}
+          `}
+        >
           Résumé indisponible.
         </p>
       )}
