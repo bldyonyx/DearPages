@@ -11,6 +11,10 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ## ✦ Features
 
+♡ Create an account and sign in with email or Google
+
+♡ Personalize your experience through onboarding preferences
+
 ♡ Search for books by title, author, or keyword
 
 ♡ Get search suggestions while typing
@@ -19,27 +23,21 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Browse trending books and timeless classics
 
-♡ Refresh recommendations to discover something new
-
-♡ Explore a responsive interface across desktop, tablet, and mobile
-
----
-
-## ✦ Coming next
+♡ Open detailed pages with book information and descriptions
 
 ♡ Build and organize your personal library
 
 ♡ Track books as À lire, En cours, Terminé, or Abandonné
 
-♡ Open detailed pages for each book
+♡ Add personal ratings, reviews, and notes to your books
 
-♡ Keep personal ratings and reviews
+♡ Create and organize custom book collections
 
-♡ Create your own book collections
+♡ Keep track of your current reads from your dashboard
 
-♡ Set and follow a reading goal
+♡ Manage your account and reading preferences in Settings
 
-♡ Personalize recommendations based on your reading preferences
+♡ Use Dear Pages across desktop, tablet, and mobile
 
 ---
 
@@ -47,7 +45,7 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 `React` · `JavaScript` · `Tailwind CSS` · `Vite`
 
-`React Router` · `Google Books API` · `Open Library API`
+`React Router` · `Firebase` · `Google Books API` · `Open Library API`
 
 ---
 
@@ -55,16 +53,16 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 Dear Pages is currently a work in progress! ૮ ˶ᵔ ᵕ ᵔ˶ ა
 
-The main interface and responsive layout are in place,
-and the Discover experience is now connected to real book data
-with search, suggestions, recommendations, trends, and classics.
+The core features are now in place, from authentication and
+onboarding to book discovery, library tracking, collections,
+ratings, reviews, notes, and personalized reading spaces.
 
-I'm currently working on the core features that will make
-Dear Pages a complete book tracking experience — authentication,
-your library, reading progress, collections, ratings, and reviews.
+I'm currently focusing on the final UI/UX polish —
+refining responsive behavior, interactions, animations,
+loading and empty states, book covers, and overall visual consistency.
 
-More features and cozy little details are coming as I
-continue learning and building the project ♡
+Testing, deployment, and final documentation are coming next
+as Dear Pages gets ready for its first complete release ♡
 
 ---
 
