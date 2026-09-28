@@ -1,0 +1,515 @@
+import { useEffect, useRef, useState } from 'react'
+import {
+  CalendarDays,
+  Check,
+  ChevronDown,
+  Pencil,
+  X,
+} from 'lucide-react'
+
+import {
+  createReadingTimestamp,
+  getReadingMonthYear,
+  READING_MONTHS,
+} from '../../utils/readingDateUtils.js'
+
+function BookFinishedDate({
+  finishedAt,
+  disabled = false,
+  onSave,
+}) {
+  const currentYear = new Date().getFullYear()
+
+  const initialDate = getReadingMonthYear(finishedAt)
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(null)
+
+  const [month, setMonth] = useState(
+    initialDate?.month ?? new Date().getMonth()
+  )
+
+  const [year, setYear] = useState(
+    initialDate?.year ?? currentYear
+  )
+
+  const editorRef = useRef(null)
+
+  useEffect(() => {
+    const nextDate = getReadingMonthYear(finishedAt)
+
+    setMonth(
+      nextDate?.month ?? new Date().getMonth()
+    )
+
+    setYear(
+      nextDate?.year ?? currentYear
+    )
+  }, [finishedAt, currentYear])
+
+  useEffect(() => {
+    function handleOutsideClick(event) {
+      if (
+        editorRef.current &&
+        !editorRef.current.contains(event.target)
+      ) {
+        setOpenDropdown(null)
+      }
+    }
+
+    document.addEventListener(
+      'mousedown',
+      handleOutsideClick
+    )
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleOutsideClick
+      )
+    }
+  }, [])
+
+  const currentDate = getReadingMonthYear(finishedAt)
+
+  const years = Array.from(
+    { length: currentYear - 1999 },
+    (_, index) => currentYear - index
+  )
+
+  function handleCancel() {
+    const savedDate = getReadingMonthYear(finishedAt)
+
+    setMonth(
+      savedDate?.month ?? new Date().getMonth()
+    )
+
+    setYear(
+      savedDate?.year ?? currentYear
+    )
+
+    setOpenDropdown(null)
+    setIsEditing(false)
+  }
+
+  async function handleSave() {
+    const timestamp = createReadingTimestamp(
+      month,
+      year
+    )
+
+    await onSave(timestamp)
+
+    setOpenDropdown(null)
+    setIsEditing(false)
+  }
+
+  async function handleUnknown() {
+    await onSave(null)
+
+    setOpenDropdown(null)
+    setIsEditing(false)
+  }
+
+  function handleMonthSelect(monthIndex) {
+    setMonth(monthIndex)
+    setOpenDropdown(null)
+  }
+
+  function handleYearSelect(yearOption) {
+    setYear(yearOption)
+    setOpenDropdown(null)
+  }
+
+  const dropdownScrollbar = `
+    [scrollbar-width:thin]
+    [scrollbar-color:rgba(83,55,76,0.22)_transparent]
+    [&::-webkit-scrollbar]:w-1.5
+    [&::-webkit-scrollbar-track]:bg-transparent
+    [&::-webkit-scrollbar-thumb]:rounded-full
+    [&::-webkit-scrollbar-thumb]:bg-walnut/20
+    [&::-webkit-scrollbar-thumb:hover]:bg-walnut/30
+  `
+
+  return (
+    <div className="mt-8">
+      <h3 className="font-heading text-2xl font-bold text-darkwood">
+        Lecture terminée
+      </h3>
+
+      {!isEditing ? (
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          disabled={disabled}
+          className="
+            mt-3 inline-flex
+            items-center gap-2
+            rounded-xl
+            border border-walnut/15
+            bg-mintcream/45
+            px-4 py-2.5
+            font-ui text-sm
+            font-medium text-darkwood
+            transition-all duration-200
+            hover:border-olive/30
+            hover:bg-mintcream/70
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+        >
+          <CalendarDays
+            size={17}
+            strokeWidth={1.7}
+            className="text-olive"
+            aria-hidden="true"
+          />
+
+          <span>
+            {currentDate
+              ? `${READING_MONTHS[currentDate.month]} ${currentDate.year}`
+              : 'Date inconnue'}
+          </span>
+
+          <Pencil
+            size={14}
+            strokeWidth={1.7}
+            className="ml-1 text-walnut/55"
+            aria-hidden="true"
+          />
+        </button>
+      ) : (
+        <div
+          ref={editorRef}
+          className="
+            mt-3
+            rounded-2xl
+            border border-walnut/10
+            bg-mintcream/35
+            p-4
+          "
+        >
+          <div
+            className="
+              flex flex-wrap
+              items-start gap-3
+            "
+          >
+            {/* Month */}
+            <div className="relative w-full sm:w-44">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenDropdown((current) =>
+                    current === 'month'
+                      ? null
+                      : 'month'
+                  )
+                }
+                disabled={disabled}
+                aria-expanded={
+                  openDropdown === 'month'
+                }
+                className="
+                  flex w-full
+                  items-center justify-between
+                  gap-3
+                  rounded-xl
+                  border border-walnut/15
+                  bg-cream/90
+                  px-4 py-2.5
+                  font-ui text-sm
+                  text-darkwood
+                  shadow-[0_2px_8px_rgba(83,55,76,0.03)]
+                  transition-all duration-200
+                  hover:border-olive/30
+                  hover:bg-cream
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                "
+              >
+                <span>{READING_MONTHS[month]}</span>
+
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.7}
+                  aria-hidden="true"
+                  className={`
+                    shrink-0 text-olive
+                    transition-transform duration-200
+                    ${
+                      openDropdown === 'month'
+                        ? 'rotate-180'
+                        : ''
+                    }
+                  `}
+                />
+              </button>
+
+              {openDropdown === 'month' && (
+                <div
+                  className={`
+                    absolute left-0 top-full
+                    z-30 mt-2
+                    max-h-56
+                    w-full
+                    overflow-y-auto
+                    rounded-2xl
+                    border border-walnut/10
+                    bg-cream
+                    p-1.5
+                    shadow-[0_12px_30px_rgba(83,55,76,0.12)]
+                    ${dropdownScrollbar}
+                  `}
+                >
+                  {READING_MONTHS.map(
+                    (monthLabel, monthIndex) => {
+                      const isSelected =
+                        month === monthIndex
+
+                      return (
+                        <button
+                          key={monthLabel}
+                          type="button"
+                          onClick={() =>
+                            handleMonthSelect(
+                              monthIndex
+                            )
+                          }
+                          className={`
+                            flex w-full
+                            items-center
+                            justify-between
+                            rounded-xl
+                            px-3 py-1.5
+                            text-left
+                            font-ui text-sm
+                            transition-colors duration-150
+                            ${
+                              isSelected
+                                ? 'bg-lime/55 font-bold text-darkwood'
+                                : 'text-walnut hover:bg-mintcream/70 hover:text-darkwood'
+                            }
+                          `}
+                        >
+                          <span>{monthLabel}</span>
+
+                          {isSelected && (
+                            <Check
+                              size={15}
+                              strokeWidth={1.8}
+                              className="text-olive"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      )
+                    }
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Year */}
+            <div className="relative w-full sm:w-28">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenDropdown((current) =>
+                    current === 'year'
+                      ? null
+                      : 'year'
+                  )
+                }
+                disabled={disabled}
+                aria-expanded={
+                  openDropdown === 'year'
+                }
+                className="
+                  flex w-full
+                  items-center justify-between
+                  gap-2
+                  rounded-xl
+                  border border-walnut/15
+                  bg-cream/90
+                  px-4 py-2.5
+                  font-ui text-sm
+                  text-darkwood
+                  shadow-[0_2px_8px_rgba(83,55,76,0.03)]
+                  transition-all duration-200
+                  hover:border-olive/30
+                  hover:bg-cream
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                "
+              >
+                <span>{year}</span>
+
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.7}
+                  aria-hidden="true"
+                  className={`
+                    shrink-0 text-olive
+                    transition-transform duration-200
+                    ${
+                      openDropdown === 'year'
+                        ? 'rotate-180'
+                        : ''
+                    }
+                  `}
+                />
+              </button>
+
+              {openDropdown === 'year' && (
+                <div
+                  className={`
+                    absolute right-0 top-full
+                    z-30 mt-2
+                    max-h-56
+                    w-full
+                    overflow-y-auto
+                    rounded-2xl
+                    border border-walnut/10
+                    bg-cream
+                    p-1.5
+                    shadow-[0_12px_30px_rgba(83,55,76,0.12)]
+                    ${dropdownScrollbar}
+                  `}
+                >
+                  {years.map((yearOption) => {
+                    const isSelected =
+                      year === yearOption
+
+                    return (
+                      <button
+                        key={yearOption}
+                        type="button"
+                        onClick={() =>
+                          handleYearSelect(
+                            yearOption
+                          )
+                        }
+                        className={`
+                          flex w-full
+                          items-center
+                          justify-between
+                          rounded-xl
+                          px-3 py-1.5
+                          text-left
+                          font-ui text-sm
+                          transition-colors duration-150
+                          ${
+                            isSelected
+                              ? 'bg-lime/55 font-bold text-darkwood'
+                              : 'text-walnut hover:bg-mintcream/70 hover:text-darkwood'
+                          }
+                        `}
+                      >
+                        <span>{yearOption}</span>
+
+                        {isSelected && (
+                          <Check
+                            size={15}
+                            strokeWidth={1.8}
+                            className="text-olive"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="
+              mt-4 flex flex-wrap
+              items-center gap-2
+            "
+          >
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={disabled}
+              className="
+                inline-flex
+                items-center gap-2
+                rounded-xl
+                border border-olive/15
+                bg-lime
+                px-4 py-2
+                font-ui text-sm
+                font-bold text-darkwood
+                shadow-[0_3px_10px_rgba(83,55,76,0.05)]
+                transition-all duration-200
+                hover:-translate-y-0.5
+                hover:brightness-95
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
+            >
+              <Check
+                size={16}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+
+              Enregistrer
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={disabled}
+              className="
+                inline-flex
+                items-center gap-2
+                rounded-xl
+                px-3 py-2
+                font-ui text-sm
+                text-walnut
+                transition
+                hover:bg-walnut/5
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+              "
+            >
+              <X
+                size={16}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+
+              Annuler
+            </button>
+
+            <button
+              type="button"
+              onClick={handleUnknown}
+              disabled={disabled}
+              className="
+                font-ui text-xs
+                text-walnut/60
+                underline
+                decoration-walnut/25
+                underline-offset-4
+                transition
+                hover:text-walnut
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+                sm:ml-auto
+              "
+            >
+              Je ne sais plus
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default BookFinishedDate

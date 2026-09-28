@@ -150,15 +150,20 @@ export async function updateBookStatus(
   status
 ) {
   if (!userId || !bookId || !status) {
-    throw new Error('Missing information to update book status.')
+    throw new Error(
+      'Missing information to update book status.'
+    )
   }
 
   const bookRef = ref(
     database,
     `users/${userId}/library/${bookId}`
   )
+
   const snapshot = await get(bookRef)
-  const storedBook = snapshot.exists() ? snapshot.val() : null
+  const storedBook = snapshot.exists()
+    ? snapshot.val()
+    : null
 
   if (storedBook?.status === status) {
     return null
@@ -171,13 +176,48 @@ export async function updateBookStatus(
 
   if (status === BOOK_STATUSES.FINISHED) {
     updatedBook.finishedAt = Date.now()
-  } else if (storedBook?.status === BOOK_STATUSES.FINISHED) {
+  } else if (
+    storedBook?.status === BOOK_STATUSES.FINISHED
+  ) {
     updatedBook.finishedAt = null
   }
 
   await update(bookRef, updatedBook)
 
   return updatedBook
+}
+
+/**
+ * Updates the month and year when a book was finished.
+ *
+ * The stored timestamp represents the selected month and year,
+ * not an exact reading completion date.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} bookId - Book ID.
+ * @param {number|null} finishedAt - Reading completion timestamp.
+ * @returns {Promise<void>}
+ */
+export async function updateBookFinishedAt(
+  userId,
+  bookId,
+  finishedAt
+) {
+  if (!userId || !bookId) {
+    throw new Error(
+      'Missing information to update finished date.'
+    )
+  }
+
+  const bookRef = ref(
+    database,
+    `users/${userId}/library/${bookId}`
+  )
+
+  await update(bookRef, {
+    finishedAt: finishedAt ?? null,
+    updatedAt: Date.now(),
+  })
 }
 
 /**
@@ -188,9 +228,14 @@ export async function updateBookStatus(
  * @param {string} bookId - Book ID.
  * @returns {Promise<void>}
  */
-export async function removeBookFromLibrary(userId, bookId) {
+export async function removeBookFromLibrary(
+  userId,
+  bookId
+) {
   if (!userId || !bookId) {
-    throw new Error('Missing user or book information.')
+    throw new Error(
+      'Missing user or book information.'
+    )
   }
 
   const bookRef = ref(
@@ -212,9 +257,15 @@ export async function removeBookFromLibrary(userId, bookId) {
  * @param {string} note - Personal note content.
  * @returns {Promise<void>}
  */
-export async function updateBookNote(userId, bookId, note) {
+export async function updateBookNote(
+  userId,
+  bookId,
+  note
+) {
   if (!userId || !bookId) {
-    throw new Error('Missing user or book information.')
+    throw new Error(
+      'Missing user or book information.'
+    )
   }
 
   const bookRef = ref(
@@ -238,9 +289,15 @@ export async function updateBookNote(userId, bookId, note) {
  * @param {string} review - User's private review.
  * @returns {Promise<void>}
  */
-export async function updateBookReview(userId, bookId, review) {
+export async function updateBookReview(
+  userId,
+  bookId,
+  review
+) {
   if (!userId || !bookId) {
-    throw new Error('Missing user or book information.')
+    throw new Error(
+      'Missing user or book information.'
+    )
   }
 
   const bookRef = ref(
@@ -268,11 +325,15 @@ export async function updateBookRating(
   rating
 ) {
   if (!userId || !bookId) {
-    throw new Error('Missing user or book information.')
+    throw new Error(
+      'Missing user or book information.'
+    )
   }
 
   if (rating < 1 || rating > 5) {
-    throw new Error('Rating must be between 1 and 5.')
+    throw new Error(
+      'Rating must be between 1 and 5.'
+    )
   }
 
   const bookRef = ref(

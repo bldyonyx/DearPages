@@ -3,13 +3,16 @@ import { BookMarked, Star } from 'lucide-react'
 
 import BookCollectionsModal from '../collections/BookCollectionsModal.jsx'
 import { getUserCollections } from '../../services/collectionsService.js'
+
 import {
   BOOK_STATUSES,
+  updateBookFinishedAt,
   updateBookNote,
   updateBookRating,
   updateBookReview,
 } from '../../services/libraryService.js'
 
+import BookFinishedDate from './BookFinishedDate.jsx'
 import BookNotesEditor from './BookNotesEditor.jsx'
 import { bookLarge } from './bookResponsive.js'
 
@@ -148,6 +151,41 @@ function BookPersonalSpace({
     }
   }
 
+  async function handleFinishedDateChange(finishedAt) {
+    setIsSaving(true)
+    setMessage('')
+    setError('')
+
+    try {
+      await updateBookFinishedAt(
+        userId,
+        bookId,
+        finishedAt
+      )
+
+      onLibraryBookChange((currentBook) => ({
+        ...currentBook,
+        finishedAt,
+        updatedAt: Date.now(),
+      }))
+
+      setMessage(
+        finishedAt
+          ? 'Date de lecture enregistrée ♡'
+          : 'Date de lecture retirée.'
+      )
+    } catch (firebaseError) {
+      console.error(firebaseError)
+      setError(
+        'Impossible d’enregistrer la date de lecture.'
+      )
+
+      throw firebaseError
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const showsNotes =
     status === BOOK_STATUSES.TO_READ ||
     status === BOOK_STATUSES.READING
@@ -157,6 +195,9 @@ function BookPersonalSpace({
     status === BOOK_STATUSES.ABANDONED
 
   const showsRating =
+    status === BOOK_STATUSES.FINISHED
+
+  const showsFinishedDate =
     status === BOOK_STATUSES.FINISHED
 
   return (
@@ -408,6 +449,14 @@ function BookPersonalSpace({
               })}
             </div>
           </div>
+        )}
+
+        {showsFinishedDate && (
+          <BookFinishedDate
+            finishedAt={libraryBook?.finishedAt}
+            disabled={isSaving}
+            onSave={handleFinishedDateChange}
+          />
         )}
 
         {showsReview && (
