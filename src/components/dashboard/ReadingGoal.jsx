@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import { dashboardLarge } from './dashboardResponsive.js'
 
 function ReadingGoal({
@@ -10,9 +12,21 @@ function ReadingGoal({
   )
 
   return (
-    <section
+    <Link
+      to="/library?status=finished"
+      aria-label="Voir les livres terminés"
       className={`
-        h-full rounded-3xl border border-darkwood/10 bg-cream/80 p-5
+        block h-full
+        rounded-3xl
+        border border-darkwood/10
+        bg-cream/80
+        p-5
+        transition-all duration-200
+        hover:-translate-y-0.5
+        hover:shadow-[0_8px_24px_rgba(83,55,76,0.08)]
+        focus:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-olive/30
         md:p-6
         ${dashboardLarge.card}
       `}
@@ -111,7 +125,7 @@ function ReadingGoal({
           terminé{completedBooks > 1 ? 's' : ''} cette année
         </p>
       </div>
-    </section>
+    </Link>
   )
 }
 

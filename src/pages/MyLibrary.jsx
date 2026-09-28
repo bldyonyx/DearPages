@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import HeaderActions from '../components/layout/HeaderActions.jsx'
 import LibraryBooksPanel from '../components/library/LibraryBooksPanel.jsx'
@@ -9,12 +10,28 @@ import { libraryLarge } from '../components/library/libraryResponsive.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import useLibraryBooks from '../hooks/useLibraryBooks.js'
 
+const LIBRARY_FILTERS = [
+  'all',
+  'to-read',
+  'reading',
+  'finished',
+  'abandoned',
+]
+
 function MyLibrary() {
   const { user } = useAuth()
 
-  const [activeFilter, setActiveFilter] = useState('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const statusParam = searchParams.get('status')
+
+  const activeFilter = LIBRARY_FILTERS.includes(statusParam)
+    ? statusParam
+    : 'all'
+
   const [search, setSearch] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+
   const { books, isLoading, error } = useLibraryBooks(
     user?.uid
   )
@@ -62,6 +79,17 @@ function MyLibrary() {
       authors.includes(normalizedSearch)
     )
   })
+
+  function handleFilterChange(filter) {
+    if (filter === 'all') {
+      setSearchParams({})
+      return
+    }
+
+    setSearchParams({
+      status: filter,
+    })
+  }
 
   function handleClearSearch() {
     setSearch('')
@@ -162,7 +190,10 @@ function MyLibrary() {
               )}
             </button>
 
-            <HeaderActions user={user} className="md:flex-none" />
+            <HeaderActions
+              user={user}
+              className="md:flex-none"
+            />
           </div>
         </div>
 
@@ -205,7 +236,9 @@ function MyLibrary() {
           {error}
         </div>
       ) : books.length === 0 ? (
-        <div className={`mt-8 ${libraryLarge.sectionGap}`}>
+        <div
+          className={`mt-8 ${libraryLarge.sectionGap}`}
+        >
           <LibraryEmptyState />
         </div>
       ) : (
@@ -214,7 +247,7 @@ function MyLibrary() {
           visibleBooks={visibleBooks}
           counts={counts}
           activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
+          onFilterChange={handleFilterChange}
           search={search}
         />
       )}
