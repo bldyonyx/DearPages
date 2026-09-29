@@ -122,7 +122,6 @@ html {
 body {
   font-family: 'Comfortaa', sans-serif;
   color: var(--bt-darkwood);
-
   background-color: var(--bt-mintcream);
   background-image: url('/textures/green-bg.jpg');
   background-size: cover;
@@ -167,7 +166,6 @@ header.header {
   background-image: url('/textures/stripes-brown.jpg');
   background-size: cover;
   background-position: center;
-
   border-bottom: 1px solid rgba(229, 212, 196, 0.18);
 }
 
@@ -186,7 +184,9 @@ header.header svg {
 }
 
 
-/* Search */
+/* ---------------------------------------------------------
+   SEARCH
+   --------------------------------------------------------- */
 
 site-search button {
   background: rgba(238, 243, 228, 0.94);
@@ -199,12 +199,146 @@ site-search button:hover {
 }
 
 /* Search icon */
+
 site-search button svg,
 site-search button svg path,
 site-search button svg circle,
 site-search button svg line {
   color: var(--bt-darkwood) !important;
   stroke: var(--bt-darkwood) !important;
+}
+
+
+/* ---------------------------------------------------------
+   PAGEFIND SEARCH
+   --------------------------------------------------------- */
+
+.pagefind-ui {
+  font-family: 'Comfortaa', sans-serif;
+}
+
+
+/* Search input */
+
+.pagefind-ui__search-input {
+  color: var(--bt-cream) !important;
+  caret-color: var(--bt-lime) !important;
+  background: var(--bt-darkwood) !important;
+}
+
+.pagefind-ui__search-input::placeholder {
+  color: rgba(238, 243, 228, 0.58) !important;
+}
+
+.pagefind-ui__search-input:focus {
+  color: var(--bt-cream) !important;
+  caret-color: var(--bt-lime) !important;
+}
+
+
+/* Search form */
+
+.pagefind-ui__form {
+  color: var(--bt-cream) !important;
+}
+
+.pagefind-ui__form::before {
+  color: var(--bt-cream) !important;
+}
+
+
+/* Search input icon */
+
+.pagefind-ui__search-input + svg,
+.pagefind-ui__form svg {
+  color: var(--bt-cream) !important;
+  stroke: var(--bt-cream) !important;
+}
+
+
+/* Clear button */
+
+.pagefind-ui__search-clear {
+  color: var(--bt-darkwood) !important;
+}
+
+.pagefind-ui__search-clear:hover {
+  color: var(--bt-walnut) !important;
+}
+
+
+/* Search result count */
+
+.pagefind-ui__message {
+  color: var(--bt-darkwood) !important;
+}
+
+
+/* Results */
+
+.pagefind-ui__result {
+  color: var(--bt-cream);
+}
+
+
+/* Result title */
+
+.pagefind-ui__result-title,
+.pagefind-ui__result-title a,
+.pagefind-ui__result-link {
+  color: var(--bt-cream) !important;
+}
+
+.pagefind-ui__result-title a:hover,
+.pagefind-ui__result-link:hover {
+  color: var(--bt-cream) !important;
+}
+
+
+/* Result excerpt */
+
+.pagefind-ui__result-excerpt {
+  color: rgba(238, 243, 228, 0.82) !important;
+}
+
+
+/* Highlighted search words */
+
+.pagefind-ui__result-excerpt mark,
+.pagefind-ui__result-title mark {
+  color: var(--bt-darkwood) !important;
+  background: var(--bt-lime) !important;
+}
+
+
+/* Result card */
+
+.pagefind-ui__result-inner,
+.pagefind-ui__result-nested {
+  color: var(--bt-cream) !important;
+}
+
+
+/* Result hover / keyboard selection */
+
+.pagefind-ui__result:hover,
+.pagefind-ui__result:focus-within {
+  background: var(--bt-darkwood) !important;
+  border-color: rgba(238, 243, 228, 0.18) !important;
+}
+
+.pagefind-ui__result:hover .pagefind-ui__result-title,
+.pagefind-ui__result:hover .pagefind-ui__result-title a,
+.pagefind-ui__result:hover .pagefind-ui__result-link,
+.pagefind-ui__result:focus-within .pagefind-ui__result-title,
+.pagefind-ui__result:focus-within .pagefind-ui__result-title a,
+.pagefind-ui__result:focus-within .pagefind-ui__result-link {
+  color: var(--bt-cream) !important;
+}
+
+.pagefind-ui__result:hover .pagefind-ui__result-excerpt,
+.pagefind-ui__result:focus-within .pagefind-ui__result-excerpt {
+  color: rgba(238, 243, 228, 0.82) !important;
 }
 
 
@@ -244,7 +378,6 @@ site-search button svg line {
   border-radius: 999px;
   font-family: 'Comfortaa', sans-serif;
   font-weight: 700;
-
   transition:
     transform 160ms ease,
     background-color 160ms ease;
@@ -314,12 +447,12 @@ site-search button svg line {
 /* ---------------------------------------------------------
    STARLIGHT CARDS
    --------------------------------------------------------- */
+
 /* Clickable home cards */
 
 .home-card-link {
   display: block;
   height: 100%;
-
   color: inherit !important;
   text-decoration: none !important;
 }
@@ -331,7 +464,6 @@ site-search button svg line {
 
 .home-card-link .card {
   height: 100%;
-
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -340,9 +472,7 @@ site-search button svg line {
 
 .home-card-link:hover .card {
   transform: translateY(-2px);
-
   border-color: rgba(69, 50, 40, 0.24);
-
   box-shadow:
     0 2px 4px rgba(69, 50, 40, 0.05),
     0 12px 28px rgba(69, 50, 40, 0.07);
@@ -357,10 +487,8 @@ site-search button svg line {
 .card {
   border: 1px solid rgba(69, 50, 40, 0.12);
   border-radius: 1.25rem;
-
   background: rgba(238, 243, 228, 0.88);
   color: var(--bt-darkwood);
-
   box-shadow:
     0 1px 2px rgba(69, 50, 40, 0.04),
     0 8px 24px rgba(69, 50, 40, 0.04);
@@ -437,6 +565,7 @@ site-search button svg line {
  * sur les écrans où le sommaire desktop ne tient plus.
  * Dear Pages ne l'utilise pas.
  */
+
 mobile-starlight-toc {
   display: none !important;
 }
@@ -454,7 +583,6 @@ mobile-starlight-toc {
   width: 15rem;
   margin: 1.5rem auto;
   padding: 1rem 1.25rem;
-
   border: none;
   border-radius: 0;
   background: transparent;
@@ -486,7 +614,6 @@ mobile-starlight-toc {
 .pagination-links a {
   border: 1px solid rgba(69, 50, 40, 0.12);
   border-radius: 1rem;
-
   background: rgba(238, 243, 228, 0.8);
   color: var(--bt-darkwood);
 }
@@ -504,7 +631,6 @@ mobile-starlight-toc {
 .starlight-aside {
   border-color: var(--bt-olive);
   border-radius: 1rem;
-
   background: rgba(238, 243, 228, 0.9);
   color: var(--bt-darkwood);
 }
@@ -512,7 +638,6 @@ mobile-starlight-toc {
 .starlight-aside--note {
   --sl-color-asides-text-accent: var(--bt-forest);
   --sl-color-asides-border: var(--bt-olive);
-
   background: rgba(238, 243, 228, 0.9);
 }
 
@@ -537,7 +662,6 @@ mobile-starlight-toc {
 .sl-markdown-content :not(pre) > code {
   padding: 0.15rem 0.35rem;
   border-radius: 0.35rem;
-
   background: rgba(69, 50, 40, 0.1);
   color: var(--bt-darkwood);
 }
@@ -598,6 +722,7 @@ mobile-starlight-toc {
    ========================================================= */
 
 @media (max-width: 50rem) {
+
   /* ---------------------------------------------------------
      TOP NAVBAR
      --------------------------------------------------------- */
@@ -605,16 +730,16 @@ mobile-starlight-toc {
   header.header {
     height: 4rem;
     padding-inline: 0.9rem;
-
     background-color: var(--bt-darkwood);
     background-image: url('/textures/stripes-brown.jpg');
     background-size: cover;
     background-position: center;
-
     border-bottom: 1px solid rgba(229, 212, 196, 0.18);
   }
 
+
   /* Dear Pages title */
+
   header.header .site-title {
     font-size: 1.35rem;
     white-space: nowrap;
@@ -627,33 +752,36 @@ mobile-starlight-toc {
      --------------------------------------------------------- */
 
   /* Hide search on mobile */
+
   header.header site-search {
     display: none !important;
   }
 
+
   /* Hide desktop-only links */
+
   header.header .social-icons,
   header.header .portfolio-link {
     display: none !important;
   }
 
 
-    /* ---------------------------------------------------------
-    MOBILE MENU BUTTON
-    --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     MOBILE MENU BUTTON
+     --------------------------------------------------------- */
 
-    button.sl-menu-button,
-    button.sl-menu-button[aria-expanded='true'] {
+  button.sl-menu-button,
+  button.sl-menu-button[aria-expanded='true'] {
     background-color: var(--bt-lime) !important;
     color: var(--bt-darkwood) !important;
-    }
+  }
 
-    button.sl-menu-button svg,
-    button.sl-menu-button svg path,
-    button.sl-menu-button svg line {
+  button.sl-menu-button svg,
+  button.sl-menu-button svg path,
+  button.sl-menu-button svg line {
     color: var(--bt-darkwood) !important;
     stroke: var(--bt-darkwood) !important;
-    }
+  }
 
 
   /* ---------------------------------------------------------
