@@ -7,12 +7,12 @@ export default defineConfig({
     starlight({
       title: 'Dear Pages',
 
-	  locales: {
-		root: {
-			label: 'Français',
-			lang: 'fr',
-		},
-		},
+      locales: {
+        root: {
+          label: 'Français',
+          lang: 'fr',
+        },
+      },
 
       customCss: [
         './src/styles/booktracker.css',
@@ -65,18 +65,22 @@ export default defineConfig({
               label: 'Sources de livres',
               slug: 'data/google-books',
             },
-          {
-            label: 'Modèle de données',
-            slug: 'data/modele',
-          },
-          {
-            label: 'Recommandations',
-            slug: 'data/recommendations',
-          },
-          {
-            label: 'Firebase',
-            slug: 'data/firebase',
-          },
+            {
+              label: 'Modèle de données',
+              slug: 'data/modele',
+            },
+            {
+              label: 'Recommandations',
+              slug: 'data/recommendations',
+            },
+            {
+              label: 'Traduction',
+              slug: 'data/translation',
+            },
+            {
+              label: 'Firebase',
+              slug: 'data/firebase',
+            },
           ],
         },
         {

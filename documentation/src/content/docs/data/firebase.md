@@ -1,46 +1,52 @@
 ---
 title: Firebase
-description: Utilisation prévue de Firebase pour l'authentification et les données personnelles de Dear Pages.
+description: Utilisation de Firebase pour l'authentification et les données personnelles de Dear Pages.
 ---
 
+Dear Pages utilise **Firebase** pour gérer l'authentification et les données personnelles associées aux utilisateurs.
 
-Dear Pages prévoit d'utiliser **Firebase** pour gérer les données personnelles liées à chaque utilisateur.
-
-Contrairement à Google Books et Open Library, qui fournissent les informations publiques des livres, Firebase permettra de conserver les informations propres à l'utilisation de l'application.
-
-:::note
-L'intégration Firebase de Dear Pages n'est pas encore implémentée. Cette page décrit l'architecture actuellement prévue et pourra évoluer pendant le développement.
-:::
+Contrairement à Google Books et Open Library, qui fournissent les informations publiques sur les livres, Firebase permet de conserver les informations propres à chaque compte.
 
 ## Rôle de Firebase
 
-Firebase sera principalement utilisé pour deux besoins :
+Firebase intervient principalement dans deux parties de l'application :
 
-- l'authentification des utilisateurs ;
-- la sauvegarde de leurs données personnelles.
+- **Firebase Authentication** pour créer, connecter et identifier les utilisateurs ;
+- **Firebase Realtime Database** pour conserver leurs données personnelles.
 
-Les informations publiques concernant les livres continueront à provenir de Google Books et d'Open Library.
+Les informations bibliographiques des livres continuent à provenir de Google Books et Open Library.
 
 ## Authentification
 
-Firebase Authentication permettra de créer et identifier les comptes utilisateurs.
+Firebase Authentication gère les comptes utilisateurs et leur état de connexion.
 
-Le parcours prévu comprend notamment :
+Dear Pages prend en charge notamment :
+
+- la création de compte ;
+- la connexion ;
+- la déconnexion ;
+- l'authentification avec Google ;
+- la récupération des informations du compte connecté ;
+- la suppression du compte.
+
+Le contexte d'authentification permet à l'application de connaître l'utilisateur actuellement connecté et de rendre ses données personnelles accessibles uniquement dans son espace.
+
+Le parcours général est :
 
 ```text
-Création de compte
+Inscription / Connexion
         │
         ▼
-   Connexion
+Firebase Authentication
         │
         ▼
-Identification de l'utilisateur
+Utilisateur identifié
         │
         ▼
-Accès à ses données personnelles
+Accès aux données personnelles
 ```
 
-Les pages prévues pour ce parcours existent déjà dans la structure du projet :
+Les principales pages liées à ce parcours sont :
 
 ```text
 pages/
@@ -49,114 +55,141 @@ pages/
 └── Onboarding.jsx
 ```
 
-L'onboarding permettra de préparer l'expérience d'un nouvel utilisateur après la création de son compte.
+## Authentification Google
+
+Dear Pages permet également de se connecter avec un compte Google grâce à Firebase Authentication.
+
+Lorsqu'un utilisateur utilise cette méthode, Firebase fournit les informations de compte nécessaires à l'application, notamment son identité Firebase et les informations de profil disponibles auprès du fournisseur.
+
+Ces informations sont ensuite utilisées par Dear Pages pour afficher le profil de l'utilisateur.
 
 ## Données personnelles
 
-Chaque utilisateur devra disposer de ses propres données.
+Les données personnelles sont séparées des informations publiques provenant des API de livres.
 
-La structure envisagée est organisée autour de son identifiant :
+Elles comprennent notamment :
 
-```text
-users/
-└── userId/
-    ├── profile/
-    ├── library/
-    ├── collections/
-    ├── preferences/
-    └── reviews/
-```
+- les informations du profil ;
+- les préférences de lecture ;
+- l'objectif annuel ;
+- la bibliothèque personnelle ;
+- les statuts de lecture ;
+- les collections ;
+- les notes et avis personnels.
 
-Cette structure est encore provisoire.
+Ces données sont associées au compte Firebase de l'utilisateur.
+
+## Préférences de lecture
+
+Les préférences de lecture sont enregistrées avec les données de l'utilisateur.
+
+Elles comprennent notamment :
+
+- les genres préférés ;
+- l'objectif annuel de lecture.
+
+Ces informations sont utilisées par Dear Pages pour personnaliser certaines parties de l'application, notamment les recommandations.
+
+Elles peuvent être modifiées depuis la page **Paramètres**.
 
 ## Bibliothèque
 
-La bibliothèque permettra d'enregistrer la relation entre l'utilisateur et les livres qu'il souhaite suivre.
+La bibliothèque personnelle utilise les données utilisateur enregistrées dans Firebase.
 
-Les données pourront notamment contenir :
+Elle permet notamment de conserver :
 
-- l'identifiant du livre ;
-- le statut de lecture ;
-- la date d'ajout ;
-- une note personnelle ;
-- certaines informations nécessaires à l'affichage.
+- les livres ajoutés ;
+- leur statut de lecture ;
+- leur date d'ajout ;
+- les informations nécessaires à leur affichage.
 
-Le modèle exact sera défini lors de l'implémentation de la bibliothèque.
+Les données du livre provenant de Google Books ou Open Library restent séparées des informations propres à l'utilisateur.
+
+Cela permet par exemple à deux utilisateurs d'avoir le même livre dans leur bibliothèque avec des statuts différents.
 
 ## Collections
 
-Les collections permettront à l'utilisateur de créer ses propres regroupements de livres.
+Les collections sont également des données personnelles.
 
-Une collection devra appartenir à un utilisateur et pourra contenir plusieurs références de livres.
+Elles permettent à chaque utilisateur de créer ses propres regroupements de livres indépendamment de leur statut de lecture.
 
-Par exemple :
+Une collection appartient à l'utilisateur qui l'a créée et peut contenir plusieurs livres de sa bibliothèque.
 
-```text
-collections/
-└── collectionId/
-    ├── name
-    └── books
-```
+## Notes et avis
 
-La structure définitive dépendra des besoins identifiés pendant l'implémentation.
+Les notes et avis sont associés au compte de l'utilisateur.
 
-## Préférences
+Ils représentent son appréciation personnelle d'un livre et ne sont pas envoyés vers Google Books ou Open Library.
 
-Firebase pourra également conserver certaines préférences liées au compte ou à l'utilisation de l'application.
-
-Cela permettra de retrouver les mêmes réglages après une nouvelle connexion.
+Dear Pages conserve donc ces informations comme des données privées liées à l'utilisateur.
 
 ## Services Firebase
 
-La logique Firebase ne sera pas placée directement dans les composants React.
+La logique d'accès aux données Firebase est séparée de l'interface React.
 
-Elle sera séparée dans des services dédiés, selon le même principe que `booksApi.js`.
+Les services dédiés permettent aux composants et aux pages de communiquer avec Firebase sans placer directement toute la logique de persistance dans les composants.
 
-L'organisation prévue pourra par exemple contenir :
+L'organisation comprend notamment des services liés à :
 
 ```text
 services/
-├── booksApi.js
 ├── authService.js
-├── libraryService.js
-└── collectionsService.js
+├── preferencesService.js
+└── ...
 ```
 
-Cette séparation permettra de garder les composants principalement responsables de l'interface.
+Cette séparation permet de garder les composants principalement responsables de l'affichage et de l'interaction avec l'utilisateur.
 
 ## Flux des données
 
-Le fonctionnement général prévu peut être représenté ainsi :
+Le fonctionnement général peut être représenté ainsi :
 
 ```text
 Google Books / Open Library
-      │
-      ▼
-Informations publiques
-      │
-      ▼
-   Dear Pages
-      │
-      ├──────────────► Interface React
-      │
-      ▼
-   Firebase
-      │
-      ├── compte
-      ├── bibliothèque
-      ├── collections
-      ├── avis
-      └── préférences
+          │
+          ▼
+   Informations du livre
+          │
+          ▼
+      Dear Pages
+          │
+     ┌────┴────┐
+     │         │
+     ▼         ▼
+Interface   Firebase
+React           │
+                ├── Authentification
+                ├── Profil
+                ├── Préférences
+                ├── Bibliothèque
+                ├── Collections
+                └── Données de lecture
 ```
 
-Les sources publiques de livres et Firebase ont donc deux responsabilités différentes :
+Les différentes sources ont donc des responsabilités distinctes :
 
-**Google Books et Open Library fournissent les informations sur les livres.**
+**Google Books et Open Library fournissent les informations publiques sur les livres.**
 
-**Firebase conservera les informations personnelles de l'utilisateur.**
+**Firebase conserve les données propres à l'utilisateur et sa relation avec ces livres.**
+
+## Suppression du compte
+
+Dear Pages permet également à l'utilisateur de demander la suppression de son compte depuis les paramètres.
+
+La suppression passe par Firebase Authentication et les données personnelles associées au compte sont également prises en compte dans ce processus.
+
+Certaines opérations sensibles peuvent nécessiter une réauthentification récente de l'utilisateur avant de pouvoir être effectuées.
+
+## Sécurité et séparation des données
+
+Les données personnelles sont associées à l'utilisateur authentifié.
+
+L'application ne traite donc pas les données de bibliothèque, de collections ou de préférences comme des données globales partagées entre tous les utilisateurs.
+
+Cette séparation est essentielle pour conserver un espace de lecture personnel pour chaque compte.
 
 ## Évolution
 
-Cette architecture sera précisée lorsque l'authentification et la bibliothèque seront implémentées.
+Firebase constitue maintenant une partie active de l'architecture de Dear Pages.
 
-La documentation sera alors mise à jour pour refléter la structure Firebase réellement utilisée plutôt que l'architecture prévue.
+La documentation pourra continuer à être précisée au fur et à mesure que de nouvelles fonctionnalités utilisant les données utilisateur seront ajoutées, notamment autour de la bibliothèque, des collections et des données de lecture.

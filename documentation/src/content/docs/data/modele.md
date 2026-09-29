@@ -3,18 +3,21 @@ title: Modèle de données
 description: Organisation des données utilisées par Dear Pages.
 ---
 
-Dear Pages utilise actuellement deux grandes catégories de données :
+Dear Pages sépare les données provenant des sources externes des données propres à chaque utilisateur.
+
+On peut distinguer trois grandes catégories :
 
 1. les **informations publiques des livres**, récupérées depuis Google Books ou Open Library ;
-2. les **données temporaires d'interface**, utilisées pour afficher des exemples, des recommandations et des états de page.
+2. les **données d'interface et de recommandation**, utilisées pour gérer certains états temporaires ;
+3. les **données personnelles de l'utilisateur**, enregistrées avec Firebase et associées à son compte.
 
-Les données personnelles persistantes seront ajoutées plus tard avec Firebase.
+Cette séparation permet de ne pas mélanger les informations fournies par les API externes avec les informations propres au parcours de lecture de chaque utilisateur.
 
 ## Livre Google Books
 
-Les données reçues depuis Google Books sont transformées par `formatBook` dans `booksApi.js`.
+Les données reçues depuis Google Books sont transformées par `formatBook` dans le service dédié aux livres.
 
-Un livre Google Books possède actuellement la structure suivante :
+Un livre Google Books possède notamment la structure suivante :
 
 ```js
 {
@@ -41,16 +44,16 @@ Un livre Google Books possède actuellement la structure suivante :
 | `authors` | `string[]` | Liste des auteurs |
 | `isbn` | `string \| null` | Premier ISBN disponible |
 | `isbns` | `string[]` | Liste des ISBN disponibles |
-| `cover` | `string \| null` | URL de la meilleure couverture disponible |
+| `cover` | `string \| null` | URL de la couverture disponible |
 | `description` | `string` | Description du livre |
 | `categories` | `string[]` | Catégories associées au livre |
 | `publishedDate` | `string` | Date de publication fournie par Google Books |
 
 ## Livre Open Library
 
-Les tendances viennent d'Open Library et sont normalisées dans `trendingBooksApi.js`.
+Les tendances utilisent Open Library et sont normalisées avant d'être utilisées dans l'application.
 
-Le modèle actuel est plus court :
+Le modèle contient notamment :
 
 ```js
 {
@@ -64,15 +67,17 @@ Le modèle actuel est plus court :
 }
 ```
 
-Open Library ne fournit pas exactement les mêmes champs que Google Books. Les tendances utilisent donc directement les informations disponibles : identifiant, titre, auteurs, ISBN et couverture.
+Open Library ne fournit pas exactement les mêmes champs que Google Books.
+
+Les données disponibles sont donc adaptées au modèle utilisé par Dear Pages afin de pouvoir afficher les livres dans les composants communs de l'application.
 
 ## Valeurs par défaut
 
-Toutes les éditions disponibles dans les API ne possèdent pas les mêmes informations.
+Les différentes sources ne fournissent pas toujours toutes les informations nécessaires.
 
-Les services fournissent donc certaines valeurs par défaut.
+Les services normalisent donc les réponses afin de fournir une structure cohérente aux composants React.
 
-Par exemple :
+Certaines valeurs peuvent notamment être remplacées lorsqu'une information est absente :
 
 ```js
 title: volumeInfo.title || 'Titre inconnu'
@@ -86,68 +91,68 @@ categories: volumeInfo.categories || []
 publishedDate: volumeInfo.publishedDate || ''
 ```
 
-Pour la couverture Google Books, plusieurs tailles sont testées avant d'utiliser `null` si aucune image n'est disponible.
+Pour les couvertures, plusieurs sources ou tailles peuvent être essayées avant de conserver une valeur vide ou un fallback approprié.
 
-Cela permet à l'interface de recevoir une structure cohérente même lorsque certaines informations sont absentes de l'API.
+Cette normalisation évite que les composants aient à gérer directement toutes les différences entre les API.
 
 ## Identité d'un livre
 
-Pour les recommandations, un simple `id` ne suffit pas toujours.
+Un simple `id` ne suffit pas toujours pour déterminer si deux résultats représentent le même livre.
 
-Google Books et Open Library peuvent représenter le même livre avec des identifiants différents.
+Google Books et Open Library utilisent des identifiants différents et peuvent également retourner plusieurs éditions d'une même œuvre.
 
-Dear Pages construit donc plusieurs clés d'identité dans `recommendationSelection.js` :
+Dear Pages utilise donc plusieurs informations pour identifier et comparer les livres, notamment :
 
-- ISBN ;
-- titre normalisé + auteur principal ;
-- identifiant Google Books ;
-- identifiant Open Library ;
-- identifiant local.
+- l'ISBN ;
+- le titre normalisé ;
+- l'auteur principal ;
+- l'identifiant Google Books ;
+- l'identifiant Open Library ;
+- certaines clés d'identité internes.
 
-Ces clés servent à éviter les doublons et les répétitions dans les étagères de recommandations.
+Ces informations sont notamment utilisées par la logique de recommandation afin de limiter les doublons et les répétitions dans les différentes étagères.
 
 ## État temporaire des recommandations
 
-Les recommandations utilisent un état de session sauvegardé dans `sessionStorage`.
+Certaines informations liées aux recommandations peuvent être conservées dans `sessionStorage`.
 
-Chaque étagère peut conserver :
+Cet état permet notamment de conserver certaines sélections pendant la session du navigateur et de limiter les répétitions immédiates.
 
-```js
-{
-  books: [],
-  startIndex: 0,
-  seenIdentityKeys: [],
-}
-```
+Il ne représente pas les données personnelles persistantes de l'utilisateur.
 
-Cet état n'est pas une donnée utilisateur durable. Il sert seulement à garder les mêmes recommandations pendant la session du navigateur et à éviter les répétitions immédiates.
+Les préférences de lecture utilisées pour personnaliser les recommandations, elles, sont désormais associées au compte utilisateur et enregistrées avec Firebase.
 
-## Données personnelles prévues
+## Données personnelles utilisateur
 
-Les informations provenant de Google Books ou Open Library ne permettent pas de savoir ce que le livre représente pour un utilisateur.
+Les informations provenant de Google Books ou Open Library décrivent le livre, mais ne décrivent pas la relation entre ce livre et l'utilisateur.
 
-Dear Pages devra donc conserver séparément des informations personnelles comme :
+Dear Pages conserve donc séparément les données propres au compte.
 
-```text
-Bibliothèque
-├── livre
-├── statut de lecture
-├── note personnelle
-├── avis personnel
-└── date d'ajout
-```
+Elles comprennent notamment :
 
-Ces données seront liées au compte de l'utilisateur avec Firebase.
+- les livres présents dans la bibliothèque ;
+- leur statut de lecture ;
+- les notes personnelles ;
+- les avis personnels ;
+- les collections ;
+- les préférences de lecture ;
+- l'objectif annuel de lecture.
 
-:::note
-Le modèle Firebase définitif n'est pas encore implémenté. Sa structure pourra évoluer pendant le développement des fonctionnalités de bibliothèque, de notes et de collections.
-:::
+Ces données sont associées à l'utilisateur connecté et enregistrées avec Firebase.
 
-## Statut de lecture
+## Bibliothèque personnelle
 
-Un livre ajouté à la bibliothèque pourra être associé à un statut représentant son état dans le parcours de lecture.
+La bibliothèque représente les livres que l'utilisateur a ajoutés à son espace personnel.
 
-Par exemple, l'application pourra distinguer :
+Elle permet de conserver le lien entre un utilisateur et un livre provenant d'une source externe.
+
+Le livre peut ainsi être associé à un statut de lecture sans modifier les données publiques provenant de Google Books ou Open Library.
+
+## Statuts de lecture
+
+Chaque livre de la bibliothèque peut être associé à un statut représentant son état dans le parcours de lecture.
+
+Dear Pages utilise les statuts :
 
 ```text
 À lire
@@ -156,26 +161,63 @@ Terminé
 Abandonné
 ```
 
-Le statut appartiendra à l'utilisateur et non au livre lui-même.
+Le statut appartient à la relation entre l'utilisateur et le livre.
 
-Deux utilisateurs pourraient donc avoir le même livre avec des statuts différents.
+Deux utilisateurs peuvent donc avoir le même livre avec des statuts différents.
 
-## Notes, avis et collections
+## Notes et avis
 
-Une note ou un avis représente également une donnée personnelle.
+Les notes et avis sont des données personnelles.
 
-Ces informations ne doivent donc pas être ajoutées directement à l'objet public provenant d'une API externe.
+Ils sont associés au compte de l'utilisateur et ne sont pas ajoutés directement au modèle public provenant de Google Books ou Open Library.
 
-Les collections représenteront des regroupements personnalisés créés par l'utilisateur.
+Une note ou un avis permet donc à l'utilisateur de conserver sa propre appréciation d'un livre sans modifier les informations communes du livre.
 
-La structure exacte sera définie lors de l'implémentation de Firebase, de la bibliothèque et des collections persistantes.
+## Collections
+
+Les collections permettent à l'utilisateur de créer des regroupements personnalisés de livres.
+
+Une collection appartient à l'utilisateur qui l'a créée et peut contenir plusieurs livres de sa bibliothèque.
+
+Les collections sont persistantes et sont gérées avec les autres données personnelles de l'utilisateur.
+
+Elles sont indépendantes du statut de lecture : un livre peut appartenir à une collection tout en ayant n'importe quel statut de lecture.
+
+## Préférences de lecture
+
+Les préférences de lecture sont également enregistrées avec le compte utilisateur.
+
+Elles comprennent notamment :
+
+- les genres préférés ;
+- l'objectif annuel de lecture ;
+- l'état de complétion de l'onboarding.
+
+Ces préférences sont utilisées par différentes parties de l'application, notamment les recommandations personnalisées.
 
 ## Principe général
 
-La séparation peut être résumée ainsi :
+La séparation des données peut être résumée ainsi :
+
+```text
+Google Books / Open Library
+        ↓
+   Informations du livre
+        ↓
+      Dear Pages
+        ↓
+Firebase ───→ Relation utilisateur ↔ livre
+        │
+        ├── Bibliothèque
+        ├── Statut de lecture
+        ├── Note
+        ├── Avis
+        ├── Collections
+        └── Préférences
+```
 
 **Google Books et Open Library décrivent les livres.**
 
-**Firebase décrira la relation entre l'utilisateur et les livres.**
+**Firebase conserve les données propres à l'utilisateur et sa relation avec ces livres.**
 
-Cette distinction permet de garder un modèle de données plus clair et d'éviter de mélanger les données publiques provenant d'API externes avec les données privées de l'application.
+Cette séparation permet de conserver une architecture claire tout en permettant à chaque utilisateur de construire sa propre bibliothèque et son propre parcours de lecture.

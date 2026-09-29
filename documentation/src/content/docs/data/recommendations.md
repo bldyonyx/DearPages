@@ -1,33 +1,33 @@
 ---
 title: Recommandations
-description: Fonctionnement actuel des recommandations temporaires de Dear Pages.
+description: Fonctionnement des recommandations de Dear Pages.
 ---
 
-Dear Pages possède déjà un système de recommandations pour la page **Découvrir**.
+Dear Pages possède un système de recommandations intégré à la page **Découvrir**.
 
-Ce système est volontairement temporaire : il permet de tester l'expérience de découverte avant l'arrivée de Firebase, de l'authentification et des vraies préférences utilisateur.
+Les recommandations combinent plusieurs sources et mécanismes :
 
-:::note
-Les recommandations actuelles ne sont pas encore personnalisées avec un compte utilisateur réel. Elles utilisent des préférences définies dans le code et une persistance limitée à la session du navigateur.
-:::
+- les préférences de lecture de l'utilisateur ;
+- Google Books pour les recommandations par genre ;
+- Open Library pour les tendances ;
+- un système de déduplication et d'anti-répétition ;
+- une persistance temporaire de certaines informations pendant la session.
 
-## Préférences temporaires
+Les préférences utilisées pour personnaliser les recommandations sont désormais associées au compte utilisateur et enregistrées avec Firebase.
 
-Les préférences utilisées actuellement sont définies dans :
+## Préférences utilisateur
+
+Les préférences de lecture sont enregistrées dans le profil de l'utilisateur.
+
+Elles comprennent notamment les genres préférés sélectionnés lors de l'onboarding et modifiables depuis les paramètres.
+
+Ces préférences sont utilisées pour construire la sélection **Peut-être pour toi** et la vue étendue :
 
 ```text
-src/constants/discoverPreferences.js
+/discover?view=for-you
 ```
 
-Le tableau contient trois genres :
-
-- `fantasy`
-- `mystery`
-- `classics`
-
-Ces préférences servent à construire la section **Peut-être pour toi** et la vue étendue `/discover?view=for-you`.
-
-Plus tard, ce tableau pourra être remplacé par les préférences du profil utilisateur.
+Les anciennes préférences définies directement dans `src/constants/discoverPreferences.js` ne constituent plus la source principale des préférences utilisateur.
 
 ## Sources des candidats
 
@@ -60,67 +60,77 @@ Elle applique plusieurs étapes :
 
 1. Dédupliquer les livres reçus dans le lot de candidats.
 2. Retirer les livres déjà vus pendant la session.
-3. Retirer les livres exclus, ce qui prépare le futur branchement avec **Ma bibliothèque**.
-4. Mélanger les livres restants de manière aléatoire.
-5. Garder seulement le nombre nécessaire pour l'étagère.
+3. Retirer les livres exclus, notamment lorsque certains livres doivent être ignorés.
+4. Mélanger les livres restants.
+5. Garder uniquement le nombre nécessaire pour l'étagère.
 
-Pour reconnaître les doublons, l'application construit plusieurs clés d'identité :
+Pour reconnaître les doublons, l'application utilise plusieurs informations d'identité :
 
-- ISBN, quand il existe ;
+- ISBN, lorsqu'il existe ;
 - couple titre + auteur principal normalisé ;
 - identifiant Google Books ;
 - identifiant Open Library ;
 - identifiant local de l'objet.
 
-Cette stratégie est importante car Google Books et Open Library n'utilisent pas les mêmes identifiants.
+Cette stratégie permet de limiter les doublons malgré les différences entre les sources de livres.
 
 ## Livres déjà vus
 
 Chaque étagère conserve les livres déjà affichés sous forme de clés d'identité.
 
-Cela évite de revoir immédiatement les mêmes livres après un rafraîchissement.
+Cela permet d'éviter de revoir immédiatement les mêmes livres après un rafraîchissement.
 
-Les tendances peuvent recycler des livres déjà vus lorsque le lot disponible ne contient plus de nouveaux candidats éligibles. Ce comportement est activé avec `recycleSeenWhenExhausted`, car la source Open Library utilisée pour les tendances est plus fixe.
+Les tendances peuvent toutefois recycler certains livres déjà vus lorsque le nombre de nouveaux candidats disponibles devient insuffisant.
+
+Ce comportement utilise `recycleSeenWhenExhausted`, notamment parce que la source Open Library utilisée pour les tendances fournit un ensemble de résultats plus limité.
 
 ## Persistance de session
 
-Les étagères de recommandations sont sauvegardées dans `sessionStorage` grâce à :
+Certaines informations liées aux recommandations sont sauvegardées dans `sessionStorage` grâce à :
 
 ```text
 src/utils/recommendationSessionStorage.js
 ```
 
-Cette persistance garde pour une session :
+Cette persistance permet notamment de conserver pendant la session :
 
 - les livres actuellement affichés ;
 - le `startIndex` lorsque l'étagère utilise une pagination Google Books ;
 - les clés d'identité déjà vues.
 
-Les clés commencent encore par :
+Les clés utilisent encore le préfixe technique :
 
 ```text
 booktracker:recommendations
 ```
 
-Ce préfixe est un identifiant technique conservé pour ne pas modifier inutilement le comportement du stockage local.
+Ce préfixe est conservé pour préserver le comportement actuel du stockage.
+
+La persistance de session ne remplace pas les données utilisateur enregistrées dans Firebase : elle sert uniquement à conserver l'état de certaines recommandations pendant la session du navigateur.
 
 ## Page Découvrir
 
-Sur la vue de découverte par défaut, `useDiscoverHomeBooks` charge :
+Sur la vue de découverte par défaut, `useDiscoverHomeBooks` charge plusieurs étagères :
 
-- **Peut-être pour toi** depuis Google Books avec le sujet `mystery` ;
-- **Tendances du moment** depuis Open Library ;
-- **Les incontournables** depuis Google Books avec le sujet `classics`.
+- **Peut-être pour toi**, basée sur les préférences de lecture ;
+- **Tendances du moment**, depuis Open Library ;
+- **Les incontournables**, depuis Google Books avec le sujet `classics`.
 
-Les tendances et les incontournables possèdent chacun un bouton de rafraîchissement.
+Les tendances et les incontournables possèdent chacun leur propre bouton de rafraîchissement.
 
 Ces rafraîchissements sont indépendants : rafraîchir les tendances ne recharge pas les incontournables, et inversement.
 
 ## Vue étendue
 
-La vue `/discover?view=for-you` est affichée par `ForYouRecommendations`.
+La vue :
 
-Elle utilise `useForYouRecommendations` pour créer une section par préférence temporaire.
+```text
+/discover?view=for-you
+```
+
+est affichée par `ForYouRecommendations`.
+
+Elle utilise `useForYouRecommendations` pour créer une section par genre préféré.
 
 Chaque genre possède son propre état :
 
@@ -129,49 +139,82 @@ Chaque genre possède son propre état :
 - chargement ;
 - `startIndex`.
 
-Le bouton de rafraîchissement d'un genre ne recharge que ce genre.
+Le bouton de rafraîchissement d'un genre ne recharge donc que cette section.
 
 ## Gestion des erreurs et du chargement
 
 Les hooks utilisent des états de chargement et d'erreur séparés.
 
-La page Découvrir utilise `Promise.allSettled` pour éviter qu'une requête échouée bloque toutes les autres étagères.
+La page Découvrir utilise `Promise.allSettled` afin qu'une requête échouée ne bloque pas nécessairement les autres étagères.
 
-Actuellement, ces états sont fonctionnels :
+Les différents composants peuvent afficher :
 
-- texte de chargement global ;
-- message d'erreur global si certaines sélections échouent ;
-- message d'erreur par étagère lors d'un rafraîchissement ;
-- bouton désactivé pendant un rafraîchissement ;
-- texte de chargement par genre lorsque la vue étendue charge une section vide.
+- un état de chargement ;
+- un message d'erreur ;
+- un état vide lorsque aucun résultat exploitable n'est disponible ;
+- un bouton désactivé pendant un rafraîchissement ;
+- un état de chargement propre à chaque genre dans la vue étendue.
 
-Le polish visuel de ces états reste à améliorer.
+## Exclusion des livres de la bibliothèque
 
-## Préparation pour la bibliothèque
+Le système de sélection accepte des livres à exclure grâce à `excludedBookIds`.
 
-Les fonctions de sélection acceptent déjà `excludedBookIds`.
+Cette logique permet de ne pas proposer certains livres déjà présents dans la bibliothèque lorsque les données de celle-ci sont disponibles.
 
-Pour l'instant, cet argument est vide par défaut.
+La sélection des recommandations peut ainsi rester séparée de la logique de bibliothèque tout en prenant en compte les livres que l'utilisateur possède déjà.
 
-Il prépare la future exclusion des livres déjà présents dans **Ma bibliothèque**, lorsque les données utilisateur existeront réellement.
+## Relation avec les préférences utilisateur
 
-## Actuel et prévu
+Les recommandations personnalisées utilisent maintenant les préférences enregistrées pour le compte.
 
-### Actuel
+Le fonctionnement général est donc :
 
-- préférences temporaires dans le code ;
+```text
+Préférences utilisateur
+        ↓
+Genres préférés
+        ↓
+Google Books
+        ↓
+Lots de candidats
+        ↓
+Déduplication
+        ↓
+Livres déjà vus / exclus
+        ↓
+Sélection finale
+        ↓
+Étagères de recommandations
+```
+
+Les tendances et les incontournables suivent un flux similaire, mais utilisent leurs propres sources et critères de sélection.
+
+## Actuel
+
+Le système de recommandations comprend actuellement :
+
+- préférences de lecture liées au compte utilisateur ;
 - recommandations par genres ;
 - tendances Open Library ;
 - incontournables Google Books ;
-- déduplication et anti-répétition ;
+- déduplication ;
+- anti-répétition pendant la session ;
+- exclusion de certains livres ;
 - rafraîchissement indépendant par étagère ou par genre ;
-- persistance avec `sessionStorage` ;
-- préparation technique pour exclure les livres de la bibliothèque.
+- persistance de certaines informations avec `sessionStorage` ;
+- gestion séparée des chargements et des erreurs ;
+- préparation de la sélection pour fonctionner avec la bibliothèque personnelle.
 
-### Prévu
+## Évolution possible
 
-- préférences enregistrées dans le profil utilisateur ;
-- exclusion réelle des livres déjà ajoutés à la bibliothèque ;
-- recommandations basées sur les données de lecture ;
-- persistance durable avec Firebase ;
-- états visuels de chargement et d'erreur plus travaillés.
+Le système pourra évoluer afin d'utiliser davantage de données issues du parcours de lecture de l'utilisateur.
+
+Les recommandations pourraient notamment prendre en compte :
+
+- les livres déjà lus ;
+- les statuts de lecture ;
+- les collections ;
+- les préférences enregistrées ;
+- d'autres informations disponibles dans la bibliothèque personnelle.
+
+Ces évolutions pourront être ajoutées progressivement sans modifier le principe général de séparation entre les sources de livres, la sélection des recommandations et les données personnelles.

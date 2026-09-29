@@ -1,36 +1,18 @@
 ---
 title: Sources de livres
-description: Utilisation actuelle de Google Books et Open Library dans Dear Pages.
+description: Utilisation de Google Books et Open Library dans Dear Pages.
 ---
 
-Dear Pages utilise actuellement deux sources externes pour afficher des livres :
+Dear Pages utilise deux sources externes principales pour récupérer les informations publiques des livres :
 
-- **Google Books API**, pour la recherche, les suggestions et les sélections par sujet ;
-- **Open Library**, pour les livres tendance.
+- **Google Books API**, pour la recherche, les suggestions et différentes sélections de livres ;
+- **Open Library**, comme source complémentaire pour les tendances, certaines informations de livres et les couvertures.
 
-Les appels à ces API sont isolés dans des services afin d'éviter de faire les requêtes directement dans les composants React.
-
-```text
-src/services/
-├── booksApi.js
-└── trendingBooksApi.js
-```
+Les appels à ces API sont isolés dans des services afin d'éviter d'effectuer directement les requêtes depuis les composants React.
 
 ## Google Books API
 
-Google Books est la source principale pour rechercher des livres.
-
-Le service concerné est :
-
-```text
-src/services/booksApi.js
-```
-
-L'URL de base utilisée est :
-
-```text
-https://www.googleapis.com/books/v1/volumes
-```
+Google Books constitue la source principale utilisée par Dear Pages pour rechercher et découvrir des livres.
 
 La clé API est récupérée depuis une variable d'environnement Vite :
 
@@ -45,41 +27,34 @@ VITE_GOOGLE_BOOKS_API_KEY=...
 ```
 
 :::note
-Cette clé est utilisée côté frontend. Elle peut donc être visible par le navigateur et doit être limitée depuis Google Cloud plutôt que considérée comme un secret serveur.
+Cette clé est utilisée côté frontend. Elle peut donc être visible depuis le navigateur et ne doit pas être considérée comme un secret serveur.
+
+En production, elle est fournie au build par GitHub Actions et ses restrictions sont configurées depuis Google Cloud.
 :::
 
 ## Recherche
 
-La fonction `searchBooks` lance la recherche principale de la page Découvrir.
+La recherche principale de la page Découvrir utilise Google Books.
 
-Elle utilise :
+Elle permet de rechercher des livres à partir du texte saisi par l'utilisateur puis d'afficher les résultats dans Dear Pages.
 
-- la recherche saisie par l'utilisateur ;
-- `langRestrict=fr` ;
-- `maxResults=20`.
-
-La recherche est déclenchée lorsque l'URL contient un paramètre :
+La recherche est représentée dans l'URL avec :
 
 ```text
 /discover?q=...
 ```
 
-Le hook `useDiscoverSearch` lit ce paramètre, appelle `searchBooks`, puis transmet les résultats à `SearchResults`.
+Le hook `useDiscoverSearch` synchronise l'état de recherche avec ce paramètre et coordonne le chargement des résultats.
 
 ## Suggestions
 
-La fonction `getBookSuggestions` sert à l'autocomplétion du champ de recherche.
+Google Books est également utilisé pour proposer des suggestions pendant la saisie.
 
-Elle est appelée lorsque la saisie contient au moins deux caractères et qu'elle est différente de la recherche déjà soumise.
+Lorsque l'utilisateur commence à rechercher un livre, Dear Pages peut afficher une sélection réduite de résultats avant même la soumission complète de la recherche.
 
-Le hook `useDiscoverSearch` applique un debounce de 300 ms avant d'appeler le service.
+Un debounce limite les appels effectués pendant la saisie.
 
-Les suggestions utilisent :
-
-- `langRestrict=fr` ;
-- `maxResults=5`.
-
-Chaque suggestion peut ensuite mener vers :
+Chaque suggestion peut ensuite mener directement vers :
 
 ```text
 /books/:id
@@ -87,35 +62,34 @@ Chaque suggestion peut ensuite mener vers :
 
 ## Sélections par sujet
 
-La fonction `getBooksBySubject` récupère des livres par catégorie Google Books.
+Dear Pages utilise également les catégories de Google Books pour construire différentes sélections.
 
-Elle construit une requête avec :
+Une recherche par sujet utilise le principe :
 
 ```text
 q=subject:<subject>
 ```
 
-Elle accepte aussi :
+Cette logique intervient notamment dans :
 
-- `maxResults`, pour choisir la taille du lot de candidats ;
-- `startIndex`, pour récupérer une autre fenêtre de résultats.
+- les recommandations **Peut-être pour toi** ;
+- **Les incontournables** ;
+- la vue étendue `/discover?view=for-you`.
 
-Cette fonction est utilisée pour :
+Les recommandations personnalisées utilisent les genres préférés enregistrés pour l'utilisateur afin de choisir les sujets correspondants.
 
-- **Peut-être pour toi** sur la vue Découvrir ;
-- **Les incontournables** avec le sujet `classics` ;
-- les sections de la vue `/discover?view=for-you`.
+Différentes fenêtres de résultats peuvent être récupérées afin de renouveler les sélections sans toujours afficher les mêmes livres.
 
-## Modèle normalisé Google Books
+## Normalisation des données Google Books
 
-Les données retournées par Google Books sont transformées par `formatBook`.
+Les réponses de Google Books sont transformées avant d'être utilisées dans l'interface.
 
-Le modèle actuel contient :
+Dear Pages normalise notamment des informations comme :
 
 ```js
 {
-  id: item.id,
-  googleBooksId: item.id,
+  id,
+  googleBooksId,
   title,
   authors,
   isbn,
@@ -127,44 +101,49 @@ Le modèle actuel contient :
 }
 ```
 
-La couverture est choisie en testant plusieurs tailles, de `extraLarge` à `smallThumbnail`.
+Cette normalisation permet aux composants React de travailler avec une structure cohérente sans dépendre directement du format brut de l'API.
 
-Lorsque certaines informations manquent, le service fournit des valeurs par défaut comme :
+Lorsque certaines informations sont absentes, Dear Pages peut utiliser des valeurs de remplacement adaptées à l'interface.
 
-- `Titre inconnu` ;
-- `Auteur inconnu` ;
-- chaîne vide pour la description ;
-- tableau vide pour les catégories.
+## Couvertures Google Books
+
+Google Books peut fournir plusieurs tailles de couverture.
+
+Dear Pages privilégie les versions de meilleure qualité disponibles avant de revenir vers des formats plus petits lorsque cela est nécessaire.
+
+La couverture Google Books peut également servir de fallback lorsqu'une autre source ne fournit pas une image exploitable.
 
 ## Open Library
 
-Open Library est utilisé pour l'étagère **Tendances du moment**.
+Open Library constitue la seconde source externe utilisée par Dear Pages.
 
-Le service concerné est :
+Elle est notamment utilisée pour alimenter l'étagère :
 
-```text
-src/services/trendingBooksApi.js
-```
+**Tendances du moment**
 
-Il utilise l'endpoint :
+à partir des données publiques d'Open Library.
 
-```text
-https://openlibrary.org/search.json
-```
+Contrairement à Google Books, cette utilisation ne nécessite pas de clé API dans Dear Pages.
 
-La requête actuelle demande les livres tendance avec :
+## Tendances
 
-```text
-q=trending_z_score:{0 TO *]
-sort=trending
-fields=key,title,author_name,isbn,cover_i
-```
+Pour les tendances, Dear Pages récupère un ensemble de livres depuis Open Library avant de les normaliser pour l'interface.
 
-Le service récupère un lot plus large que le nombre affiché, filtre les livres sans couverture, puis normalise les résultats.
+Les données utiles peuvent notamment inclure :
 
-## Modèle normalisé Open Library
+- l'identifiant Open Library ;
+- le titre ;
+- les auteurs ;
+- les ISBN ;
+- l'identifiant de couverture.
 
-Le modèle actuel des tendances contient :
+Les résultats sont ensuite filtrés et adaptés avant leur affichage dans l'étagère correspondante.
+
+## Normalisation des données Open Library
+
+Les livres provenant d'Open Library sont eux aussi transformés vers une structure compatible avec Dear Pages.
+
+Elle peut notamment contenir :
 
 ```js
 {
@@ -178,32 +157,60 @@ Le modèle actuel des tendances contient :
 }
 ```
 
-La couverture est construite avec :
+Cette structure permet d'utiliser les livres Open Library dans les mêmes composants généraux que les résultats provenant de Google Books.
 
-```text
-https://covers.openlibrary.org/b/id/<cover_i>-L.jpg?default=false
-```
+## Couvertures Open Library
 
-## Identifiants différents
+Open Library fournit également un service de couvertures utilisé comme source complémentaire par Dear Pages.
+
+Lorsqu'une couverture Open Library de meilleure qualité est disponible, elle peut être privilégiée.
+
+Dans le cas contraire, Dear Pages conserve ou utilise la couverture Google Books disponible afin d'éviter de dégrader inutilement la qualité de l'image.
+
+La gestion des couvertures prévoit donc plusieurs sources et fallbacks plutôt que de dépendre d'une seule image.
+
+## Identifiants provenant de plusieurs sources
 
 Google Books et Open Library n'utilisent pas les mêmes identifiants.
 
-Un livre Google Books possède notamment :
+Un livre provenant de Google Books peut notamment posséder :
 
-- `id`
-- `googleBooksId`
+```text
+id
+googleBooksId
+```
 
-Un livre Open Library possède notamment :
+Un livre provenant d'Open Library peut notamment posséder :
 
-- `id`
-- `openLibraryId`
+```text
+id
+openLibraryId
+```
 
-Pour éviter les doublons entre sources ou éditions, les recommandations ne se basent pas seulement sur `id`. Elles utilisent aussi l'ISBN et le couple titre + auteur principal lorsque ces informations existent.
+Dear Pages conserve ces informations afin de savoir d'où provient un livre et de pouvoir récupérer les données adaptées à sa source.
 
-## Ce qui n'est pas fait actuellement
+Pour limiter les doublons entre différentes éditions ou différentes API, la logique peut également utiliser des informations comme :
 
-Dear Pages ne fait plus d'enrichissement Google Books par ISBN pour chaque livre tendance.
+- l'ISBN ;
+- le titre ;
+- l'auteur principal.
 
-Les tendances utilisent directement les informations retournées par Open Library : titre, auteur, ISBN et couverture.
+## Données publiques et données personnelles
 
-Les données personnelles comme les statuts de lecture, la bibliothèque, les notes et les avis ne proviennent ni de Google Books ni d'Open Library. Elles seront ajoutées plus tard avec Firebase.
+Google Books et Open Library fournissent uniquement les informations publiques utilisées pour représenter et découvrir les livres.
+
+Les données personnelles de l'utilisateur ne proviennent pas de ces API.
+
+Cela concerne notamment :
+
+- le statut de lecture ;
+- la présence dans la bibliothèque ;
+- les collections ;
+- les notes personnelles ;
+- l'évaluation en étoiles ;
+- l'avis ;
+- la date de fin de lecture.
+
+Ces informations sont enregistrées séparément dans **Firebase** et associées au compte de l'utilisateur.
+
+Cette séparation permet à Dear Pages d'utiliser les API externes comme sources de livres tout en conservant les données personnelles indépendamment.
