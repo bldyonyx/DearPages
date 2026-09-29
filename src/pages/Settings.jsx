@@ -5,6 +5,7 @@ import {
 } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import AboutCard from '../components/settings/AboutCard.jsx'
 import AccountCard from '../components/settings/AccountCard.jsx'
 import AccountDeleteModal from '../components/settings/AccountDeleteModal.jsx'
 import ProfileCard from '../components/settings/ProfileCard.jsx'
@@ -327,6 +328,8 @@ function Settings() {
             }}
             onLogout={handleLogout}
           />
+
+          <AboutCard />
         </div>
       )}
 
