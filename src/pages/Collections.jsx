@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
-
 import CollectionCard from '../components/collections/cards/CollectionCard.jsx'
 import CollectionCreateModal from '../components/collections/modals/CollectionCreateModal.jsx'
 import CollectionDeleteModal from '../components/collections/modals/CollectionDeleteModal.jsx'
@@ -7,310 +5,39 @@ import CollectionEditModal from '../components/collections/modals/CollectionEdit
 import HeaderActions from '../components/layout/HeaderActions.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
-import {
-  createCollection,
-  deleteCollection,
-  getUserCollections,
-  updateCollection,
-  updateCollectionPinned,
-} from '../services/collectionsService.js'
-import { getUserLibrary } from '../services/libraryService.js'
-
-function sortCollections(collections) {
-  return [...collections].sort((firstCollection, secondCollection) => {
-    if (firstCollection.pinned !== secondCollection.pinned) {
-      return firstCollection.pinned ? -1 : 1
-    }
-
-    return (
-      (secondCollection.updatedAt ||
-        secondCollection.createdAt ||
-        0) -
-      (firstCollection.updatedAt ||
-        firstCollection.createdAt ||
-        0)
-    )
-  })
-}
-
-function getBookId(book) {
-  return book.googleBooksId || book.id
-}
+import useCollections from '../hooks/useCollections.js'
 
 function Collections() {
-  const { user } = useAuth()
+  const {
+    user,
 
-  const [collections, setCollections] = useState([])
-  const [libraryBooks, setLibraryBooks] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [isCreateModalOpen, setIsCreateModalOpen] =
-    useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [collectionToDelete, setCollectionToDelete] =
-    useState(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [collectionToEdit, setCollectionToEdit] =
-    useState(null)
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
+    collections,
+    isLoading,
+    error,
 
-  async function loadCollections() {
-    if (!user?.uid) {
-      return
-    }
+    isCreateModalOpen,
+    isSubmitting,
 
-    try {
-      setIsLoading(true)
-      setError('')
+    collectionToDelete,
+    isDeleting,
 
-      const [userCollections, userLibrary] =
-        await Promise.all([
-          getUserCollections(user.uid),
-          getUserLibrary(user.uid),
-        ])
+    collectionToEdit,
+    isSavingEdit,
 
-      setCollections(sortCollections(userCollections))
-      setLibraryBooks(userLibrary)
-    } catch (loadError) {
-      console.error(
-        'Unable to load collections:',
-        loadError
-      )
+    loadCollections,
+    handleCreateCollection,
+    handleDeleteCollection,
+    handleUpdateCollection,
+    handleTogglePinned,
+    getCollectionPreviewBooks,
 
-      setError(
-        'Impossible de charger tes collections pour le moment.'
-      )
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let isActive = true
-
-    async function loadActiveCollections() {
-      if (!user?.uid) {
-        return
-      }
-
-      try {
-        setIsLoading(true)
-        setError('')
-
-        const [userCollections, userLibrary] =
-          await Promise.all([
-            getUserCollections(user.uid),
-            getUserLibrary(user.uid),
-          ])
-
-        if (isActive) {
-          setCollections(sortCollections(userCollections))
-          setLibraryBooks(userLibrary)
-        }
-      } catch (loadError) {
-        console.error(
-          'Unable to load collections:',
-          loadError
-        )
-
-        if (isActive) {
-          setError(
-            'Impossible de charger tes collections pour le moment.'
-          )
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadActiveCollections()
-
-    return () => {
-      isActive = false
-    }
-  }, [user?.uid])
-
-  async function handleCreateCollection(collection) {
-    if (!user?.uid) {
-      return false
-    }
-
-    try {
-      setIsSubmitting(true)
-      setError('')
-
-      await createCollection(user.uid, collection)
-
-      const userCollections = await getUserCollections(
-        user.uid
-      )
-
-      setCollections(sortCollections(userCollections))
-      setIsCreateModalOpen(false)
-
-      return true
-    } catch (createError) {
-      console.error(
-        'Unable to create collection:',
-        createError
-      )
-
-      setError(
-        'Impossible de créer cette collection pour le moment.'
-      )
-
-      return false
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  async function handleDeleteCollection() {
-    if (!user?.uid || !collectionToDelete?.id) {
-      return
-    }
-
-    try {
-      setIsDeleting(true)
-      setError('')
-
-      await deleteCollection(
-        user.uid,
-        collectionToDelete.id
-      )
-
-      setCollections((currentCollections) =>
-        currentCollections.filter(
-          (collection) =>
-            collection.id !== collectionToDelete.id
-        )
-      )
-      setCollectionToDelete(null)
-    } catch (deleteError) {
-      console.error(
-        'Unable to delete collection:',
-        deleteError
-      )
-
-      setError(
-        'Impossible de supprimer cette collection pour le moment.'
-      )
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  async function handleUpdateCollection(collectionData) {
-    if (!user?.uid || !collectionToEdit?.id) {
-      return false
-    }
-
-    try {
-      setIsSavingEdit(true)
-      setError('')
-
-      await updateCollection(
-        user.uid,
-        collectionToEdit.id,
-        collectionData
-      )
-
-      const updatedAt = Date.now()
-
-      setCollections((currentCollections) =>
-        sortCollections(
-          currentCollections.map((collection) =>
-            collection.id === collectionToEdit.id
-              ? {
-                  ...collection,
-                  name: collectionData.name,
-                  description:
-                    collectionData.description || '',
-                  updatedAt,
-                }
-              : collection
-          )
-        )
-      )
-      setCollectionToEdit(null)
-
-      return true
-    } catch (updateError) {
-      console.error(
-        'Unable to update collection:',
-        updateError
-      )
-
-      setError(
-        'Impossible de modifier cette collection pour le moment.'
-      )
-
-      return false
-    } finally {
-      setIsSavingEdit(false)
-    }
-  }
-
-  async function handleTogglePinned(collectionToPin) {
-    if (!user?.uid || !collectionToPin?.id) {
-      return
-    }
-
-    const nextPinned = !collectionToPin.pinned
-
-    try {
-      setError('')
-
-      await updateCollectionPinned(
-        user.uid,
-        collectionToPin.id,
-        nextPinned
-      )
-
-      const updatedAt = Date.now()
-
-      setCollections((currentCollections) =>
-        sortCollections(
-          currentCollections.map((collection) =>
-            collection.id === collectionToPin.id
-              ? {
-                  ...collection,
-                  pinned: nextPinned,
-                  updatedAt,
-                }
-              : collection
-          )
-        )
-      )
-    } catch (pinError) {
-      console.error(
-        'Unable to update collection pin:',
-        pinError
-      )
-
-      setError(
-        'Impossible de mettre à jour cette collection pour le moment.'
-      )
-    }
-  }
-
-  const libraryBooksById = useMemo(() => {
-    return new Map(
-      libraryBooks.map((book) => [getBookId(book), book])
-    )
-  }, [libraryBooks])
-
-  function getCollectionPreviewBooks(collection) {
-    return Object.keys(collection.books || {})
-      .slice(0, 4)
-      .map((bookId) => ({
-        id: bookId,
-        book: libraryBooksById.get(bookId) || null,
-      }))
-  }
+    openCreateModal,
+    closeCreateModal,
+    openDeleteModal,
+    closeDeleteModal,
+    openEditModal,
+    closeEditModal,
+  } = useCollections()
 
   return (
     <div className="p-6">
@@ -348,7 +75,7 @@ function Collections() {
             <div className="order-2 basis-full lg:order-1 lg:basis-auto">
               <button
                 type="button"
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={openCreateModal}
                 className="
                   inline-flex h-10
                   cursor-pointer
@@ -428,7 +155,7 @@ function Collections() {
 
           <button
             type="button"
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={openCreateModal}
             className="
               mt-6 cursor-pointer
               font-ui text-sm
@@ -443,11 +170,7 @@ function Collections() {
           </button>
         </section>
       ) : (
-        <section
-          className="
-            mt-8
-          "
-        >
+        <section className="mt-8">
           <div
             className="
               grid gap-5
@@ -460,10 +183,10 @@ function Collections() {
                 key={collection.id}
                 collection={collection}
                 previewBooks={getCollectionPreviewBooks(
-                  collection
+                  collection,
                 )}
-                onDeleteRequest={setCollectionToDelete}
-                onEditRequest={setCollectionToEdit}
+                onDeleteRequest={openDeleteModal}
+                onEditRequest={openEditModal}
                 onPinRequest={handleTogglePinned}
               />
             ))}
@@ -473,7 +196,7 @@ function Collections() {
 
       <CollectionCreateModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={closeCreateModal}
         onCreate={handleCreateCollection}
         isSubmitting={isSubmitting}
       />
@@ -481,14 +204,14 @@ function Collections() {
       <CollectionDeleteModal
         collection={collectionToDelete}
         isDeleting={isDeleting}
-        onClose={() => setCollectionToDelete(null)}
+        onClose={closeDeleteModal}
         onDelete={handleDeleteCollection}
       />
 
       <CollectionEditModal
         collection={collectionToEdit}
         isSaving={isSavingEdit}
-        onClose={() => setCollectionToEdit(null)}
+        onClose={closeEditModal}
         onSave={handleUpdateCollection}
       />
     </div>
