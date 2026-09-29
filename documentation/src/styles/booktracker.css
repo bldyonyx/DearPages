@@ -314,6 +314,45 @@ site-search button svg line {
 /* ---------------------------------------------------------
    STARLIGHT CARDS
    --------------------------------------------------------- */
+/* Clickable home cards */
+
+.home-card-link {
+  display: block;
+  height: 100%;
+
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.home-card-link:hover {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.home-card-link .card {
+  height: 100%;
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.home-card-link:hover .card {
+  transform: translateY(-2px);
+
+  border-color: rgba(69, 50, 40, 0.24);
+
+  box-shadow:
+    0 2px 4px rgba(69, 50, 40, 0.05),
+    0 12px 28px rgba(69, 50, 40, 0.07);
+}
+
+.home-card-link:focus-visible {
+  border-radius: 1.25rem;
+  outline: 3px solid var(--bt-sage);
+  outline-offset: 4px;
+}
 
 .card {
   border: 1px solid rgba(69, 50, 40, 0.12);

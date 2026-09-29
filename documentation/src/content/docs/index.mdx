@@ -22,39 +22,69 @@ import { Card, CardGrid } from '@astrojs/starlight/components'
 Cette documentation présente la conception et le développement de **Dear Pages**, une application web personnelle dédiée au suivi des lectures.
 
 <CardGrid>
-  <Card title="Architecture" icon="seti:folder">
-    Découvre l'organisation du projet, le routing et la structure des composants.
-  </Card>
+  <a
+    href="/architecture/structure/"
+    class="home-card-link"
+    aria-label="Découvrir l'architecture de Dear Pages"
+  >
+    <Card title="Architecture">
+      Découvre l'organisation du projet, le routing et la structure des composants.
+    </Card>
+  </a>
 
-  <Card title="API & données" icon="seti:database">
-    Comprends comment Dear Pages utilise Google Books, Open Library et les recommandations temporaires avant l'arrivée de Firebase.
-  </Card>
+  <a
+    href="/data/google-books/"
+    class="home-card-link"
+    aria-label="Découvrir les API et les données de Dear Pages"
+  >
+    <Card title="API & données">
+      Comprends comment Dear Pages utilise Google Books, Open Library et Firebase pour gérer les livres et les données personnelles des utilisateurs.
+    </Card>
+  </a>
 
-  <Card title="Développement" icon="seti:code">
-    Retrouve l'installation du projet, les variables d'environnement, les scripts et la documentation JSDoc.
-  </Card>
+  <a
+    href="/development/installation/"
+    class="home-card-link"
+    aria-label="Découvrir le développement de Dear Pages"
+  >
+    <Card title="Développement">
+      Retrouve l'installation du projet, les variables d'environnement, les scripts et la documentation JSDoc.
+    </Card>
+  </a>
 
-  <Card title="Projet" icon="seti:config">
-    Consulte les choix techniques, la stratégie responsive et l'évolution prévue de l'application.
-  </Card>
+  <a
+    href="/project/technical-choices/"
+    class="home-card-link"
+    aria-label="Découvrir les choix techniques de Dear Pages"
+  >
+    <Card title="Projet">
+      Consulte les choix techniques, la stratégie responsive et l'évolution de l'application.
+    </Card>
+  </a>
 </CardGrid>
 
 ## Stack technique
 
-Dear Pages est actuellement construit avec :
+Dear Pages est construit avec :
 
 - **React** pour l'interface utilisateur
 - **JavaScript** pour la logique de l'application
 - **Tailwind CSS** pour les styles et le responsive
-- **Vite** pour l'environnement de développement
+- **Vite** pour l'environnement de développement et le build
+- **React Router** pour la navigation et les routes de l'application
 - **Google Books API** pour rechercher et récupérer les informations des livres
-- **Open Library** pour les tendances de lecture
-- **Firebase** prévu pour l'authentification et les données personnelles de l'utilisateur
+- **Open Library** comme source complémentaire pour les livres, les tendances et les couvertures
+- **Firebase Authentication** pour l'authentification des utilisateurs
+- **Cloud Firestore** pour les données personnelles, la bibliothèque, les collections et les préférences
+- **Firebase Hosting** pour le déploiement de l'application et de sa documentation
+- **GitHub Actions** pour automatiser les builds et les déploiements
 - **JSDoc** pour documenter les fonctions et services importants
 - **Astro + Starlight** pour cette documentation
 
 ## État du projet
 
-Dear Pages est actuellement en cours de développement.
+Dear Pages est actuellement en phase de **polish et de finalisation**.
 
-Les fonctionnalités principales sont construites progressivement, et cette documentation évoluera en même temps que l'application.
+Les fonctionnalités principales de l'application sont implémentées. Le travail actuel porte principalement sur la cohérence visuelle, le responsive, les interactions et les dernières vérifications avant la phase de tests et la version finale.
+
+L'application et sa documentation sont déployées séparément avec Firebase Hosting et mises à jour automatiquement via GitHub Actions.
