@@ -5,10 +5,10 @@ description: État actuel du développement et prochaines étapes de Dear Pages.
 
 Dear Pages est développé progressivement, en commençant par la structure générale de l'application avant d'ajouter les fonctionnalités liées aux données personnelles.
 
-Cette roadmap présente l'état du projet et les principales étapes prévues pour la suite du développement.
+Cette roadmap présente l'état actuel du projet et les principales étapes prévues pour la suite du développement.
 
 :::note
-Cette page évolue avec le projet. Elle doit rester alignée avec le code source : une fonctionnalité n'est cochée que lorsqu'elle existe réellement dans l'application.
+Cette page évolue avec le projet. Une fonctionnalité n'est cochée que lorsqu'elle existe réellement dans l'application.
 :::
 
 ## Base du projet
@@ -38,28 +38,31 @@ Le Dashboard constitue la première page principale développée.
 - [x] Statistiques de lecture
 - [x] Compagnon de lecture
 - [x] Adaptation responsive
-
-Certaines données affichées sont encore temporaires et seront reliées aux données utilisateur plus tard.
+- [x] Connexion progressive aux données utilisateur
+- [ ] Personnalisation finale du Dashboard
+- [ ] Animations et micro-interactions
 
 ## API et données publiques
 
-L'application possède maintenant deux sources de livres externes.
+L'application utilise plusieurs sources externes pour les données de livres et leur traduction.
 
-- [x] Configuration de la clé Google Books API
+- [x] Configuration de Google Books API
 - [x] Création de `booksApi.js`
 - [x] Recherche de livres avec `searchBooks`
 - [x] Suggestions de recherche avec `getBookSuggestions`
 - [x] Recherche par sujet avec `getBooksBySubject`
-- [x] Utilisation de `maxResults` et `startIndex` pour les sélections par sujet
+- [x] Utilisation de `maxResults` et `startIndex`
 - [x] Normalisation des résultats Google Books avec `formatBook`
 - [x] Création de `trendingBooksApi.js`
 - [x] Récupération des tendances depuis Open Library
-- [x] Normalisation des livres Open Library pour l'interface
+- [x] Normalisation des livres Open Library
 - [x] Partage des requêtes identiques en cours avec `fetchJsonOnce`
+- [x] Service Google Cloud Translation
+- [x] Traduction des résumés lorsque nécessaire
 
 ## Découvrir
 
-La page Découvrir est actuellement bien avancée.
+La page Découvrir est fonctionnelle et utilise les données réelles des API.
 
 - [x] Route `/discover`
 - [x] Recherche depuis la page
@@ -74,106 +77,145 @@ La page Découvrir est actuellement bien avancée.
 - [x] Section **Tendances du moment**
 - [x] Section **Les incontournables**
 - [x] Vue étendue `/discover?view=for-you`
-- [x] Préférences temporaires de découverte
+- [x] Préférences de découverte enregistrées avec Firebase
+- [x] Utilisation des préférences utilisateur pour les recommandations
 - [x] Rafraîchissement indépendant des tendances
 - [x] Rafraîchissement indépendant des incontournables
 - [x] Rafraîchissement indépendant par genre dans la vue étendue
-- [x] Déduplication et logique anti-répétition des recommandations
+- [x] Déduplication et logique anti-répétition
 - [x] Persistance des recommandations dans `sessionStorage`
-- [x] Grilles responsives pour les étagères
+- [x] Grilles responsives
 - [x] Logique séparée en composants, hooks, services et utilitaires
-- [ ] Polish visuel complet des états de chargement et d'erreur
+- [ ] Polish final des états de chargement et d'erreur
 
 ## Recommandations
 
-Le système actuel est temporaire mais fonctionnel.
+Le système de recommandations utilise maintenant les préférences de lecture enregistrées pour l'utilisateur.
 
 - [x] Préférences temporaires dans `discoverPreferences.js`
 - [x] Lots de candidats par sujet Google Books
-- [x] Sélection aléatoire des livres affichés
+- [x] Sélection des livres affichés
 - [x] Déduplication par ISBN, titre/auteur et identifiants source
 - [x] Suivi des livres déjà vus pendant la session
 - [x] Persistance par étagère ou par genre
-- [x] Gestion de `startIndex` pour charger une nouvelle fenêtre Google Books
-- [x] Préparation technique pour exclure plus tard les livres déjà présents dans la bibliothèque
-- [ ] Préférences réellement liées au profil utilisateur
-- [ ] Recommandations basées sur la bibliothèque personnelle
-- [ ] Persistance durable avec Firebase
+- [x] Gestion de `startIndex`
+- [x] Préparation technique pour exclure les livres présents dans la bibliothèque
+- [x] Préférences utilisateur disponibles via Firebase
+- [x] Adaptation des recommandations aux préférences persistantes de l'utilisateur
+- [ ] Utiliser davantage les données de lecture personnelles pour personnaliser les recommandations
+- [ ] Finaliser la persistance et les règles de recommandation
 
 ## Authentification
 
-L'authentification sera la prochaine grande phase de développement.
+L'authentification Firebase est maintenant fonctionnelle.
 
-- [ ] Configuration de Firebase
-- [ ] Création de compte
-- [ ] Connexion
-- [ ] Déconnexion
-- [ ] Gestion de l'utilisateur connecté
-- [ ] Onboarding d'un nouvel utilisateur
-- [ ] Sauvegarde des préférences utilisateur
+- [x] Configuration de Firebase
+- [x] Création de compte
+- [x] Connexion
+- [x] Déconnexion
+- [x] Gestion de l'utilisateur connecté
+- [x] Onboarding d'un nouvel utilisateur
+- [x] Sauvegarde des préférences utilisateur dans Firebase
+- [x] Redirection après inscription et onboarding
+- [x] Conservation de la session utilisateur
+- [x] Gestion des erreurs d'authentification
+- [x] Responsive des interfaces d'authentification
 
-## Bibliothèque
+## Ma bibliothèque
 
-La bibliothèque permettra de conserver les livres propres à chaque utilisateur.
+La bibliothèque personnelle est maintenant intégrée au parcours utilisateur.
 
-- [ ] Ajouter un livre à la bibliothèque
-- [ ] Retirer un livre
-- [ ] Consulter sa bibliothèque réelle
-- [ ] Gérer le statut de lecture
-- [ ] Relier la bibliothèque au compte utilisateur
-- [ ] Exclure les livres déjà ajoutés des recommandations
-- [ ] Gérer les états vides et les erreurs
+- [x] Ajouter un livre à la bibliothèque
+- [x] Retirer un livre
+- [x] Consulter sa bibliothèque
+- [x] Gérer les statuts de lecture
+- [x] Relier la bibliothèque au compte utilisateur
+- [x] Persister les données avec Firebase
+- [x] Gérer les états vides
+- [x] Responsive de la bibliothèque
+- [ ] Polish final
+- [ ] Animations et micro-interactions
 
 ## Fiche d'un livre
 
-Chaque livre disposera d'une page dédiée.
+Chaque livre possède une page dédiée.
 
 - [x] Route dynamique `/books/:id`
-- [x] Cartes préparées pour naviguer vers la fiche d'un livre
-- [ ] Afficher les informations détaillées réelles
-- [ ] Ajouter le livre à la bibliothèque
-- [ ] Modifier son statut de lecture
-- [ ] Ajouter une note personnelle
-- [ ] Ajouter ou modifier un avis personnel
-- [ ] Ajouter le livre à une collection
+- [x] Navigation depuis les cartes vers la fiche
+- [x] Affichage des informations du livre
+- [x] Affichage de la couverture
+- [x] Affichage des auteurs et métadonnées disponibles
+- [x] Traduction des résumés
+- [x] Ajouter le livre à la bibliothèque
+- [x] Retirer le livre de la bibliothèque
+- [x] Modifier son statut de lecture
+- [x] Ajouter une note personnelle
+- [x] Ajouter ou modifier un avis personnel
+- [x] Relier les données personnelles à Firebase
+- [x] Gestion des états et erreurs principaux
+- [ ] Polish final de la couverture et des états secondaires
+- [ ] Animations et micro-interactions
 
 ## Collections
 
-Les collections permettront de créer des regroupements personnalisés.
+Les collections permettent de créer des regroupements personnalisés de livres.
 
 - [x] Routes `/collections` et `/collections/:id`
-- [ ] Afficher les collections réelles
-- [ ] Créer une collection
-- [ ] Modifier une collection
-- [ ] Supprimer une collection
-- [ ] Afficher une collection persistante
-- [ ] Ajouter et retirer des livres
+- [x] Afficher les collections
+- [x] Créer une collection
+- [x] Modifier une collection
+- [x] Supprimer une collection
+- [x] Afficher le contenu d'une collection
+- [x] Ajouter des livres à une collection
+- [x] Retirer des livres d'une collection
+- [x] Persister les collections avec Firebase
+- [x] Gestion des états vides
+- [x] Responsive
+- [ ] Polish final de `Collections`
+- [ ] Polish final de `CollectionPage`
+- [ ] Animations et micro-interactions
 
 ## Paramètres
 
-La page Paramètres permettra de gérer les informations et préférences liées à l'application.
+La page Paramètres permet maintenant de gérer les informations et préférences liées au compte.
 
 - [x] Route `/settings`
-- [x] Lien vers les paramètres depuis la navigation et le header
-- [ ] Afficher les informations du compte
-- [ ] Gérer les préférences persistantes
-- [ ] Relier les préférences à Firebase
+- [x] Lien vers les paramètres depuis la navigation
+- [x] Accès aux informations du compte
+- [x] Affichage du profil
+- [x] Gestion des préférences de lecture
+- [x] Objectif annuel de lecture
+- [x] Genres préférés
+- [x] Sauvegarde des préférences avec Firebase
+- [x] Déconnexion
+- [x] Suppression du compte
+- [x] Gestion des erreurs associées au compte
+- [x] Responsive
+- [ ] Polish final de la page Settings
+- [ ] Animations et micro-interactions
 
 ## Responsive et finition
 
-Le responsive est vérifié progressivement pendant le développement, puis une passe finale sera réalisée sur l'ensemble de l'application.
+Le responsive est travaillé au fur et à mesure du développement.
 
 - [x] Structure responsive principale
 - [x] Dashboard responsive
 - [x] Navigation mobile avec header et barre inférieure
-- [x] Sidebar à partir de `md`
-- [x] Layout élargi à partir de `lg`
+- [x] Sidebar desktop
+- [x] Adaptation de la sidebar selon la hauteur du viewport
+- [x] Layout élargi sur desktop
 - [x] Grilles responsives sur Découvrir
 - [x] Affichage progressif de 2, 3, 4 puis 5 cartes selon la largeur
-- [ ] Vérification complète de toutes les pages
-- [ ] Accessibilité complète
-- [ ] Polish visuel des chargements et erreurs
-- [ ] Animations et micro-interactions finales
+- [x] Authentification responsive
+- [x] Onboarding responsive
+- [x] Bibliothèque responsive
+- [x] Fiche de livre responsive
+- [x] Collections responsive
+- [x] Settings responsive
+- [ ] Vérification finale de toutes les pages
+- [ ] Accessibilité finale
+- [ ] Polish des états de chargement et d'erreur
+- [ ] Animations et micro-interactions
 - [ ] Corrections visuelles finales
 
 ## Documentation
@@ -183,14 +225,62 @@ La documentation évolue en parallèle du projet.
 - [x] Mise en place de JSDoc
 - [x] Mise en place d'Astro et Starlight
 - [x] Documentation de l'architecture
+- [x] Documentation du routing
+- [x] Documentation des composants
 - [x] Documentation de Google Books API
 - [x] Documentation d'Open Library
-- [x] Documentation du système de recommandations temporaire
+- [x] Documentation de Google Cloud Translation
+- [x] Documentation du modèle de données
+- [x] Documentation du système de recommandations
+- [x] Documentation de Firebase
 - [x] Documentation de l'environnement de développement
+- [x] Documentation des scripts
 - [x] Documentation des choix techniques
-- [ ] Mise à jour après l'implémentation de Firebase
-- [ ] Mise à jour du modèle de données définitif
-- [ ] Mise à jour finale selon l'application terminée
+- [x] Documentation du responsive
+- [x] Déploiement de la documentation avec Firebase Hosting
+- [x] Déploiement automatique de l'application via GitHub Actions
+- [ ] Mise à jour finale du modèle de données selon les fonctionnalités terminées
+- [ ] Mise à jour finale lorsque l'application sera terminée
+
+## Polish et animations
+
+Une fois les pages fonctionnelles et leur responsive stabilisé, le projet passe progressivement dans une phase de finition.
+
+### Polish
+
+- [x] Polish général de l'interface
+- [x] Polish de l'authentification
+- [x] Polish de l'onboarding
+- [x] Polish de la bibliothèque
+- [x] Polish de la fiche livre
+- [ ] Polish de Collections
+- [ ] Polish de CollectionPage
+- [ ] Polish de Settings
+- [ ] Vérification finale des états vides
+- [ ] Vérification finale des états d'erreur
+
+### Animations
+
+Les animations seront ajoutées après la fin du polish des dernières pages.
+
+- [ ] Animations de navigation
+- [ ] Micro-interactions des boutons
+- [ ] Animations des cartes
+- [ ] Animations des collections
+- [ ] Animations des transitions de pages
+- [ ] Animations des états interactifs
+- [ ] Passe finale des micro-interactions
+
+## Déploiement
+
+Le projet possède maintenant une infrastructure de déploiement automatisée.
+
+- [x] Firebase Hosting pour l'application
+- [x] Firebase Hosting séparé pour la documentation
+- [x] Workflow GitHub Actions pour l'application
+- [x] Workflow GitHub Actions pour la documentation
+- [x] Déploiement automatique après un push sur `main`
+- [x] Preview Firebase pour les pull requests de l'application
 
 ## Objectif final
 
@@ -210,6 +300,5 @@ Lire le livre
 Noter et écrire un avis
         ↓
 Organiser dans des collections
-```
-
-La documentation sera mise à jour à mesure que ces étapes seront réellement implémentées.
+        ↓
+Retrouver ses lectures et préférences

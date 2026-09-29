@@ -3,7 +3,6 @@ title: Choix techniques
 description: Technologies choisies pour Dear Pages et raisons de leur utilisation.
 ---
 
-
 Dear Pages utilise plusieurs technologies ayant chacune une responsabilité précise dans le projet.
 
 Les choix ont été faits en fonction des besoins de l'application, mais également dans l'objectif de garder une architecture compréhensible et évolutive.
@@ -79,38 +78,59 @@ Il permet notamment d'utiliser :
 
 - des routes imbriquées ;
 - un layout partagé avec `Outlet` ;
-- des routes dynamiques comme `/books/:id` ;
+- des routes dynamiques comme `/books/:id` et `/collections/:id` ;
+- des paramètres de recherche comme `?q=` et `?view=for-you` ;
 - une navigation sans rechargement complet de la page.
 
-Les pages principales partagent ainsi `PageLayout`, tandis que les pages d'authentification peuvent utiliser une structure différente.
+Les pages principales partagent `PageLayout`, tandis que les pages d'authentification utilisent une structure différente.
 
 ## Google Books API
 
 **Google Books API** est utilisée comme source externe pour les informations publiques concernant les livres.
 
-Cela évite de devoir créer et maintenir manuellement une base contenant les métadonnées des livres.
+Elle est notamment utilisée pour :
+
+- rechercher des livres ;
+- fournir les suggestions de recherche ;
+- récupérer les informations détaillées des livres ;
+- récupérer des livres par sujet ;
+- alimenter certaines recommandations.
 
 Les données reçues sont normalisées par `booksApi.js` avant d'être utilisées dans les composants.
 
-Google Books est donc responsable de la question :
+Google Books répond donc principalement à la question :
 
 > Quelles sont les informations de ce livre ?
 
-Google Books est aussi utilisé pour les sélections par sujet de la page Découvrir, grâce à `getBooksBySubject`.
-
 ## Open Library
 
-**Open Library** est utilisé pour l'étagère **Tendances du moment**.
+**Open Library** est utilisée pour l'étagère **Tendances du moment**.
 
 Cette source permet de récupérer des livres classés comme tendance sans devoir maintenir une liste manuelle dans le projet.
 
 Les données reçues sont normalisées dans `trendingBooksApi.js`.
 
-Open Library ne remplace pas Google Books : les deux services fournissent des données publiques de livres, mais avec des identifiants différents.
+Open Library ne remplace pas Google Books : les deux services fournissent des données publiques de livres, mais avec des identifiants et des formats différents.
+
+## Google Cloud Translation API
+
+**Google Cloud Translation API** est utilisée pour traduire certains contenus provenant des sources de livres.
+
+Elle est notamment utilisée pour les **résumés des livres** lorsque le contenu récupéré doit être présenté dans la langue choisie par l'utilisateur.
+
+Le service de traduction est isolé dans un service dédié afin de séparer les appels à l'API de l'interface React.
+
+La clé utilisée par le service est fournie avec :
+
+```text
+VITE_GOOGLE_TRANSLATION_API_KEY
+```
+
+Comme les autres variables `VITE_`, cette valeur est utilisée côté frontend et ne doit pas être considérée comme un secret serveur.
 
 ## Recommandations temporaires
 
-Le système de recommandations actuel repose sur des préférences temporaires définies dans le code.
+Le système de recommandations actuel repose encore sur des préférences temporaires.
 
 Il utilise :
 
@@ -120,28 +140,28 @@ Il utilise :
 - une déduplication par ISBN, titre/auteur et identifiants source ;
 - `sessionStorage` pour conserver les étagères pendant la session.
 
-Ce choix permet de développer l'expérience de découverte avant d'avoir les comptes utilisateur, la bibliothèque réelle et les préférences persistantes.
+Cette architecture permet de gérer l'expérience de découverte tout en préparant son évolution vers des recommandations basées sur les préférences et les données de lecture de l'utilisateur.
 
 ## Firebase
 
-**Firebase** est prévu pour les données qui appartiennent à l'utilisateur.
+**Firebase** est maintenant intégré à Dear Pages pour gérer les données propres à l'utilisateur.
 
-Il permettra notamment de gérer :
+Firebase est notamment utilisé pour :
 
 - l'authentification ;
-- la bibliothèque personnelle ;
-- les statuts de lecture ;
-- les notes et avis personnels ;
+- les préférences de lecture ;
+- les données personnelles associées au compte ;
+- la bibliothèque et les fonctionnalités liées aux livres de l'utilisateur ;
 - les collections ;
-- certaines préférences.
+- les notes et avis personnels.
 
-Firebase répond donc à une question différente :
+La configuration Firebase est fournie à l'application par des variables d'environnement.
+
+La logique d'accès aux fonctionnalités Firebase est séparée dans des services et des contextes afin de ne pas placer directement les appels Firebase dans les composants d'interface.
+
+Firebase répond donc à une question différente des API de livres :
 
 > Quelle est la relation de l'utilisateur avec ce livre ?
-
-:::note
-Firebase n'est pas encore intégré à Dear Pages. Ce choix et son architecture seront documentés plus précisément après son implémentation.
-:::
 
 ## JSDoc
 
@@ -162,13 +182,17 @@ La documentation que vous consultez est construite avec **Astro** et **Starlight
 Elle est volontairement séparée de l'application React principale :
 
 ```text
-BookTracker/
-├── src/               → application React
-├── docs/              → documentation JSDoc générée
-└── documentation/     → documentation Astro + Starlight
+DearPages/
+├── src/                → application React
+├── docs/               → documentation JSDoc générée
+└── documentation/      → documentation Astro + Starlight
 ```
 
 Starlight fournit une structure adaptée à une documentation technique, tandis que le thème personnalisé permet de conserver l'identité visuelle de Dear Pages.
+
+La documentation possède son propre environnement npm et son propre build Astro.
+
+Elle est également déployée séparément sur Firebase Hosting.
 
 ## Séparation des responsabilités
 
@@ -181,10 +205,11 @@ L'ensemble de ces choix peut être résumé ainsi :
 | Vite | Environnement de développement et build |
 | Tailwind CSS | Styles et responsive |
 | React Router | Navigation |
-| Google Books API | Informations publiques des livres |
+| Google Books API | Recherche et informations publiques des livres |
 | Open Library | Tendances de lecture |
+| Google Cloud Translation API | Traduction des résumés |
 | sessionStorage | Persistance temporaire des recommandations |
-| Firebase | Données personnelles et authentification |
+| Firebase | Authentification et données personnelles |
 | JSDoc | Documentation technique du code |
 | Astro + Starlight | Documentation du projet |
 

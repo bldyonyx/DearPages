@@ -132,6 +132,8 @@ est affichée par `ForYouRecommendations`.
 
 Elle utilise `useForYouRecommendations` pour créer une section par genre préféré.
 
+Les genres utilisés pour cette vue proviennent désormais des préférences de lecture enregistrées pour l'utilisateur.
+
 Chaque genre possède son propre état :
 
 - livres affichés ;
@@ -162,6 +164,8 @@ Le système de sélection accepte des livres à exclure grâce à `excludedBookI
 Cette logique permet de ne pas proposer certains livres déjà présents dans la bibliothèque lorsque les données de celle-ci sont disponibles.
 
 La sélection des recommandations peut ainsi rester séparée de la logique de bibliothèque tout en prenant en compte les livres que l'utilisateur possède déjà.
+
+Cette possibilité prépare également une personnalisation plus poussée des recommandations à partir des données de lecture personnelles.
 
 ## Relation avec les préférences utilisateur
 
