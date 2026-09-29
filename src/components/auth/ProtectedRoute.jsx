@@ -14,6 +14,7 @@ function ProtectedRoute() {
     preferences,
     requiresOnboarding,
   } = useAuth()
+
   const isOnboardingRoute = location.pathname === '/onboarding'
 
   if (isAuthLoading || (user && isPreferencesLoading)) {
@@ -21,7 +22,7 @@ function ProtectedRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/signup" replace />
   }
 
   if (requiresOnboarding && !isOnboardingRoute) {

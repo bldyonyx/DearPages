@@ -399,7 +399,7 @@ function Collections() {
       ) : collections.length === 0 ? (
         <section
           className="
-            mt-8 max-w-2xl rounded-[24px]
+            mt-8 max-w-2xl rounded-3xl
             border border-walnut/10
             bg-cream/75
             px-6 py-10
