@@ -94,7 +94,7 @@ Cette commande :
 Après l'exécution de la commande, la structure contient notamment :
 
 ```text
-BookTracker/
+DearPages/
 ├── docs/
 ├── documentation/
 └── src/
@@ -118,5 +118,5 @@ Dear Pages possède donc deux formes de documentation complémentaires.
 JSDoc permet de comprendre **comment utiliser certaines parties du code**, tandis que Starlight explique davantage **comment le projet est organisé et pourquoi certains choix ont été faits**.
 
 :::note
-La documentation JSDoc évoluera avec le code. Les nouveaux services, utilitaires et hooks importants seront documentés lorsqu'ils seront implémentés.
+La documentation JSDoc évolue avec le code. Les services, utilitaires et hooks importants sont documentés lorsqu'ils nécessitent une explication supplémentaire de leur comportement, de leurs paramètres ou de leurs valeurs de retour.
 :::

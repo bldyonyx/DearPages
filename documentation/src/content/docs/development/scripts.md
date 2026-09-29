@@ -3,10 +3,9 @@ title: Scripts
 description: Commandes npm utilisées pour développer, construire et documenter Dear Pages.
 ---
 
-
 Dear Pages utilise plusieurs scripts **npm** pour simplifier les tâches courantes de développement.
 
-Les scripts sont définis dans le fichier `package.json` du projet principal.
+Les scripts de l'application principale sont définis dans le `package.json` situé à la racine du projet.
 
 ## Lancer le serveur de développement
 
@@ -58,7 +57,7 @@ JSDoc analyse récursivement le dossier `src` et génère la documentation dans 
 docs/
 ```
 
-Ce dossier est généré automatiquement et n'est pas la documentation Astro/Starlight.
+Ce dossier est généré automatiquement et est différent de la documentation Astro/Starlight.
 
 ## Documentation Astro
 
@@ -68,21 +67,56 @@ La documentation du projet possède son propre `package.json` dans :
 documentation/
 ```
 
-Pour la lancer :
+Pour installer ses dépendances :
 
 ```bash
 cd documentation
+npm install
+```
+
+Pour lancer la documentation localement :
+
+```bash
 npm run dev
 ```
 
-Cette commande démarre le serveur Astro utilisé pour consulter la documentation actuelle.
+Cette commande démarre le serveur Astro utilisé pour consulter et modifier la documentation pendant son développement.
+
+## Construire la documentation Astro
+
+Depuis le dossier `documentation/` :
+
+```bash
+npm run build
+```
+
+Cette commande génère la version statique de la documentation dans :
+
+```text
+documentation/dist/
+```
+
+Cette version est utilisée lors du déploiement sur Firebase Hosting.
+
+## Déploiement automatique
+
+Le déploiement de la documentation est automatisé avec GitHub Actions.
+
+Lorsqu'une modification est poussée sur `main`, le workflow de documentation :
+
+1. installe les dépendances ;
+2. construit la documentation avec Astro ;
+3. récupère le dossier `documentation/dist/` ;
+4. le déploie sur le site Firebase Hosting dédié à la documentation.
+
+La documentation en ligne est donc mise à jour automatiquement après un push sur `main`.
 
 ## Deux projets npm
 
-Dear Pages contient donc deux environnements npm distincts :
+Dear Pages contient deux environnements npm distincts :
 
 ```text
-BookTracker/
+DearPages/
 ├── package.json
 │   └── application React + Vite
 │
