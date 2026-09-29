@@ -5,54 +5,92 @@ description: Organisation et rôle des principaux composants React de Dear Pages
 
 Dear Pages utilise des **composants React** pour diviser l'interface en éléments plus petits, réutilisables et plus faciles à maintenir.
 
-Les composants sont regroupés selon leur rôle dans l'application : les pages coordonnent les vues, les composants affichent l'interface, les hooks centralisent l'état, les services appellent les API et les utilitaires isolent la logique réutilisable.
+L'architecture sépare les responsabilités entre plusieurs niveaux :
+
+- les **pages** coordonnent les vues ;
+- les **composants** construisent l'interface ;
+- les **hooks** centralisent certains états et chargements ;
+- le **contexte React** partage l'authentification et les préférences ;
+- les **services** communiquent avec Firebase et les API externes ;
+- les **utilitaires** isolent la logique réutilisable.
+
+## Organisation des composants
+
+Les composants sont regroupés par fonctionnalité.
+
+```text
+components/
+├── auth/
+├── books/
+├── collections/
+├── dashboard/
+├── discover/
+├── layout/
+├── settings/
+└── ui/
+```
+
+Cette organisation permet de garder ensemble les composants qui appartiennent à une même partie de l'application tout en conservant les éléments génériques dans `ui`.
 
 ## Composants d'interface
 
-Le dossier `components/ui` contient les éléments génériques pouvant être utilisés à plusieurs endroits dans l'application.
+Le dossier :
 
-On y retrouve notamment :
+```text
+components/ui/
+```
 
-- `Button`
-- `Input`
-- `Select`
-- `Modal`
-- `StatusBadge`
-- `Card`
+regroupe les éléments génériques pouvant être utilisés à plusieurs endroits dans l'application.
 
-L'objectif est d'éviter de recréer les mêmes éléments d'interface dans chaque page et de conserver une apparence cohérente.
+On y retrouve notamment des éléments comme les boutons, champs, modales, badges ou cartes utilisés pour construire une interface cohérente.
+
+L'objectif est d'éviter de recréer les mêmes éléments dans chaque page et de centraliser leur comportement visuel.
 
 ## Composants liés aux livres
 
-Les composants spécifiques à l'affichage des livres sont placés dans :
+Les composants spécifiques aux livres sont regroupés dans :
 
 ```text
 components/books/
 ```
 
+Ils sont utilisés dans plusieurs parties de Dear Pages, notamment :
+
+- Découvrir ;
+- les résultats de recherche ;
+- Ma bibliothèque ;
+- les collections ;
+- le tableau de bord ;
+- la fiche détaillée d'un livre.
+
 ### `BookCard`
 
-`BookCard` affiche les informations principales d'un livre : couverture, titre, auteur et éventuellement un statut.
+`BookCard` représente un livre sous une forme compacte.
 
-Il peut recevoir un `bookId`. Lorsque cet identifiant existe, la couverture et le titre deviennent des liens vers :
+Selon son contexte d'utilisation, il peut notamment afficher :
+
+- une couverture ;
+- un titre ;
+- un auteur ;
+- certaines informations complémentaires liées au livre.
+
+Lorsqu'un identifiant est disponible, la carte peut permettre d'accéder à :
 
 ```text
 /books/:id
 ```
 
-Cela permet aux cartes utilisées dans Découvrir, les résultats de recherche et les recommandations de préparer la navigation vers une fiche de livre.
-
-Sa largeur n'est pas imposée directement par le composant : elle dépend du conteneur dans lequel il est utilisé.
+Sa mise en page reste suffisamment flexible pour être utilisée dans différents conteneurs et différentes tailles d'écran.
 
 ## Page Découvrir
 
-La page `Discover.jsx` coordonne trois modes d'affichage :
+`Discover.jsx` coordonne trois modes principaux :
 
 - la vue de découverte par défaut ;
-- la recherche, lorsque l'URL contient `?q=...` ;
-- la vue étendue des recommandations, lorsque l'URL contient `?view=for-you`.
+- la recherche lorsque l'URL contient `?q=...` ;
+- la vue étendue des recommandations lorsque l'URL contient `?view=for-you`.
 
-`Discover.jsx` ne contient pas directement toute la logique. Il assemble les hooks et les composants spécialisés.
+La page assemble des hooks et des composants spécialisés au lieu de contenir toute la logique directement.
 
 ```text
 pages/
@@ -70,110 +108,98 @@ components/discover/
 
 ### `DiscoverHome`
 
-`DiscoverHome` affiche la vue de découverte par défaut.
+`DiscoverHome` affiche la vue principale de découverte.
 
-Il reçoit déjà les livres, les erreurs et les états de chargement depuis le hook `useDiscoverHomeBooks`.
+Elle regroupe notamment :
 
-Il affiche ensuite :
+- **Peut-être pour toi** ;
+- **Tendances du moment** ;
+- **Les incontournables**.
 
-- `ForYouSection` pour une sélection personnalisée courte ;
-- une étagère **Tendances du moment** ;
-- une étagère **Les incontournables**.
+Les différentes étagères disposent de leurs propres données et états afin qu'un problème sur une source ne bloque pas toute la page.
 
 ### `DiscoverSearch`
 
-`DiscoverSearch` affiche le champ de recherche.
+`DiscoverSearch` gère l'interface de recherche.
 
-Il reçoit l'état de recherche depuis `useDiscoverSearch`, ouvre le panneau de suggestions pendant la saisie et le ferme lorsque l'utilisateur clique en dehors de la zone de recherche.
+Il travaille avec `useDiscoverSearch` pour afficher la saisie, les suggestions et les différents états associés à la recherche.
 
 ### `SearchSuggestions`
 
-`SearchSuggestions` affiche les suggestions d'autocomplétion.
+`SearchSuggestions` affiche les propositions obtenues pendant la saisie.
 
-Chaque suggestion est un lien vers `/books/:id`. Si les suggestions sont en cours de chargement, le composant affiche un état simple de recherche.
+Les suggestions permettent d'accéder directement à la fiche du livre correspondant.
 
 ### `SearchResults`
 
-`SearchResults` affiche les résultats de recherche Google Books.
+`SearchResults` affiche les résultats provenant de Google Books.
 
-Il gère trois situations visibles :
+Le composant gère notamment :
 
-- recherche en cours ;
-- erreur ;
-- résultats ou message **Aucun livre trouvé**.
-
-Ces états sont fonctionnels, mais leur polish visuel reste simple et pourra être amélioré plus tard.
+- le chargement ;
+- les erreurs ;
+- les résultats disponibles ;
+- l'absence de résultats.
 
 ### `DiscoverShelf`
 
-`DiscoverShelf` affiche une rangée responsive de cartes de livres.
+`DiscoverShelf` représente une étagère responsive de livres.
 
-Il peut recevoir un bouton de rafraîchissement. Les étagères **Tendances du moment** et **Les incontournables** peuvent donc être rafraîchies indépendamment.
+Certaines étagères peuvent être rafraîchies indépendamment afin d'obtenir une nouvelle sélection sans recharger l'ensemble de la page.
 
 ### `ForYouSection`
 
-`ForYouSection` affiche la sélection courte **Peut-être pour toi** sur la page Découvrir.
+`ForYouSection` affiche une sélection courte de recommandations personnalisées dans la page Découvrir.
 
-Il montre les préférences temporaires actuellement utilisées et propose un lien vers `/discover?view=for-you` pour afficher davantage de recommandations.
+Les recommandations utilisent les genres préférés enregistrés pour l'utilisateur.
+
+Le composant permet également d'accéder à :
+
+```text
+/discover?view=for-you
+```
+
+pour consulter davantage de recommandations.
 
 ### `ForYouRecommendations`
 
-`ForYouRecommendations` affiche la vue étendue des recommandations personnalisées.
+`ForYouRecommendations` affiche la vue étendue des recommandations.
 
-Elle présente une section par genre temporaire et permet de rafraîchir chaque genre indépendamment.
+Les recommandations sont organisées à partir des préférences de lecture de l'utilisateur et les différentes sélections peuvent être renouvelées indépendamment.
 
 ## Hooks de Découvrir
 
-La logique de Découvrir est séparée dans des hooks afin d'éviter de mélanger les appels API, l'état et le JSX.
+La logique de Découvrir est séparée dans plusieurs hooks afin d'éviter de mélanger les appels de données, les états React et le JSX.
 
 ### `useDiscoverSearch`
 
 `useDiscoverSearch` centralise la recherche.
 
-Il synchronise l'input avec le paramètre d'URL `?q=`, lance la recherche Google Books lorsque ce paramètre existe et récupère les suggestions avec un debounce de 300 ms.
+Il synchronise notamment la recherche avec le paramètre :
 
-Il expose aussi les handlers pour soumettre, effacer la recherche et revenir à la vue Découvrir.
+```text
+?q=
+```
+
+et coordonne les recherches Google Books ainsi que les suggestions affichées pendant la saisie.
 
 ### `useDiscoverHomeBooks`
 
-`useDiscoverHomeBooks` charge les livres de la vue Découvrir par défaut.
+`useDiscoverHomeBooks` coordonne le chargement des différentes étagères de la vue principale.
 
-Il récupère :
+Il permet aux sections de fonctionner de manière indépendante : une erreur provenant d'une source ne doit pas empêcher les autres sélections d'être affichées.
 
-- une sélection **Peut-être pour toi** depuis Google Books avec le sujet `mystery` ;
-- les tendances depuis Open Library ;
-- les incontournables depuis Google Books avec le sujet `classics`.
-
-Il utilise `Promise.allSettled` pour qu'une étagère indisponible ne bloque pas les autres.
-
-Il gère aussi le rafraîchissement indépendant des tendances et des incontournables.
+Il gère également le rafraîchissement indépendant des étagères concernées.
 
 ### `useForYouRecommendations`
 
-`useForYouRecommendations` charge la vue étendue des recommandations.
+`useForYouRecommendations` coordonne les recommandations personnalisées.
 
-Il utilise les préférences temporaires définies dans `constants/discoverPreferences.js`, récupère les livres par sujet Google Books et conserve un état séparé par genre.
-
-Chaque genre possède ses propres livres, son erreur, son état de chargement et son `startIndex`.
-
-## Services et utilitaires
-
-Les appels externes sont isolés dans les services :
-
-- `booksApi.js` pour Google Books ;
-- `trendingBooksApi.js` pour Open Library.
-
-Les utilitaires gardent la logique transversale hors des composants :
-
-- `inFlightRequest.js` partage une requête identique déjà en cours ;
-- `recommendationSelection.js` déduplique, filtre et mélange les recommandations ;
-- `recommendationSessionStorage.js` sauvegarde temporairement les étagères dans `sessionStorage`.
-
-Cette séparation rend l'architecture plus facile à expliquer : la page décide quoi afficher, les composants affichent, les hooks orchestrent les données, les services appellent les API et les utilitaires appliquent les règles de sélection.
+Il utilise les genres préférés de l'utilisateur et conserve des états indépendants pour les différentes sélections afin de pouvoir les charger ou les renouveler séparément.
 
 ## Composants du tableau de bord
 
-Le tableau de bord est séparé en plusieurs composants :
+Le tableau de bord est lui aussi séparé en plusieurs composants spécialisés.
 
 ```text
 components/dashboard/
@@ -185,7 +211,73 @@ components/dashboard/
 └── ReadingCompanion.jsx
 ```
 
-Certaines données affichées dans ces composants sont encore temporaires et seront reliées aux données utilisateur dans une phase suivante.
+Ces composants utilisent les données réelles associées à l'utilisateur.
+
+Ils permettent notamment d'afficher :
+
+- les lectures en cours ;
+- les livres récemment ajoutés ;
+- l'objectif annuel ;
+- les statistiques de lecture ;
+- le compagnon visuel du tableau de bord.
+
+Chaque partie peut également gérer son propre état vide lorsque les données correspondantes ne sont pas encore disponibles.
+
+## Composants de collections
+
+Les composants liés aux collections sont regroupés dans :
+
+```text
+components/collections/
+```
+
+Ils permettent de séparer de la page principale les interfaces nécessaires à la gestion des collections.
+
+Ils participent notamment aux actions permettant de :
+
+- créer une collection ;
+- modifier ses informations ;
+- confirmer sa suppression ;
+- afficher ses livres ;
+- ajouter ou retirer des livres.
+
+Les données correspondantes sont enregistrées dans Firebase et associées à l'utilisateur connecté.
+
+## Composants d'authentification
+
+Le dossier :
+
+```text
+components/auth/
+```
+
+contient les composants liés au parcours d'authentification et à la protection des routes.
+
+Il comprend notamment la mise en page commune des écrans d'authentification ainsi que les composants chargés de contrôler l'accès aux différentes parties de l'application.
+
+`ProtectedRoute` protège les pages nécessitant un utilisateur connecté et gère également le passage obligatoire par l'onboarding lorsque celui-ci n'est pas terminé.
+
+`PublicOnlyRoute` encadre les pages destinées aux utilisateurs non connectés, comme Login et Sign Up.
+
+## Composants des paramètres
+
+Les composants de la page Paramètres sont regroupés dans :
+
+```text
+components/settings/
+```
+
+Cette séparation permet à `Settings.jsx` de coordonner la page sans contenir toute son interface.
+
+Les différentes cartes prennent notamment en charge :
+
+- le profil ;
+- les préférences de lecture ;
+- les actions liées au compte ;
+- la suppression du compte ;
+- les informations et liens liés au projet.
+
+La page donne également accès à la documentation Dear Pages et au dépôt GitHub.
 
 ## Composants de layout
 
@@ -208,16 +300,57 @@ Il contient notamment :
 
 ### `Sidebar`
 
-`Sidebar` représente la navigation principale à partir du breakpoint `md`.
+`Sidebar` représente la navigation principale sur les écrans suffisamment larges.
 
-Elle est compacte en tablette puis plus large à partir de `lg`.
+Sa disposition et ses dimensions s'adaptent à l'espace disponible tout en conservant l'identité visuelle de Dear Pages.
 
 ### `MobileNav`
 
-`MobileNav` fournit une navigation inférieure adaptée aux petits écrans.
+`MobileNav` fournit la navigation adaptée aux petits écrans.
 
-Le système permet donc de conserver les mêmes routes tout en adaptant leur présentation selon la taille de l'écran.
+Le système permet de conserver les mêmes routes et fonctionnalités tout en adaptant leur présentation à la taille de l'écran.
+
+## Services et utilitaires
+
+Les composants n'accèdent pas directement à toutes les sources de données.
+
+Les **services** isolent notamment :
+
+- Google Books ;
+- Open Library ;
+- Firebase Authentication ;
+- Firestore ;
+- les préférences ;
+- la bibliothèque ;
+- les collections ;
+- les données personnelles des livres ;
+- la traduction.
+
+Les **utilitaires** regroupent les transformations et règles réutilisables, notamment pour :
+
+- les recommandations ;
+- les couvertures ;
+- la normalisation des données ;
+- la déduplication ;
+- certaines optimisations de requêtes.
+
+Cette séparation permet de conserver une architecture claire :
+
+```text
+Page
+  ↓
+Composants
+  ↓
+Hooks / Context
+  ↓
+Services
+  ↓
+Firebase / API
+
+Utilitaires
+  ↳ logique réutilisable
+```
 
 :::note
-Tous les composants n'ont pas besoin d'être séparés davantage. Un composant est extrait lorsqu'il représente une partie identifiable de l'interface, lorsqu'il peut être réutilisé ou lorsqu'il évite de mélanger trop de responsabilités dans une page.
+Tous les composants n'ont pas besoin d'être séparés davantage. Un composant est extrait lorsqu'il représente une partie identifiable de l'interface, peut être réutilisé ou permet d'éviter de mélanger trop de responsabilités dans une même page.
 :::
