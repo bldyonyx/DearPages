@@ -1,0 +1,35 @@
+name: Deploy documentation to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'documentation/**'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/firebase-hosting-docs.yml'
+
+jobs:
+  build_and_deploy_docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install documentation dependencies
+        working-directory: documentation
+        run: npm ci
+
+      - name: Build documentation
+        working-directory: documentation
+        run: npm run build
+
+      - name: Deploy documentation to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEAR_PAGES_BOOKTRACKER }}
+          projectId: dear-pages-booktracker
+          target: docs
+          channelId: live

@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "dear-pages-booktracker"
-  }
+  },
+  "targets": {
+    "dear-pages-booktracker": {
+      "hosting": {
+        "docs": [
+          "dear-pages-docs"
+        ],
+        "app": [
+          "dear-pages-booktracker"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
