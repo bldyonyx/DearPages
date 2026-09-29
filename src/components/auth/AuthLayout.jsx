@@ -33,11 +33,12 @@ function AuthLayout({
       <section
         className="
           mx-auto flex min-h-180 w-full max-w-5xl
-          overflow-hidden rounded-[28px]
+          flex-col overflow-hidden rounded-[28px]
           bg-cream shadow-xl
-          md:min-h-190
+          md:min-h-190 md:flex-row
         "
       >
+        {/* Panneau bois desktop */}
         <aside
           className="
             relative hidden w-[34%] shrink-0
@@ -97,6 +98,38 @@ function AuthLayout({
           </p>
         </aside>
 
+        {/* Bande bois mobile */}
+        <div
+          className="
+            flex min-h-32 items-center
+            px-8 text-cream
+            md:hidden
+          "
+          style={{
+            backgroundColor: '#453228',
+            backgroundImage: `
+              repeating-linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.035) 0,
+                rgba(255, 255, 255, 0.035) 30px,
+                rgba(0, 0, 0, 0.06) 30px,
+                rgba(0, 0, 0, 0.06) 60px
+              )
+            `,
+          }}
+        >
+          <Link
+            to="/"
+            className="
+              font-heading text-4xl font-bold
+              tracking-wide text-cream
+            "
+          >
+            Dear Pages
+          </Link>
+        </div>
+
+        {/* Contenu */}
         <div
           className="
             flex flex-1 items-center justify-center
@@ -106,12 +139,6 @@ function AuthLayout({
           "
         >
           <div className="w-full max-w-lg">
-            <div className="mb-10 md:hidden">
-              <p className="font-heading text-4xl font-bold text-darkwood">
-                Dear Pages ♡
-              </p>
-            </div>
-
             <header className="mb-9">
               <h1
                 className="
