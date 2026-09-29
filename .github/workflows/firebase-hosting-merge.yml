@@ -35,3 +35,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEAR_PAGES_BOOKTRACKER }}
           channelId: live
           projectId: dear-pages-booktracker
+          target: app
