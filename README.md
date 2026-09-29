@@ -45,7 +45,7 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 `React` · `JavaScript` · `Tailwind CSS` · `Vite`
 
-`React Router` · `Firebase` · `Google Books API` · `Open Library API`
+`React Router` · `Firebase` · `Google Books API` · `Open Library API` · `Google Translation API`
 
 ---
 
@@ -61,7 +61,7 @@ I'm currently focusing on the final UI/UX polish —
 refining responsive behavior, interactions, animations,
 loading and empty states, book covers, and overall visual consistency.
 
-Testing, deployment, and final documentation are coming next
+Testing and final documentation are coming next
 as Dear Pages gets ready for its first complete release ♡
 
 ---
