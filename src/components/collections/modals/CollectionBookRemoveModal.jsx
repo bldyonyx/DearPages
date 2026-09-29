@@ -1,7 +1,7 @@
 import { BookMinus } from 'lucide-react'
 
-import Button from '../ui/Button.jsx'
-import Modal from '../ui/Modal.jsx'
+import Button from '../../ui/Button.jsx'
+import Modal from '../../ui/Modal.jsx'
 
 function CollectionBookRemoveModal({
   book,

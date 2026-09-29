@@ -1,5 +1,5 @@
-import Button from '../ui/Button.jsx'
-import Modal from '../ui/Modal.jsx'
+import Button from '../../ui/Button.jsx'
+import Modal from '../../ui/Modal.jsx'
 
 function CollectionDeleteModal({
   collection,

@@ -7,7 +7,7 @@ import {
   Trash2,
 } from 'lucide-react'
 
-import BookCover from '../books/BookCover.jsx'
+import BookCover from '../../books/BookCover.jsx'
 
 function getBookCount(collection) {
   return Object.keys(collection.books || {}).length

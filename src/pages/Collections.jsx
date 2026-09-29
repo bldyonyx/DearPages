@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import CollectionCard from '../components/collections/CollectionCard.jsx'
-import CollectionCreateModal from '../components/collections/CollectionCreateModal.jsx'
-import CollectionDeleteModal from '../components/collections/CollectionDeleteModal.jsx'
-import CollectionEditModal from '../components/collections/CollectionEditModal.jsx'
+import CollectionCard from '../components/collections/cards/CollectionCard.jsx'
+import CollectionCreateModal from '../components/collections/modals/CollectionCreateModal.jsx'
+import CollectionDeleteModal from '../components/collections/modals/CollectionDeleteModal.jsx'
+import CollectionEditModal from '../components/collections/modals/CollectionEditModal.jsx'
 import HeaderActions from '../components/layout/HeaderActions.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'

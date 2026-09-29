@@ -4,11 +4,11 @@ import { Check } from 'lucide-react'
 import {
   addBookToCollection,
   removeBookFromCollection,
-} from '../../services/collectionsService.js'
-import BookCover from '../books/BookCover.jsx'
-import Button from '../ui/Button.jsx'
-import Input from '../ui/Input.jsx'
-import Modal from '../ui/Modal.jsx'
+} from '../../../services/collectionsService.js'
+import BookCover from '../../books/BookCover.jsx'
+import Button from '../../ui/Button.jsx'
+import Input from '../../ui/Input.jsx'
+import Modal from '../../ui/Modal.jsx'
 
 function getBookId(book) {
   return book.googleBooksId || book.id

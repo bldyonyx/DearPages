@@ -5,10 +5,10 @@ import {
   addBookToCollection,
   getUserCollections,
   removeBookFromCollection,
-} from '../../services/collectionsService.js'
-import Button from '../ui/Button.jsx'
-import LoadingState from '../ui/LoadingState.jsx'
-import Modal from '../ui/Modal.jsx'
+} from '../../../services/collectionsService.js'
+import Button from '../../ui/Button.jsx'
+import LoadingState from '../../ui/LoadingState.jsx'
+import Modal from '../../ui/Modal.jsx'
 
 function getCollectionsContainingBook(collections, bookId) {
   return new Set(

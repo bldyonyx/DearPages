@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BookMarked, Star } from 'lucide-react'
 
-import BookCollectionsModal from '../collections/BookCollectionsModal.jsx'
+import BookCollectionsModal from '../collections/modals/BookCollectionsModal.jsx'
 import { getUserCollections } from '../../services/collectionsService.js'
 
 import {

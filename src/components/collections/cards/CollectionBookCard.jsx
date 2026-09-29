@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { BookMinus } from 'lucide-react'
 
-import BookCover from '../books/BookCover.jsx'
-import StatusBadge from '../ui/StatusBadge.jsx'
+import BookCover from '../../books/BookCover.jsx'
+import StatusBadge from '../../ui/StatusBadge.jsx'
 
 function getBookId(book) {
   return book.googleBooksId || book.id
