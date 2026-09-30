@@ -1,9 +1,5 @@
 import CollectionBookCard from './cards/CollectionBookCard.jsx'
 
-function getBookId(book) {
-  return book.googleBooksId || book.id
-}
-
 function CollectionBooksGrid({
   books,
   removingBookId,
@@ -28,14 +24,14 @@ function CollectionBooksGrid({
         "
       >
         {books.map((book) => {
-          const bookId = getBookId(book)
+          const bookId = book.googleBooksId || book.id
 
           return (
             <CollectionBookCard
               key={bookId}
               book={book}
               isRemoving={removingBookId === bookId}
-              onRemove={onRemoveBook}
+              onRemove={() => onRemoveBook(book)}
             />
           )
         })}
