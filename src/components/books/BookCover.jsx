@@ -108,16 +108,11 @@ function BookCover({
   ])
 
   const coverCandidates = useMemo(() => {
-    if (!isOpenLibraryResolved) {
-      return []
-    }
-
     return [openLibraryCover, usableCover].filter(
       (candidate, index, candidates) =>
         candidate && candidates.indexOf(candidate) === index
     )
   }, [
-    isOpenLibraryResolved,
     openLibraryCover,
     usableCover,
   ])
@@ -150,7 +145,7 @@ function BookCover({
 
   return (
     <div className={className}>
-      {isResolvingCover ? (
+      {isResolvingCover && !visibleCover ? (
         <div
           className="
             h-full w-full

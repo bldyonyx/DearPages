@@ -103,7 +103,17 @@ function loadImage(url) {
   return new Promise((resolve) => {
     const image = new Image()
 
-    image.onload = () => resolve(url)
+    image.onload = () => {
+      if (!image.decode) {
+        resolve(url)
+        return
+      }
+
+      image.decode().then(
+        () => resolve(url),
+        () => resolve(null)
+      )
+    }
     image.onerror = () => resolve(null)
     image.decoding = 'async'
     image.src = url
