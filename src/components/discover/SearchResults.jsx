@@ -1,6 +1,5 @@
-import { ArrowLeft } from 'lucide-react'
-
 import BookCard from '../books/BookCard'
+import BackButton from '../ui/BackButton.jsx'
 import { discoverLarge } from './discoverResponsive'
 
 function SearchResults({
@@ -12,27 +11,15 @@ function SearchResults({
 }) {
   return (
     <section className={`mt-6 ${discoverLarge.sectionGap}`}>
-      <button
-        type="button"
+      <BackButton
         onClick={onBackToDiscover}
         className="
-          inline-flex cursor-pointer items-center gap-1.5
-          font-ui text-sm font-bold
-          text-darkwood/60
-          transition-colors
-          hover:text-darkwood
           [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
           [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        <ArrowLeft
-          aria-hidden="true"
-          className="size-4"
-          strokeWidth={1.8}
-        />
-
-        <span>Retour aux découvertes</span>
-      </button>
+        Retour aux découvertes
+      </BackButton>
 
       {isLoading && (
         <p

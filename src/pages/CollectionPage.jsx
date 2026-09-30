@@ -8,6 +8,7 @@ import { collectionPageLarge } from '../components/collections/collectionPageRes
 import CollectionBookRemoveModal from '../components/collections/modals/CollectionBookRemoveModal.jsx'
 import CollectionBooksModal from '../components/collections/modals/CollectionBooksModal.jsx'
 import CollectionClearModal from '../components/collections/modals/CollectionClearModal.jsx'
+import CollectionEditModal from '../components/collections/modals/CollectionEditModal.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import useCollectionPage from '../hooks/useCollectionPage.js'
@@ -29,6 +30,9 @@ function CollectionPage() {
 
     isBooksModalOpen,
 
+    collectionToEdit,
+    isSavingCollection,
+
     bookToRemove,
     removingBookId,
 
@@ -44,6 +48,10 @@ function CollectionPage() {
     openBooksModal,
     closeBooksModal,
     handleBooksSaved,
+
+    openEditCollectionModal,
+    closeEditCollectionModal,
+    handleUpdateCollection,
 
     openRemoveBookModal,
     closeRemoveBookModal,
@@ -172,6 +180,7 @@ function CollectionPage() {
         actionsMenuRef={headerActionsMenuRef}
         onToggleActionsMenu={toggleHeaderActionsMenu}
         onAddBooks={openBooksModal}
+        onEditCollection={openEditCollectionModal}
         onClearCollection={openClearModalFromMenu}
       />
 
@@ -194,6 +203,13 @@ function CollectionPage() {
         libraryBooks={libraryBooks}
         onClose={closeBooksModal}
         onSaved={handleBooksSaved}
+      />
+
+      <CollectionEditModal
+        collection={collectionToEdit}
+        isSaving={isSavingCollection}
+        onClose={closeEditCollectionModal}
+        onSave={handleUpdateCollection}
       />
 
       <CollectionBookRemoveModal

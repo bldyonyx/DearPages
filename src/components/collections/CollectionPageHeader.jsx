@@ -1,12 +1,12 @@
-import { Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   BookMinus,
   MoreHorizontal,
+  Pencil,
   Plus,
 } from 'lucide-react'
 
 import { getCollectionIcon } from '../../data/collectionIcons.js'
+import BackButton from '../ui/BackButton.jsx'
 import { collectionPageLarge } from './collectionPageResponsive.js'
 
 function getBookLabel(bookCount) {
@@ -20,6 +20,7 @@ function CollectionPageHeader({
   actionsMenuRef,
   onToggleActionsMenu,
   onAddBooks,
+  onEditCollection,
   onClearCollection,
 }) {
   const collectionIcon = getCollectionIcon(collection.icon)
@@ -29,29 +30,10 @@ function CollectionPageHeader({
     <header
       className={`min-w-0 py-4 ${collectionPageLarge.headerTop}`}
     >
-      <Link
+      <BackButton
         to="/collections"
-        className={`
-          inline-flex items-center gap-2
-          rounded-full bg-cream/75
-          px-3 py-1.5
-          font-ui text-sm
-          text-walnut
-          shadow-sm
-          transition-colors
-          hover:bg-cream
-          hover:text-darkwood
-          ${collectionPageLarge.backButton}
-        `}
-      >
-        <ArrowLeft
-          className="h-4 w-4"
-          strokeWidth={1.8}
-          aria-hidden="true"
-        />
-
-        Retour
-      </Link>
+        className={collectionPageLarge.backButton}
+      />
 
       <div
         className={`mt-5 min-w-0 ${collectionPageLarge.headerContent}`}
@@ -179,53 +161,76 @@ function CollectionPageHeader({
               Ajouter des livres
             </button>
 
-            {bookCount > 0 && (
-              <div
-                ref={actionsMenuRef}
-                className="relative shrink-0"
+            <div
+              ref={actionsMenuRef}
+              className="relative shrink-0"
+            >
+              <button
+                type="button"
+                onClick={onToggleActionsMenu}
+                aria-label="Actions de collection"
+                aria-haspopup="menu"
+                aria-expanded={isActionsMenuOpen}
+                className="
+                  inline-flex h-10 w-10
+                  cursor-pointer items-center
+                  justify-center rounded-full
+                  border border-walnut/15
+                  bg-cream/70 text-walnut
+                  shadow-sm
+                  transition-colors
+                  hover:border-walnut/25
+                  hover:bg-cream
+                  hover:text-darkwood
+                  focus:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-darkwood/25
+                "
               >
-                <button
-                  type="button"
-                  onClick={onToggleActionsMenu}
-                  aria-label="Actions de collection"
-                  aria-haspopup="menu"
-                  aria-expanded={isActionsMenuOpen}
+                <MoreHorizontal
+                  className="h-5 w-5"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {isActionsMenuOpen && (
+                <div
+                  role="menu"
                   className="
-                    inline-flex h-10 w-10
-                    cursor-pointer items-center
-                    justify-center rounded-full
+                    absolute right-0 top-12 z-10
+                    w-max min-w-52
+                    max-w-[calc(100vw-3rem)]
+                    rounded-2xl
                     border border-walnut/15
-                    bg-cream/70 text-walnut
-                    shadow-sm
-                    transition-colors
-                    hover:border-walnut/25
-                    hover:bg-cream
-                    hover:text-darkwood
-                    focus:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-darkwood/25
+                    bg-cream p-1.5
+                    shadow-md
                   "
                 >
-                  <MoreHorizontal
-                    className="h-5 w-5"
-                    strokeWidth={1.8}
-                    aria-hidden="true"
-                  />
-                </button>
-
-                {isActionsMenuOpen && (
-                  <div
-                    role="menu"
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={onEditCollection}
                     className="
-                      absolute right-0 top-12 z-10
-                      w-max min-w-52
-                      max-w-[calc(100vw-3rem)]
-                      rounded-2xl
-                      border border-walnut/15
-                      bg-cream p-1.5
-                      shadow-md
+                      flex w-full cursor-pointer
+                      items-center gap-2
+                      rounded-xl px-3 py-2
+                      text-left font-ui text-sm
+                      font-bold text-darkwood
+                      transition-colors
+                      hover:bg-lime/25
                     "
                   >
+                    <Pencil
+                      className="h-4 w-4"
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
+
+                    Modifier la collection
+                  </button>
+
+                  {bookCount > 0 && (
                     <button
                       type="button"
                       role="menuitem"
@@ -248,10 +253,10 @@ function CollectionPageHeader({
 
                       Vider la collection
                     </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

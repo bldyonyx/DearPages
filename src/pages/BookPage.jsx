@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import {
   useLocation,
   useNavigate,
@@ -11,6 +10,7 @@ import BookDetails from '../components/books/BookDetails.jsx'
 import BookPersonalSection from '../components/books/BookPersonalSection.jsx'
 import RemoveBookModal from '../components/books/RemoveBookModal.jsx'
 import { bookLarge } from '../components/books/bookResponsive.js'
+import BackButton from '../components/ui/BackButton.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useBookLibraryState } from '../hooks/useBookLibraryState.js'
 import { useBookPageData } from '../hooks/useBookPageData.js'
@@ -144,32 +144,10 @@ function BookPage() {
           ${bookLarge.pagePadding}
         `}
       >
-        <button
-          type="button"
+        <BackButton
           onClick={() => navigate(-1)}
-          className={`
-            group mb-5 inline-flex
-            items-center gap-1.5
-            px-1 py-2
-            font-ui text-sm
-            text-walnut
-            transition-colors
-            duration-200
-            hover:text-darkwood
-            ${bookLarge.backButton}
-          `}
-        >
-          <ArrowLeft
-            size={16}
-            strokeWidth={1.8}
-            className="
-              transition-transform
-              duration-200
-              group-hover:-translate-x-1
-            "
-          />
-          Retour
-        </button>
+          className={`mb-5 ${bookLarge.backButton}`}
+        />
 
         {!canRenderBookDetails ? (
           <BookDetailsLoadingState />

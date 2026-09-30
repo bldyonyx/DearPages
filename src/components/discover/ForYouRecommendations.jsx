@@ -1,8 +1,8 @@
-import { ArrowLeft, RefreshCw } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { RefreshCw } from 'lucide-react'
 
 import useForYouRecommendations from '../../hooks/useForYouRecommendations'
 import BookCard from '../books/BookCard'
+import BackButton from '../ui/BackButton.jsx'
 import { discoverLarge } from './discoverResponsive'
 
 function ForYouRecommendations({
@@ -24,26 +24,15 @@ function ForYouRecommendations({
 
   return (
     <main className={`mt-10 space-y-10 ${discoverLarge.sectionStack}`}>
-      <Link
+      <BackButton
         to="/discover"
         className="
-          inline-flex w-fit items-center gap-1.5
-          font-ui text-sm font-bold
-          text-darkwood/60
-          transition-colors
-          hover:text-darkwood
           [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
           [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        <ArrowLeft
-          aria-hidden="true"
-          className="size-4"
-          strokeWidth={1.8}
-        />
-
-        <span>Retour aux découvertes</span>
-      </Link>
+        Retour aux découvertes
+      </BackButton>
 
       <header>
         <h2

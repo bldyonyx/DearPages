@@ -12,6 +12,7 @@ import {
   clearCollectionBooks,
   getUserCollection,
   removeBookFromCollection,
+  updateCollection,
 } from '../services/collectionsService.js'
 import { getUserLibrary } from '../services/libraryService.js'
 
@@ -30,6 +31,11 @@ function useCollectionPage() {
   const [error, setError] = useState('')
 
   const [isBooksModalOpen, setIsBooksModalOpen] =
+    useState(false)
+
+  const [collectionToEdit, setCollectionToEdit] =
+    useState(null)
+  const [isSavingCollection, setIsSavingCollection] =
     useState(false)
 
   const [isClearModalOpen, setIsClearModalOpen] =
@@ -184,6 +190,65 @@ function useCollectionPage() {
         updatedAt: Date.now(),
       }
     })
+  }
+
+  function openEditCollectionModal() {
+    setIsHeaderActionsMenuOpen(false)
+    setCollectionToEdit(collection)
+  }
+
+  function closeEditCollectionModal() {
+    if (isSavingCollection) {
+      return
+    }
+
+    setCollectionToEdit(null)
+  }
+
+  async function handleUpdateCollection(collectionData) {
+    if (
+      !user?.uid ||
+      !collectionToEdit?.id ||
+      isSavingCollection
+    ) {
+      return
+    }
+
+    try {
+      setIsSavingCollection(true)
+      setError('')
+
+      await updateCollection(
+        user.uid,
+        collectionToEdit.id,
+        collectionData,
+      )
+
+      setCollection((currentCollection) => {
+        if (!currentCollection) {
+          return currentCollection
+        }
+
+        return {
+          ...currentCollection,
+          ...collectionData,
+          updatedAt: Date.now(),
+        }
+      })
+
+      setCollectionToEdit(null)
+    } catch (updateError) {
+      console.error(
+        'Unable to update collection:',
+        updateError,
+      )
+
+      setError(
+        'Impossible de modifier cette collection pour le moment.',
+      )
+    } finally {
+      setIsSavingCollection(false)
+    }
   }
 
   async function handleRemoveBookFromCollection(bookId) {
@@ -348,6 +413,9 @@ function useCollectionPage() {
 
     isBooksModalOpen,
 
+    collectionToEdit,
+    isSavingCollection,
+
     bookToRemove,
     removingBookId,
 
@@ -363,6 +431,10 @@ function useCollectionPage() {
     openBooksModal,
     closeBooksModal,
     handleBooksSaved,
+
+    openEditCollectionModal,
+    closeEditCollectionModal,
+    handleUpdateCollection,
 
     openRemoveBookModal,
     closeRemoveBookModal,
