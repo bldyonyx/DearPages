@@ -103,7 +103,6 @@ function BookDescriptionSection({
         <p
           className={`
             mt-5
-            max-w-4xl
             font-ui text-sm
             leading-7 text-ink
             wrap-anywhere

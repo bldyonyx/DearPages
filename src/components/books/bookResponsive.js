@@ -133,12 +133,24 @@ export const bookLarge = {
   `,
 
   description: `
-    [@media_(min-width:1800px)]:w-full
-    [@media_(min-width:1800px)]:max-w-none
+    w-full
+    max-w-4xl
+
+    [@media_(min-width:1600px)]:w-[82%]
+    [@media_(min-width:1600px)]:max-w-none
+
+    [@media_(min-width:1800px)]:w-[85%]
+
+    [@media_(min-width:2200px)]:w-[82%]
     [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
     [@media_(min-width:2200px)_and_(min-height:1100px)]:leading-8
+
+    [@media_(min-width:2400px)]:w-[80%]
     [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
     [@media_(min-width:2400px)_and_(min-height:1300px)]:leading-9
+
+    [@media_(min-width:3000px)]:w-[72%]
+    [@media_(min-width:3000px)]:max-w-[140rem]
   `,
 
   personalCard: `
