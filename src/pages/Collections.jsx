@@ -50,9 +50,9 @@ function Collections() {
       {isLoading ? (
         <section
           className={`
-            mt-8 rounded-[28px]
-            border border-walnut/10
-            bg-cream/65 p-5
+            mt-8 rounded-3xl
+            border border-darkwood/10
+            bg-cream/80 p-5
             shadow-sm
             sm:p-7
             ${collectionsLarge.sectionGap}

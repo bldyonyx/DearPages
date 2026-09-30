@@ -7,9 +7,9 @@ function CollectionPageEmptyState({ onAddBooks }) {
     <section
       className={`
         mx-auto mt-8 max-w-2xl
-        rounded-[28px]
-        border border-walnut/10
-        bg-cream/75 px-6 py-12
+        rounded-3xl
+        border border-darkwood/10
+        bg-cream/80 px-6 py-12
         shadow-sm
         sm:px-8
         sm:py-14

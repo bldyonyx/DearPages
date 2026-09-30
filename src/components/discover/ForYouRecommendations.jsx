@@ -69,8 +69,8 @@ function ForYouRecommendations({
               key={subject}
               className={`
                 rounded-3xl
-                border border-walnut/10
-                bg-cream/45
+                border border-darkwood/10
+                bg-cream/80
                 p-4
                 md:p-5
                 lg:p-6

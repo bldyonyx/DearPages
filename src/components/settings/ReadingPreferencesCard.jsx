@@ -21,8 +21,8 @@ function ReadingPreferencesCard({
   return (
     <section
       className={`
-        rounded-3xl border border-walnut/15
-        bg-cream/90 p-5 shadow-sm
+        rounded-3xl border border-darkwood/10
+        bg-cream/80 p-5 shadow-sm
         sm:p-6
         ${settingsLarge.card}
       `}

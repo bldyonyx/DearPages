@@ -230,9 +230,9 @@ function BookPersonalSpace({
 
       <div
         className={`
-          rounded-[26px]
-          border border-walnut/10
-          bg-cream/75
+          rounded-3xl
+          border border-darkwood/10
+          bg-cream/80
           p-6
           shadow-[0_8px_30px_rgba(83,55,76,0.07)]
           transition-shadow duration-300

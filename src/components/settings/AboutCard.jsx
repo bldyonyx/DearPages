@@ -9,7 +9,7 @@ function AboutCard() {
   return (
     <section
       className={`
-        rounded-3xl border border-darkwood/10 bg-cream p-6 shadow-sm sm:p-8
+        rounded-3xl border border-darkwood/10 bg-cream/80 p-6 shadow-sm sm:p-8
         ${settingsLarge.card}
       `}
     >

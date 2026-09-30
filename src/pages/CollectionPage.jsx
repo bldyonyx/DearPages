@@ -77,9 +77,9 @@ function CollectionPage() {
       <div className={pageClassName}>
         <section
           className={`
-            mt-8 rounded-[28px]
-            border border-walnut/10
-            bg-cream/65 p-5
+            mt-8 rounded-3xl
+            border border-darkwood/10
+            bg-cream/80 p-5
             shadow-sm
             sm:p-7
             ${collectionPageLarge.sectionGap}
@@ -119,9 +119,9 @@ function CollectionPage() {
         <section
           className={`
             mx-auto mt-8 max-w-2xl
-            rounded-[28px]
-            border border-walnut/10
-            bg-cream/60
+            rounded-3xl
+            border border-darkwood/10
+            bg-cream/80
             px-6 py-14
             text-center
             shadow-sm

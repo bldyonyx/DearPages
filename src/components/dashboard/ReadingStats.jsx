@@ -41,14 +41,19 @@ function ReadingStats({
       <div
         className={`
           mt-6
-          md:flex md:items-stretch
+          md:grid md:grid-cols-3 md:items-stretch
           ${dashboardLarge.stackGap}
           [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
           [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
         `}
       >
         {/* Deux premières stats */}
-        <div className="flex w-full min-w-0 md:flex-1">
+        <div
+          className="
+            flex w-full min-w-0
+            md:col-span-2
+          "
+        >
           {/* Livres */}
           <Link
             to="/library"
@@ -107,7 +112,12 @@ function ReadingStats({
           </Link>
 
           {/* En cours */}
-          <div className="w-1/2 min-w-0 border-l border-darkwood/10">
+          <div
+            className="
+              w-1/2 min-w-0
+              border-l border-darkwood/10
+            "
+          >
             <Link
               to="/library?status=reading"
               aria-label="Voir mes livres en cours"
@@ -169,17 +179,19 @@ function ReadingStats({
         {/* Genre */}
         <div
           className="
-            mt-5 w-full
+            mt-5 flex w-full min-w-0
+            flex-col items-center justify-center
             border-t border-darkwood/10
-            pt-5 text-center
-            md:mt-0 md:w-1/3
+            px-1 pt-5 text-center
+            md:mt-0
             md:border-l md:border-t-0
-            md:pt-0
+            md:px-3 md:pt-0
             [@media_(min-width:2200px)_and_(min-height:1100px)]:px-5
           "
         >
           <p
             className="
+              max-w-full wrap-break-word
               font-heading text-xl
               font-bold text-darkwood
               [@media_(min-width:2200px)_and_(min-height:1100px)]:text-2xl

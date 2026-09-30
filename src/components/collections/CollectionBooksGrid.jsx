@@ -13,9 +13,9 @@ function CollectionBooksGrid({
   return (
     <section
       className={`
-        mt-8 rounded-[28px]
-        border border-walnut/10
-        bg-cream/65
+        mt-8 rounded-3xl
+        border border-darkwood/10
+        bg-cream/80
         p-5
         shadow-sm
         backdrop-blur-[2px]

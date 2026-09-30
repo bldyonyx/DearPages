@@ -14,8 +14,8 @@ function ForYouSection({
     <section
       className={`
         rounded-3xl
-        border border-walnut/15
-        bg-cream/65
+        border border-darkwood/10
+        bg-cream/80
         p-5
         md:p-6
         lg:p-8

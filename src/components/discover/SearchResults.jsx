@@ -113,9 +113,9 @@ function SearchResults({
           {books.length === 0 && (
             <div
               className="
-                mt-6 rounded-2xl
-                border border-walnut/10
-                bg-cream/70
+                mt-6 rounded-3xl
+                border border-darkwood/10
+                bg-cream/80
                 px-6 py-10
                 text-center
               "

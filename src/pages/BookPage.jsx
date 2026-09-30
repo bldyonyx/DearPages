@@ -44,9 +44,9 @@ function BookDetailsLoadingState() {
     <section
       className="
         min-h-90
-        rounded-[28px]
-        border border-walnut/10
-        bg-cream/70
+        rounded-3xl
+        border border-darkwood/10
+        bg-cream/80
         px-5 py-6
         shadow-sm
         backdrop-blur-[2px]

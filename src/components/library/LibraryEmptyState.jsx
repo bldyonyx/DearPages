@@ -6,9 +6,9 @@ function LibraryEmptyState() {
   return (
     <div
       className={`
-        rounded-[28px]
-        border border-walnut/10
-        bg-cream/60
+        rounded-3xl
+        border border-darkwood/10
+        bg-cream/80
         px-6 py-16
         text-center
         shadow-sm

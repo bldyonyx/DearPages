@@ -136,9 +136,9 @@ function BookDetails({
   return (
     <section
       className="
-        rounded-[28px]
-        border border-walnut/12
-        bg-cream/75
+        rounded-3xl
+        border border-darkwood/10
+        bg-cream/80
         px-5 py-6
         shadow-[0_8px_30px_rgba(83,55,76,0.07)]
         backdrop-blur-[2px]
