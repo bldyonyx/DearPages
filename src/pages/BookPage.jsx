@@ -137,7 +137,7 @@ function BookPage() {
       <main
         className={`
           w-full
-          px-5 pb-14 pt-2
+          px-5 pb-14 pt-6
           sm:px-7
           lg:px-9
           ${bookLarge.page}

@@ -15,7 +15,8 @@ function CollectionBooksGrid({
       className={`
         mt-8 rounded-[28px]
         border border-walnut/10
-        bg-cream/65 p-5
+        bg-cream/65
+        p-5
         shadow-sm
         backdrop-blur-[2px]
         sm:p-7

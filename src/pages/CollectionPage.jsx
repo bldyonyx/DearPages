@@ -30,15 +30,15 @@ function CollectionPage() {
 
     isBooksModalOpen,
 
-    collectionToEdit,
-    isSavingCollection,
-
     bookToRemove,
     removingBookId,
 
     isClearModalOpen,
     isClearingCollection,
     clearCollectionError,
+
+    collectionToEdit,
+    isSavingCollection,
 
     isHeaderActionsMenuOpen,
     headerActionsMenuRef,
@@ -49,13 +49,13 @@ function CollectionPage() {
     closeBooksModal,
     handleBooksSaved,
 
-    openEditCollectionModal,
-    closeEditCollectionModal,
-    handleUpdateCollection,
-
     openRemoveBookModal,
     closeRemoveBookModal,
     handleConfirmRemoveBook,
+
+    openEditModalFromMenu,
+    closeEditModal,
+    handleEditCollection,
 
     openClearModalFromMenu,
     closeClearModal,
@@ -64,9 +64,17 @@ function CollectionPage() {
     toggleHeaderActionsMenu,
   } = useCollectionPage()
 
+  const pageClassName = `
+    w-full
+    px-5 pb-14 pt-6
+    sm:px-7
+    lg:px-9
+    ${collectionPageLarge.shell}
+  `
+
   if (isLoading) {
     return (
-      <div className={`p-6 ${collectionPageLarge.shell}`}>
+      <div className={pageClassName}>
         <section
           className={`
             mt-8 rounded-[28px]
@@ -86,7 +94,7 @@ function CollectionPage() {
 
   if (error) {
     return (
-      <div className={`p-6 ${collectionPageLarge.shell}`}>
+      <div className={pageClassName}>
         <section
           className={`
             mt-8 rounded-[28px]
@@ -107,7 +115,7 @@ function CollectionPage() {
 
   if (!collection) {
     return (
-      <div className={`p-6 ${collectionPageLarge.shell}`}>
+      <div className={pageClassName}>
         <section
           className={`
             mx-auto mt-8 max-w-2xl
@@ -123,7 +131,8 @@ function CollectionPage() {
         >
           <p
             className={`
-              font-heading text-2xl font-bold text-darkwood
+              font-heading text-2xl
+              font-bold text-darkwood
               ${collectionPageLarge.emptyTitle}
             `}
           >
@@ -172,7 +181,7 @@ function CollectionPage() {
     : ''
 
   return (
-    <div className={`p-6 ${collectionPageLarge.shell}`}>
+    <div className={pageClassName}>
       <CollectionPageHeader
         collection={collection}
         bookCount={collectionBooks.length}
@@ -180,7 +189,7 @@ function CollectionPage() {
         actionsMenuRef={headerActionsMenuRef}
         onToggleActionsMenu={toggleHeaderActionsMenu}
         onAddBooks={openBooksModal}
-        onEditCollection={openEditCollectionModal}
+        onEditCollection={openEditModalFromMenu}
         onClearCollection={openClearModalFromMenu}
       />
 
@@ -205,20 +214,18 @@ function CollectionPage() {
         onSaved={handleBooksSaved}
       />
 
+      <CollectionBookRemoveModal
+        book={bookToRemove}
+        isRemoving={removingBookId === bookToRemoveId}
+        onClose={closeRemoveBookModal}
+        onRemove={handleConfirmRemoveBook}
+      />
+
       <CollectionEditModal
         collection={collectionToEdit}
         isSaving={isSavingCollection}
-        onClose={closeEditCollectionModal}
-        onSave={handleUpdateCollection}
-      />
-
-      <CollectionBookRemoveModal
-        book={bookToRemove}
-        isRemoving={
-          removingBookId === bookToRemoveId
-        }
-        onClose={closeRemoveBookModal}
-        onRemove={handleConfirmRemoveBook}
+        onClose={closeEditModal}
+        onSave={handleEditCollection}
       />
 
       <CollectionClearModal

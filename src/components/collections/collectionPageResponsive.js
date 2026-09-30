@@ -1,10 +1,8 @@
 export const collectionPageLarge = {
   shell: `
-    [@media_(min-width:1400px)_and_(max-height:950px)]:p-5
-    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:pt-8
-    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:pb-3
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:p-8
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:p-10
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:px-8
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:px-8
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:px-10
   `,
 
   headerTop: `
