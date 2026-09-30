@@ -1,9 +1,39 @@
 import { useBookDescriptionTranslation } from '../../hooks/useBookDescriptionTranslation.js'
 import { bookLarge } from './bookResponsive.js'
 
-function BookDescriptionSection({ book }) {
+function DescriptionLoadingState() {
+  return (
+    <div
+      className="
+        mt-5 max-w-4xl
+        animate-pulse
+      "
+      role="status"
+      aria-live="polite"
+      aria-label="Chargement du résumé"
+    >
+      <div className="h-3.5 w-full rounded-full bg-walnut/10" />
+      <div className="mt-3 h-3.5 w-[94%] rounded-full bg-walnut/10" />
+      <div className="mt-3 h-3.5 w-[88%] rounded-full bg-walnut/10" />
+      <div className="mt-3 h-3.5 w-[76%] rounded-full bg-walnut/10" />
+
+      <span className="sr-only">
+        Chargement du résumé...
+      </span>
+    </div>
+  )
+}
+
+function BookDescriptionSection({
+  book,
+  isBookLoading = false,
+}) {
   const descriptionTranslation =
     useBookDescriptionTranslation(book)
+
+  const isDescriptionLoading =
+    isBookLoading &&
+    !descriptionTranslation.hasDescription
 
   return (
     <section
@@ -37,36 +67,39 @@ function BookDescriptionSection({ book }) {
           À propos
         </h2>
 
-        {descriptionTranslation.isTranslationAvailable && (
-          <button
-            type="button"
-            onClick={
-              descriptionTranslation.isShowingTranslation
-                ? descriptionTranslation.showOriginalDescription
-                : descriptionTranslation.translateDescription
-            }
-            disabled={descriptionTranslation.isTranslating}
-            className={`
-              font-ui text-xs font-semibold
-              text-olive underline-offset-4
-              transition
-              hover:text-darkwood hover:underline
-              disabled:cursor-not-allowed
-              disabled:text-walnut/60
-              disabled:no-underline
-              ${bookLarge.personalSmallText}
-            `}
-          >
-            {descriptionTranslation.isTranslating
-              ? 'Traduction...'
-              : descriptionTranslation.translationActionLabel}
-          </button>
-        )}
+        {!isDescriptionLoading &&
+          descriptionTranslation.isTranslationAvailable && (
+            <button
+              type="button"
+              onClick={
+                descriptionTranslation.isShowingTranslation
+                  ? descriptionTranslation.showOriginalDescription
+                  : descriptionTranslation.translateDescription
+              }
+              disabled={descriptionTranslation.isTranslating}
+              className={`
+                font-ui text-xs font-semibold
+                text-olive underline-offset-4
+                transition
+                hover:text-darkwood hover:underline
+                disabled:cursor-not-allowed
+                disabled:text-walnut/60
+                disabled:no-underline
+                ${bookLarge.personalSmallText}
+              `}
+            >
+              {descriptionTranslation.isTranslating
+                ? 'Traduction...'
+                : descriptionTranslation.translationActionLabel}
+            </button>
+          )}
       </div>
 
       <div className="mt-3 h-px w-full bg-walnut/15" />
 
-      {descriptionTranslation.hasDescription ? (
+      {isDescriptionLoading ? (
+        <DescriptionLoadingState />
+      ) : descriptionTranslation.hasDescription ? (
         <p
           className={`
             mt-5
@@ -74,6 +107,7 @@ function BookDescriptionSection({ book }) {
             font-ui text-sm
             leading-7 text-ink
             wrap-anywhere
+            transition-opacity duration-200
             ${bookLarge.description}
           `}
         >

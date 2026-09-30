@@ -15,28 +15,13 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useBookLibraryState } from '../hooks/useBookLibraryState.js'
 import { useBookPageData } from '../hooks/useBookPageData.js'
 import { BOOK_STATUSES } from '../services/libraryService.js'
-import {
-  hasCompleteInitialBookDetails,
-  hasUsefulBookDescription,
-} from '../utils/bookPageUtils.js'
+import { hasCompleteInitialBookDetails } from '../utils/bookPageUtils.js'
 
 const STATUS_OPTIONS = [
-  {
-    value: BOOK_STATUSES.TO_READ,
-    label: 'À lire',
-  },
-  {
-    value: BOOK_STATUSES.READING,
-    label: 'En cours',
-  },
-  {
-    value: BOOK_STATUSES.FINISHED,
-    label: 'Terminé',
-  },
-  {
-    value: BOOK_STATUSES.ABANDONED,
-    label: 'Abandonné',
-  },
+  { value: BOOK_STATUSES.TO_READ, label: 'À lire' },
+  { value: BOOK_STATUSES.READING, label: 'En cours' },
+  { value: BOOK_STATUSES.FINISHED, label: 'Terminé' },
+  { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
 ]
 
 function BookDetailsLoadingState() {
@@ -117,12 +102,7 @@ function BookPage() {
 
   const canRenderBookDetails =
     Boolean(book) &&
-    (!isBookLoading ||
-      hasCompleteInitialBookDetails(book))
-
-  const canRenderSupportingSections =
-    Boolean(book) &&
-    (!isBookLoading || hasUsefulBookDescription(book))
+    (!isBookLoading || hasCompleteInitialBookDetails(book))
 
   if (!isBookLoading && !book) {
     return (
@@ -138,8 +118,7 @@ function BookPage() {
     <>
       <main
         className={`
-          w-full
-          px-5 pb-14 pt-6
+          w-full px-5 pb-14 pt-6
           sm:px-7
           lg:px-9
           ${bookLarge.page}
@@ -168,23 +147,27 @@ function BookPage() {
             />
 
             {error && (
-              <p role="alert" className="mt-4 font-ui text-sm text-red-700">
+              <p
+                role="alert"
+                className="mt-4 font-ui text-sm text-red-700"
+              >
                 {error}
               </p>
             )}
 
-            {canRenderSupportingSections && (
-              <>
-                <BookDescriptionSection book={book} />
+            <BookDescriptionSection
+              book={book}
+              isBookLoading={isBookLoading}
+            />
 
-                <BookPersonalSection
-                  userId={userId}
-                  bookId={book.googleBooksId}
-                  libraryBook={libraryBook}
-                  isLibraryLoading={isLibraryLoading}
-                  onLibraryBookChange={setLibraryBook}
-                />
-              </>
+            {!isBookLoading && (
+              <BookPersonalSection
+                userId={userId}
+                bookId={book.googleBooksId}
+                libraryBook={libraryBook}
+                isLibraryLoading={isLibraryLoading}
+                onLibraryBookChange={setLibraryBook}
+              />
             )}
           </>
         )}
