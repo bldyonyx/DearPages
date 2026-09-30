@@ -62,7 +62,12 @@ function BookCard({
         <Link
           to={`/books/${bookId}`}
           state={linkState}
-          className="group block"
+          className="
+            group block rounded-xl
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-olive/35
+          "
           aria-label={`Voir ${title}`}
         >
           {coverContent}
@@ -83,7 +88,13 @@ function BookCard({
             <Link
               to={`/books/${bookId}`}
               state={linkState}
-              className="transition-colors hover:text-walnut"
+              className="
+                transition-colors duration-200 ease-out
+                hover:text-walnut
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-olive/35
+              "
             >
               {title}
             </Link>

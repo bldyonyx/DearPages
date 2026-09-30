@@ -153,7 +153,7 @@ function BookFinishedDate({
             px-4 py-2.5
             font-ui text-sm
             font-medium text-darkwood
-            transition-all duration-200
+            transition-[border-color,background-color] duration-200 ease-out
             hover:border-olive/30
             hover:bg-mintcream/70
             disabled:cursor-not-allowed
@@ -224,7 +224,7 @@ function BookFinishedDate({
                   font-ui text-sm
                   text-darkwood
                   shadow-[0_2px_8px_rgba(83,55,76,0.03)]
-                  transition-all duration-200
+                  transition-[border-color,background-color] duration-200 ease-out
                   hover:border-olive/30
                   hover:bg-cream
                   disabled:cursor-not-allowed
@@ -252,6 +252,7 @@ function BookFinishedDate({
               {openDropdown === 'month' && (
                 <div
                   className={`
+                    dp-menu-enter
                     absolute left-0 top-full
                     z-30 mt-2
                     max-h-56
@@ -339,7 +340,7 @@ function BookFinishedDate({
                   font-ui text-sm
                   text-darkwood
                   shadow-[0_2px_8px_rgba(83,55,76,0.03)]
-                  transition-all duration-200
+                  transition-[border-color,background-color] duration-200 ease-out
                   hover:border-olive/30
                   hover:bg-cream
                   disabled:cursor-not-allowed
@@ -367,6 +368,7 @@ function BookFinishedDate({
               {openDropdown === 'year' && (
                 <div
                   className={`
+                    dp-menu-enter
                     absolute right-0 top-full
                     z-30 mt-2
                     max-h-56
@@ -447,7 +449,7 @@ function BookFinishedDate({
                 font-ui text-sm
                 font-bold text-darkwood
                 shadow-[0_3px_10px_rgba(83,55,76,0.05)]
-                transition-all duration-200
+                transition-[transform,filter] duration-200 ease-out
                 hover:-translate-y-0.5
                 hover:brightness-95
                 disabled:cursor-not-allowed

@@ -19,8 +19,13 @@ function Button({
         px-4 py-2
         font-ui
         text-sm
-        transition-colors
+        transition-colors duration-200 ease-out
         cursor-pointer
+        focus-visible:outline-none
+        focus-visible:ring-2
+        focus-visible:ring-olive/35
+        disabled:cursor-not-allowed
+        disabled:opacity-60
         ${variants[variant]}
         ${className}
     `}

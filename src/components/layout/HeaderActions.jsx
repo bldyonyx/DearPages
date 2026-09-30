@@ -16,8 +16,12 @@ function HeaderActions({ className = '', user = null }) {
         aria-label="Ouvrir les paramètres du profil"
         className="
           shrink-0 cursor-pointer
-          transition-transform
+          rounded-full
+          transition-transform duration-200 ease-out
           hover:-translate-y-0.5
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-lime/45
         "
       >
         <UserAvatar

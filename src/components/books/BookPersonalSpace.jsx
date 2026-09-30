@@ -235,8 +235,6 @@ function BookPersonalSpace({
           bg-cream/80
           p-6
           shadow-[0_8px_30px_rgba(83,55,76,0.07)]
-          transition-shadow duration-300
-          hover:shadow-[0_10px_34px_rgba(83,55,76,0.09)]
           sm:p-7
           ${bookLarge.personalCard}
         `}
@@ -290,7 +288,7 @@ function BookPersonalSpace({
               font-ui text-sm
               font-bold text-darkwood
               shadow-[0_2px_8px_rgba(83,55,76,0.04)]
-              transition-all duration-200
+              transition-[border-color,background-color,box-shadow] duration-200 ease-out
               hover:border-olive/30
               hover:bg-lime/35
               hover:shadow-[0_4px_12px_rgba(83,55,76,0.07)]
@@ -382,7 +380,7 @@ function BookPersonalSpace({
                   font-ui text-sm
                   font-bold text-darkwood
                   shadow-[0_3px_10px_rgba(83,55,76,0.06)]
-                  transition-all duration-200
+                  transition-[transform,filter,box-shadow] duration-200 ease-out
                   hover:-translate-y-0.5
                   hover:brightness-95
                   hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]
@@ -530,7 +528,7 @@ function BookPersonalSpace({
                   font-ui text-sm
                   font-bold text-darkwood
                   shadow-[0_3px_10px_rgba(83,55,76,0.06)]
-                  transition-all duration-200
+                  transition-[transform,filter,box-shadow] duration-200 ease-out
                   hover:-translate-y-0.5
                   hover:brightness-95
                   hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]

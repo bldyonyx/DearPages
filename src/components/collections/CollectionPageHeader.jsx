@@ -198,6 +198,7 @@ function CollectionPageHeader({
                 <div
                   role="menu"
                   className="
+                    dp-menu-enter
                     absolute right-0 top-12 z-10
                     w-max min-w-52
                     max-w-[calc(100vw-3rem)]

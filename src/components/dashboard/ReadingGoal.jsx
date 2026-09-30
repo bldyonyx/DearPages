@@ -21,7 +21,7 @@ function ReadingGoal({
         border border-darkwood/10
         bg-cream/80
         p-5
-        transition-all duration-200
+        transition-[transform,box-shadow] duration-200 ease-out
         hover:-translate-y-0.5
         hover:shadow-[0_8px_24px_rgba(83,55,76,0.08)]
         focus:outline-none

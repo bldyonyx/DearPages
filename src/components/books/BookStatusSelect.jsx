@@ -101,7 +101,7 @@ function BookStatusSelect({
           font-ui text-sm text-darkwood
           shadow-[0_2px_8px_rgba(83,55,76,0.04)]
           outline-none
-          transition-all duration-200
+          transition-[border-color,background-color,box-shadow] duration-200 ease-out
 
           ${
             selectedStyle
@@ -141,6 +141,7 @@ function BookStatusSelect({
       {isOpen && (
         <div
           className="
+            dp-menu-enter
             absolute left-0 top-[calc(100%+8px)]
             z-30 w-full overflow-hidden
             rounded-2xl

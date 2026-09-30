@@ -14,14 +14,22 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-darkwood/40 p-4"
+      className="
+        dp-backdrop-enter fixed inset-0 z-50
+        flex items-center justify-center
+        bg-darkwood/40 p-4
+      "
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-md rounded-2xl border border-walnut/20 bg-cream p-5"
+        className="
+          dp-dialog-enter w-full max-w-md
+          rounded-2xl border border-walnut/20
+          bg-cream p-5
+        "
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -35,7 +43,14 @@ function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer font-ui text-darkwood/60 hover:text-darkwood"
+            className="
+              cursor-pointer font-ui text-darkwood/60
+              transition-colors duration-150 ease-out
+              hover:text-darkwood
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-olive/35
+            "
             aria-label="Fermer"
           >
             ×

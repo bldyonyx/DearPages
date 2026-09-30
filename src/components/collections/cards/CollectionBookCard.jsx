@@ -83,6 +83,8 @@ function CollectionBookCard({
           flex h-full min-w-0
           flex-col rounded-[20px]
           focus:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-olive/35
         "
       >
         <div
@@ -90,7 +92,7 @@ function CollectionBookCard({
             aspect-2/3 overflow-hidden
             rounded-[18px]
             bg-parchment shadow-sm
-            transition
+            transition-[transform,box-shadow] duration-200 ease-out
             group-hover:-translate-y-1
             group-hover:shadow-md
           "

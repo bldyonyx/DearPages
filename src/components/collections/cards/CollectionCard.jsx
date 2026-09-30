@@ -259,6 +259,7 @@ function CollectionCard({
         {isMenuOpen && (
           <div
             className="
+              dp-menu-enter
               absolute right-0 top-11 z-30
               min-w-40 rounded-2xl
               border border-walnut/15

@@ -24,9 +24,13 @@ function Input({
           px-4 py-2
           font-ui text-sm text-darkwood
           outline-none
-          transition-colors
+          transition-colors duration-200 ease-out
           placeholder:text-darkwood/40
           focus:border-walnut/60
+          focus-visible:ring-2
+          focus-visible:ring-lime/40
+          disabled:cursor-not-allowed
+          disabled:opacity-60
           ${className}
         `}
         {...props}

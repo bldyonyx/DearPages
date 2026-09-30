@@ -13,6 +13,7 @@ function RemoveBookModal({
   return (
     <div
       className="
+        dp-backdrop-enter
         fixed inset-0 z-50
         flex items-center justify-center
         bg-darkwood/45
@@ -27,6 +28,7 @@ function RemoveBookModal({
         aria-modal="true"
         aria-labelledby="remove-book-title"
         className="
+          dp-dialog-enter
           relative w-full max-w-md
           max-h-[calc(100vh-2.5rem)]
           overflow-y-auto

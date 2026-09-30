@@ -236,6 +236,7 @@ function BookNotesEditor({
               role="listbox"
               aria-label="Taille du texte"
               className="
+                dp-menu-enter
                 absolute right-0 top-full z-30
                 mt-2 w-36
                 overflow-hidden

@@ -22,7 +22,7 @@ function SidebarNavItem({ item }) {
     [
       'flex items-center rounded-md',
       'gap-2.5 px-3 py-2.5',
-      'text-xs font-bold transition-all',
+      'text-xs font-bold transition-[color,background-color,box-shadow,transform] duration-200 ease-out',
 
       'lg:gap-3 lg:px-4 lg:py-3 lg:text-sm',
 

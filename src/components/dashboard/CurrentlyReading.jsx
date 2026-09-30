@@ -29,7 +29,7 @@ function DashboardCover({
       fallback="title"
       className={`
         aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
-        transition-all duration-300
+        transition-[transform,box-shadow,opacity] duration-300 ease-out
         md:w-36 lg:w-40
         [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
         [@media_(min-width:2400px)_and_(min-height:1300px)]:w-56
@@ -178,7 +178,7 @@ function CurrentlyReading({
               font-ui text-xs
               font-bold text-darkwood
               shadow-[0_3px_10px_rgba(83,55,76,0.05)]
-              transition-all duration-200
+              transition-[transform,filter] duration-200 ease-out
               hover:-translate-y-0.5
               hover:brightness-95
               focus:outline-none
@@ -265,7 +265,7 @@ function CurrentlyReading({
                 }}
                 className={`
                   relative cursor-pointer
-                  transition-all duration-300 ease-out
+                  transition-transform duration-300 ease-out
                   ${
                     index === 0
                       ? ''
@@ -415,7 +415,7 @@ function CurrentlyReading({
               </button>
 
               {isStatusOpen && (
-                <div className="absolute left-0 top-full z-20 mt-2 min-w-40 overflow-hidden rounded-2xl border border-darkwood/10 bg-cream p-2 shadow-lg [@media_(min-width:2200px)_and_(min-height:1100px)]:min-w-48">
+                <div className="dp-menu-enter absolute left-0 top-full z-20 mt-2 min-w-40 overflow-hidden rounded-2xl border border-darkwood/10 bg-cream p-2 shadow-lg [@media_(min-width:2200px)_and_(min-height:1100px)]:min-w-48">
                   {statusOptions.map((status) => (
                     <button
                       key={status.value}
@@ -466,7 +466,7 @@ function CurrentlyReading({
                       h-2.5 w-2.5
                       cursor-pointer
                       rounded-full
-                      transition-all duration-300
+                      transition-[transform,background-color] duration-300 ease-out
                       [@media_(min-width:2200px)_and_(min-height:1100px)]:h-3
                       [@media_(min-width:2200px)_and_(min-height:1100px)]:w-3
                       ${

@@ -142,8 +142,6 @@ function BookDetails({
         px-5 py-6
         shadow-[0_8px_30px_rgba(83,55,76,0.07)]
         backdrop-blur-[2px]
-        transition-shadow duration-300
-        hover:shadow-[0_10px_34px_rgba(83,55,76,0.09)]
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10
