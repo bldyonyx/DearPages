@@ -1,3 +1,5 @@
+import { settingsLarge } from './settingsResponsive.js'
+
 function SettingsSaveBar({
   error,
   hasChanges,
@@ -39,6 +41,7 @@ function SettingsSaveBar({
         <p
           className={[
             'text-sm font-bold',
+            settingsLarge.description,
             isStatusError
               ? 'text-walnut'
               : isStatusSuccess
@@ -62,6 +65,10 @@ function SettingsSaveBar({
           focus-visible:ring-olive/35 disabled:cursor-not-allowed
           disabled:opacity-45 disabled:hover:translate-y-0
           sm:mt-0 sm:w-auto sm:shrink-0
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:px-6
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
         {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}

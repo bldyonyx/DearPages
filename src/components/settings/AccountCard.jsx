@@ -1,3 +1,5 @@
+import { settingsLarge } from './settingsResponsive.js'
+
 function AccountCard({
   deleteError,
   error,
@@ -8,19 +10,30 @@ function AccountCard({
 }) {
   return (
     <section
-      className="
+      className={`
         rounded-3xl border border-walnut/15
         bg-cream/90 p-5 shadow-sm
         sm:p-6
-      "
+        ${settingsLarge.card}
+      `}
     >
       <div className="sm:flex sm:items-center sm:justify-between sm:gap-5">
         <div>
-          <p className="font-handwritten text-xl text-walnut sm:text-2xl">
+          <p
+            className={`
+              font-handwritten text-xl text-walnut sm:text-2xl
+              ${settingsLarge.handwritten}
+            `}
+          >
             ton compte
           </p>
 
-          <h2 className="mt-1 font-heading text-3xl font-bold leading-tight text-darkwood">
+          <h2
+            className={`
+              mt-1 font-heading text-3xl font-bold leading-tight text-darkwood
+              ${settingsLarge.cardTitle}
+            `}
+          >
             Compte
           </h2>
         </div>
@@ -36,6 +49,10 @@ function AccountCard({
             focus-visible:outline-none focus-visible:ring-2
             focus-visible:ring-olive/35 disabled:cursor-not-allowed
             disabled:opacity-50 sm:mt-0 sm:w-auto
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:px-6
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+            [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
           "
         >
           {isLoggingOut ? 'Déconnexion...' : 'Se déconnecter'}
@@ -43,7 +60,12 @@ function AccountCard({
       </div>
 
       {error && (
-        <p className="mt-4 text-sm font-bold text-walnut">
+        <p
+          className={`
+            mt-4 text-sm font-bold text-walnut
+            ${settingsLarge.description}
+          `}
+        >
           {error}
         </p>
       )}
@@ -51,11 +73,21 @@ function AccountCard({
       <div className="mt-6 border-t border-walnut/10 pt-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-ui text-sm font-bold text-darkwood">
+            <h3
+              className={`
+                font-ui text-sm font-bold text-darkwood
+                ${settingsLarge.description}
+              `}
+            >
               Supprimer mon compte
             </h3>
 
-            <p className="mt-1 max-w-xl font-ui text-sm leading-6 text-darkwood/60">
+            <p
+              className={`
+                mt-1 max-w-xl font-ui text-sm leading-6 text-darkwood/60
+                ${settingsLarge.description}
+              `}
+            >
               Supprime définitivement ton compte et toutes tes
               données Dear Pages.
             </p>
@@ -73,6 +105,10 @@ function AccountCard({
               focus-visible:ring-2 focus-visible:ring-dustyrose/60
               disabled:cursor-not-allowed disabled:opacity-50
               sm:w-auto
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:px-6
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3.5
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
             "
           >
             Supprimer mon compte
@@ -80,7 +116,12 @@ function AccountCard({
         </div>
 
         {deleteError && (
-          <p className="mt-4 text-sm font-bold text-walnut">
+          <p
+            className={`
+              mt-4 text-sm font-bold text-walnut
+              ${settingsLarge.description}
+            `}
+          >
             {deleteError}
           </p>
         )}

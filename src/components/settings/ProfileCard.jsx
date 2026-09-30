@@ -1,4 +1,5 @@
 import flower from '../../assets/images/flower.png'
+import { settingsLarge } from './settingsResponsive.js'
 
 function getDisplayName(user) {
   return user?.displayName?.trim() || user?.email || 'lectrice'
@@ -14,11 +15,12 @@ function ProfileCard({ user }) {
 
   return (
     <section
-      className="
+      className={`
         rounded-3xl border border-walnut/15
         bg-cream/90 p-5 shadow-sm
         sm:p-6
-      "
+        ${settingsLarge.card}
+      `}
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <div
@@ -49,16 +51,32 @@ function ProfileCard({ user }) {
         </div>
 
         <div className="min-w-0">
-          <p className="font-handwritten text-xl text-walnut sm:text-2xl">
+          <p
+            className={`
+              font-handwritten text-xl text-walnut sm:text-2xl
+              ${settingsLarge.handwritten}
+            `}
+          >
             ton profil
           </p>
 
-          <h2 className="mt-1 break-words font-heading text-3xl font-bold leading-tight text-darkwood">
+          <h2
+            className={`
+              mt-1 break-words font-heading text-3xl font-bold
+              leading-tight text-darkwood
+              ${settingsLarge.cardTitle}
+            `}
+          >
             {displayName}
           </h2>
 
           {user?.email && (
-            <p className="mt-2 break-words text-sm font-bold text-darkwood/60">
+            <p
+              className={`
+                mt-2 break-words text-sm font-bold text-darkwood/60
+                ${settingsLarge.smallText}
+              `}
+            >
               {user.email}
             </p>
           )}
