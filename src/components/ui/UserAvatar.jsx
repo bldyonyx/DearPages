@@ -1,0 +1,74 @@
+import { useEffect, useState } from 'react'
+
+import flower from '../../assets/images/flower.png'
+
+function getDisplayName(user) {
+  return user?.displayName?.trim() || user?.email || 'lectrice'
+}
+
+function getAvatarInitial(displayName) {
+  return displayName.trim().charAt(0).toUpperCase() || '?'
+}
+
+function UserAvatar({
+  user,
+  className = '',
+  avatarClassName = '',
+  initialClassName = '',
+}) {
+  const displayName = getDisplayName(user)
+  const avatarInitial = getAvatarInitial(displayName)
+  const photoURL = user?.photoURL?.trim() || ''
+  const [failedPhotoURL, setFailedPhotoURL] = useState('')
+
+  useEffect(() => {
+    if (failedPhotoURL && failedPhotoURL !== photoURL) {
+      setFailedPhotoURL('')
+    }
+  }, [failedPhotoURL, photoURL])
+
+  const showPhoto =
+    Boolean(photoURL) && failedPhotoURL !== photoURL
+
+  return (
+    <div
+      className={`
+        relative flex shrink-0 items-center justify-center
+        ${className}
+      `}
+    >
+      <img
+        src={flower}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-contain"
+      />
+
+      {showPhoto ? (
+        <img
+          src={photoURL}
+          alt={`Photo de profil de ${displayName}`}
+          referrerPolicy="no-referrer"
+          onError={() => setFailedPhotoURL(photoURL)}
+          className={`
+            relative z-10 rounded-full object-cover
+            ${avatarClassName}
+          `}
+        />
+      ) : (
+        <span
+          className={`
+            relative z-10 flex items-center justify-center
+            rounded-full bg-cream
+            font-heading font-bold text-darkwood
+            ${initialClassName}
+          `}
+        >
+          {avatarInitial}
+        </span>
+      )}
+    </div>
+  )
+}
+
+export default UserAvatar

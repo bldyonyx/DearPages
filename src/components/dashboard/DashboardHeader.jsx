@@ -2,16 +2,12 @@ import { Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import flower from '../../assets/images/flower.png'
 import Input from '../ui/Input'
+import UserAvatar from '../ui/UserAvatar.jsx'
 import { dashboardLarge } from './dashboardResponsive.js'
 
 function getDisplayName(user) {
   return user?.displayName?.trim() || user?.email || 'lectrice'
-}
-
-function getAvatarInitial(displayName) {
-  return displayName.trim().charAt(0).toUpperCase() || '?'
 }
 
 function DashboardHeader({ user }) {
@@ -19,7 +15,6 @@ function DashboardHeader({ user }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const navigate = useNavigate()
   const displayName = getDisplayName(user)
-  const avatarInitial = getAvatarInitial(displayName)
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -193,30 +188,31 @@ function DashboardHeader({ user }) {
             to="/settings"
             aria-label="Ouvrir les paramètres du profil"
             className="
-              relative flex h-14 w-14 shrink-0 cursor-pointer
-              items-center justify-center
+              shrink-0 cursor-pointer
               transition-transform
               hover:-translate-y-0.5
-              md:h-16 md:w-16
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:h-18
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:w-18
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:h-20
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:w-20
             "
           >
-            <img
-              src={flower}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-contain"
-            />
-
-            <span
+            <UserAvatar
+              user={user}
               className="
-                relative z-10 flex h-9 w-9
-                items-center justify-center
-                rounded-full bg-cream
-                font-heading text-base font-bold text-darkwood
+                h-14 w-14
+                md:h-16 md:w-16
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:h-18
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-18
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:h-20
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-20
+              "
+              avatarClassName="
+                h-9 w-9
+                md:h-10 md:w-10
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:h-14
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
+              "
+              initialClassName="
+                h-9 w-9 text-base
                 md:h-10 md:w-10 md:text-lg
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
@@ -225,9 +221,7 @@ function DashboardHeader({ user }) {
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
               "
-            >
-              {avatarInitial}
-            </span>
+            />
           </Link>
         </div>
       </div>
