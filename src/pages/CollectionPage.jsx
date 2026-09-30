@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import CollectionBooksGrid from '../components/collections/CollectionBooksGrid.jsx'
 import CollectionPageEmptyState from '../components/collections/CollectionPageEmptyState.jsx'
 import CollectionPageHeader from '../components/collections/CollectionPageHeader.jsx'
+import { collectionPageLarge } from '../components/collections/collectionPageResponsive.js'
 import CollectionBookRemoveModal from '../components/collections/modals/CollectionBookRemoveModal.jsx'
 import CollectionBooksModal from '../components/collections/modals/CollectionBooksModal.jsx'
 import CollectionClearModal from '../components/collections/modals/CollectionClearModal.jsx'
@@ -57,15 +58,17 @@ function CollectionPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className={`p-6 ${collectionPageLarge.shell}`}>
         <section
-          className="
+          className={`
             mt-8 rounded-[28px]
             border border-walnut/10
             bg-cream/65 p-5
             shadow-sm
             sm:p-7
-          "
+            ${collectionPageLarge.sectionGap}
+            ${collectionPageLarge.panel}
+          `}
         >
           <LoadingState message="Chargement de la collection..." />
         </section>
@@ -75,14 +78,15 @@ function CollectionPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className={`p-6 ${collectionPageLarge.shell}`}>
         <section
-          className="
+          className={`
             mt-8 rounded-[28px]
             border border-dustyrose/30
             bg-dustyrose/20
             px-5 py-4
-          "
+            ${collectionPageLarge.sectionGap}
+          `}
         >
           <ErrorState
             message={error}
@@ -95,27 +99,36 @@ function CollectionPage() {
 
   if (!collection) {
     return (
-      <div className="p-6">
+      <div className={`p-6 ${collectionPageLarge.shell}`}>
         <section
-          className="
-            mt-8 rounded-[28px]
+          className={`
+            mx-auto mt-8 max-w-2xl
+            rounded-[28px]
             border border-walnut/10
             bg-cream/60
             px-6 py-14
             text-center
             shadow-sm
-          "
+            ${collectionPageLarge.sectionGap}
+            ${collectionPageLarge.emptyPanel}
+          `}
         >
-          <p className="font-heading text-2xl font-bold text-darkwood">
+          <p
+            className={`
+              font-heading text-2xl font-bold text-darkwood
+              ${collectionPageLarge.emptyTitle}
+            `}
+          >
             Collection introuvable
           </p>
 
           <p
-            className="
+            className={`
               mx-auto mt-2 max-w-md
               font-ui text-sm leading-6
               text-walnut/70
-            "
+              ${collectionPageLarge.text}
+            `}
           >
             Elle a peut-être été supprimée ou déplacée.
           </p>
@@ -151,7 +164,7 @@ function CollectionPage() {
     : ''
 
   return (
-    <div className="p-6">
+    <div className={`p-6 ${collectionPageLarge.shell}`}>
       <CollectionPageHeader
         collection={collection}
         bookCount={collectionBooks.length}

@@ -1,16 +1,21 @@
 import { BookOpen, Plus } from 'lucide-react'
 
+import { collectionPageLarge } from './collectionPageResponsive.js'
+
 function CollectionPageEmptyState({ onAddBooks }) {
   return (
     <section
-      className="
-        mt-8 rounded-[28px]
+      className={`
+        mx-auto mt-8 max-w-2xl
+        rounded-[28px]
         border border-walnut/10
         bg-cream/75 px-6 py-12
         shadow-sm
         sm:px-8
         sm:py-14
-      "
+        ${collectionPageLarge.sectionGap}
+        ${collectionPageLarge.emptyPanel}
+      `}
     >
       <div className="mx-auto flex max-w-lg flex-col items-center text-center">
         <div
@@ -32,22 +37,24 @@ function CollectionPageEmptyState({ onAddBooks }) {
         </div>
 
         <h2
-          className="
+          className={`
             mt-5 font-heading
             text-2xl font-bold
             text-darkwood
-          "
+            ${collectionPageLarge.emptyTitle}
+          `}
         >
           Cette collection est encore vide
         </h2>
 
         <p
-          className="
+          className={`
             mt-2 max-w-md
             font-ui text-sm
             font-semibold leading-6
             text-walnut/65
-          "
+            ${collectionPageLarge.text}
+          `}
         >
           Ajoute quelques livres pour commencer à remplir
           cette collection.

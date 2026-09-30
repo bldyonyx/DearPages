@@ -1,12 +1,17 @@
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
+  BookMinus,
   MoreHorizontal,
   Plus,
-  Trash2,
 } from 'lucide-react'
 
 import { getCollectionIcon } from '../../data/collectionIcons.js'
+import { collectionPageLarge } from './collectionPageResponsive.js'
+
+function getBookLabel(bookCount) {
+  return `${bookCount} ${bookCount > 1 ? 'livres' : 'livre'}`
+}
 
 function CollectionPageHeader({
   collection,
@@ -21,209 +26,237 @@ function CollectionPageHeader({
   const CollectionIcon = collectionIcon.icon
 
   return (
-    <header>
+    <header
+      className={`min-w-0 py-4 ${collectionPageLarge.headerTop}`}
+    >
       <Link
         to="/collections"
-        className="
+        className={`
           inline-flex items-center gap-2
-          rounded-full border border-walnut/10
-          bg-cream/75 px-4 py-2
-          font-ui text-sm font-bold
-          text-walnut shadow-sm
-          transition
-          hover:-translate-y-0.5
-          hover:border-walnut/20
+          rounded-full bg-cream/75
+          px-3 py-1.5
+          font-ui text-sm
+          text-walnut
+          shadow-sm
+          transition-colors
           hover:bg-cream
           hover:text-darkwood
-          focus:outline-none
-          focus-visible:ring-2
-          focus-visible:ring-darkwood/25
-        "
+          ${collectionPageLarge.backButton}
+        `}
       >
         <ArrowLeft
-          aria-hidden="true"
           className="h-4 w-4"
           strokeWidth={1.8}
+          aria-hidden="true"
         />
 
-        <span>Retour</span>
+        Retour
       </Link>
 
-      <div className="mt-7">
-        <div className="flex min-w-0 items-start gap-4">
-          <div
-            className="
-              flex h-12 w-12 shrink-0
-              items-center justify-center
-              rounded-full border
-              border-walnut/15
-              bg-parchment/60
-              text-walnut
-              shadow-sm
-            "
+      <div
+        className={`mt-5 min-w-0 ${collectionPageLarge.headerContent}`}
+      >
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <span
+            className={`
+              mt-0.5 flex h-11 w-11
+              shrink-0 items-center
+              justify-center rounded-full
+              border border-lime/50
+              bg-lime/25 text-darkwood
+              sm:h-12 sm:w-12
+              ${collectionPageLarge.icon}
+            `}
             title={collectionIcon.label}
           >
             <CollectionIcon
-              aria-hidden="true"
-              className="h-6 w-6"
+              className={`
+                h-5 w-5
+                sm:h-6 sm:w-6
+                ${collectionPageLarge.iconSvg}
+              `}
               strokeWidth={1.8}
+              aria-hidden="true"
             />
-          </div>
+          </span>
 
           <div className="min-w-0 flex-1">
             <h1
-              className="
-                wrap-break-word
+              className={`
                 font-heading text-3xl
                 font-bold leading-tight
                 text-darkwood
                 md:text-4xl
-              "
+                ${collectionPageLarge.title}
+              `}
+              style={{
+                overflowWrap: 'anywhere',
+              }}
             >
               {collection.name}
             </h1>
-
-            {collection.description && (
-              <p
-                className="
-                  mt-3 max-w-4xl
-                  whitespace-normal
-                  wrap-break-word
-                  font-ui text-sm
-                  font-semibold leading-6
-                  text-walnut/70
-                  md:text-base
-                  md:leading-7
-                "
-                style={{
-                  overflowWrap: 'anywhere',
-                }}
-              >
-                {collection.description}
-              </p>
-            )}
           </div>
         </div>
 
+        {collection.description && (
+          <p
+            className={`
+              mt-4 w-full max-w-5xl
+              whitespace-normal
+              font-ui text-sm
+              leading-7 text-walnut/75
+              md:text-base
+              ${collectionPageLarge.description}
+            `}
+            style={{
+              overflowWrap: 'anywhere',
+              wordBreak: 'normal',
+            }}
+          >
+            {collection.description}
+          </p>
+        )}
+
         <div
           className="
-            mt-6 flex flex-col gap-3
-            border-b border-walnut/10
-            pb-6
+            mt-5 flex min-w-0
+            flex-col gap-3
             sm:flex-row
+            sm:flex-wrap
             sm:items-center
             sm:justify-between
+            lg:items-start
           "
         >
-          <p
+          <span
             className="
-              font-ui text-sm font-bold
-              text-walnut/65
+              inline-flex w-fit
+              rounded-full
+              border border-walnut/15
+              bg-cream/75 px-3 py-1.5
+              font-ui text-xs font-bold
+              text-walnut
             "
           >
-            {bookCount} {bookCount > 1 ? 'livres' : 'livre'}
-          </p>
+            {getBookLabel(bookCount)}
+          </span>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div
+            className="
+              flex min-w-0 flex-wrap
+              items-center justify-end
+              gap-3
+              sm:flex-nowrap
+            "
+          >
             <button
               type="button"
               onClick={onAddBooks}
               className="
-                inline-flex cursor-pointer
-                items-center justify-center gap-2
-                rounded-full bg-lime
-                px-5 py-2.5
-                font-ui text-sm font-bold
-                text-darkwood shadow-sm
-                transition
-                hover:-translate-y-0.5
-                hover:shadow-md
-                focus:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-darkwood/25
+                inline-flex min-h-10
+                min-w-0 flex-1
+                cursor-pointer items-center
+                justify-center gap-2
+                rounded-full
+                border border-lime/70
+                bg-lime/70 px-3
+                font-ui text-sm
+                font-bold text-darkwood
+                whitespace-normal
+                shadow-sm
+                transition-colors
+                hover:bg-lime
+                sm:flex-none sm:px-4
+                sm:whitespace-nowrap
               "
             >
               <Plus
-                aria-hidden="true"
                 className="h-4 w-4"
                 strokeWidth={1.8}
+                aria-hidden="true"
               />
 
-              <span>Ajouter des livres</span>
+              Ajouter des livres
             </button>
 
-            <div
-              ref={actionsMenuRef}
-              className="relative"
-            >
-              <button
-                type="button"
-                onClick={onToggleActionsMenu}
-                aria-label={`Actions pour ${collection.name}`}
-                aria-expanded={isActionsMenuOpen}
-                className="
-                  flex h-10 w-10 cursor-pointer
-                  items-center justify-center
-                  rounded-full border
-                  border-walnut/10
-                  bg-cream/85
-                  text-walnut shadow-sm
-                  transition-colors
-                  hover:border-walnut/25
-                  hover:bg-cream
-                  hover:text-darkwood
-                  focus:outline-none
-                  focus-visible:ring-2
-                  focus-visible:ring-darkwood/25
-                "
+            {bookCount > 0 && (
+              <div
+                ref={actionsMenuRef}
+                className="relative shrink-0"
               >
-                <MoreHorizontal
-                  aria-hidden="true"
-                  className="h-5 w-5"
-                  strokeWidth={1.8}
-                />
-              </button>
-
-              {isActionsMenuOpen && (
-                <div
+                <button
+                  type="button"
+                  onClick={onToggleActionsMenu}
+                  aria-label="Actions de collection"
+                  aria-haspopup="menu"
+                  aria-expanded={isActionsMenuOpen}
                   className="
-                    absolute right-0 top-12 z-30
-                    min-w-44 rounded-2xl
+                    inline-flex h-10 w-10
+                    cursor-pointer items-center
+                    justify-center rounded-full
                     border border-walnut/15
-                    bg-cream p-1.5
-                    shadow-md
+                    bg-cream/70 text-walnut
+                    shadow-sm
+                    transition-colors
+                    hover:border-walnut/25
+                    hover:bg-cream
+                    hover:text-darkwood
+                    focus:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-darkwood/25
                   "
                 >
-                  <button
-                    type="button"
-                    onClick={onClearCollection}
-                    disabled={bookCount === 0}
+                  <MoreHorizontal
+                    className="h-5 w-5"
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {isActionsMenuOpen && (
+                  <div
+                    role="menu"
                     className="
-                      flex w-full cursor-pointer
-                      items-center gap-2
-                      rounded-xl px-3 py-2
-                      text-left font-ui text-sm
-                      font-bold text-darkwood
-                      transition-colors
-                      hover:bg-dustyrose/25
-                      disabled:cursor-not-allowed
-                      disabled:opacity-40
+                      absolute right-0 top-12 z-10
+                      w-max min-w-52
+                      max-w-[calc(100vw-3rem)]
+                      rounded-2xl
+                      border border-walnut/15
+                      bg-cream p-1.5
+                      shadow-md
                     "
                   >
-                    <Trash2
-                      aria-hidden="true"
-                      className="h-4 w-4"
-                      strokeWidth={1.8}
-                    />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={onClearCollection}
+                      className="
+                        flex w-full cursor-pointer
+                        items-center gap-2
+                        rounded-xl px-3 py-2
+                        text-left font-ui text-sm
+                        font-bold text-darkwood
+                        transition-colors
+                        hover:bg-dustyrose/25
+                      "
+                    >
+                      <BookMinus
+                        className="h-4 w-4"
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      />
 
-                    <span>Vider la collection</span>
-                  </button>
-                </div>
-              )}
-            </div>
+                      Vider la collection
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <div className="mt-6 h-px w-full bg-walnut/15" />
     </header>
   )
 }
