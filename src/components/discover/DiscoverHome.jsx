@@ -17,9 +17,14 @@ function DiscoverHome({
   onRefreshMustReads,
 }) {
   return (
-    <div className={`mt-10 space-y-12 ${discoverLarge.sectionStack}`}>
+    <div
+      aria-busy={isLoading}
+      className={`mt-10 space-y-12 ${discoverLarge.sectionStack}`}
+    >
       {isLoading && (
         <p
+          role="status"
+          aria-live="polite"
           className={`
             max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm
             text-darkwood/60 md:max-w-full

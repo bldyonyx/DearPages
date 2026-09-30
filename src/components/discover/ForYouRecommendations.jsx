@@ -180,12 +180,14 @@ function ForYouRecommendations({
 
               {isLoading && books.length === 0 && (
                 <p
+                  role="status"
+                  aria-live="polite"
                   className={`
                     mt-4 font-ui text-sm text-darkwood/60
                     ${discoverLarge.description}
                   `}
                 >
-                  Preparation des suggestions...
+                  Préparation des suggestions...
                 </p>
               )}
             </section>

@@ -4,6 +4,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
+import LoadingState from '../ui/LoadingState.jsx'
 
 function ProtectedRoute() {
   const location = useLocation()
@@ -18,7 +19,11 @@ function ProtectedRoute() {
   const isOnboardingRoute = location.pathname === '/onboarding'
 
   if (isAuthLoading || (user && isPreferencesLoading)) {
-    return null
+    return (
+      <main className="p-6">
+        <LoadingState message="Chargement..." />
+      </main>
+    )
   }
 
   if (!user) {

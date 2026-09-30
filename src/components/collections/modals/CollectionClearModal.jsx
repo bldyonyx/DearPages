@@ -65,7 +65,7 @@ function CollectionClearModal({
               aria-hidden="true"
             />
             {isClearing
-              ? 'Vidage...'
+              ? 'Vidage en cours...'
               : 'Vider la collection'}
           </Button>
         </div>

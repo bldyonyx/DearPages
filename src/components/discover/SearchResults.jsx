@@ -10,7 +10,10 @@ function SearchResults({
   onBackToDiscover,
 }) {
   return (
-    <section className={`mt-6 ${discoverLarge.sectionGap}`}>
+    <section
+      aria-busy={isLoading}
+      className={`mt-6 ${discoverLarge.sectionGap}`}
+    >
       <BackButton
         onClick={onBackToDiscover}
         className="
@@ -23,6 +26,8 @@ function SearchResults({
 
       {isLoading && (
         <p
+          role="status"
+          aria-live="polite"
           className={`
             mt-8 font-ui text-sm text-darkwood/60
             ${discoverLarge.description}

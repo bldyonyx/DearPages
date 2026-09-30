@@ -24,13 +24,14 @@ function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(null)
+  const isLoading = Boolean(loadingAction)
 
   async function handleSubmit(event) {
     event.preventDefault()
 
     setError('')
-    setIsLoading(true)
+    setLoadingAction('email')
 
     try {
       await signInWithEmail(email.trim(), password)
@@ -39,13 +40,13 @@ function Login() {
       console.error(firebaseError)
       setError(getEmailSignInErrorMessage(firebaseError))
     } finally {
-      setIsLoading(false)
+      setLoadingAction(null)
     }
   }
 
   async function handleGoogleSignIn() {
     setError('')
-    setIsLoading(true)
+    setLoadingAction('google')
 
     try {
       const result = await signInWithGoogle()
@@ -61,7 +62,7 @@ function Login() {
         'Impossible de continuer avec Google pour le moment.',
       )
     } finally {
-      setIsLoading(false)
+      setLoadingAction(null)
     }
   }
 
@@ -178,7 +179,9 @@ function Login() {
             disabled:cursor-not-allowed disabled:opacity-60
           "
         >
-          {isLoading ? 'Connexion...' : 'Se connecter'}
+          {loadingAction === 'email'
+            ? 'Connexion...'
+            : 'Se connecter'}
         </button>
       </form>
 
@@ -207,7 +210,9 @@ function Login() {
         "
       >
         <GoogleIcon />
-        Continuer avec Google
+        {loadingAction === 'google'
+          ? 'Connexion avec Google...'
+          : 'Continuer avec Google'}
       </button>
     </AuthLayout>
   )

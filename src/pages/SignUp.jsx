@@ -25,13 +25,14 @@ function SignUp() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingAction, setLoadingAction] = useState(null)
+  const isLoading = Boolean(loadingAction)
 
   async function handleSubmit(event) {
     event.preventDefault()
 
     setError('')
-    setIsLoading(true)
+    setLoadingAction('email')
 
     try {
       const result = await signUpWithEmail(
@@ -48,13 +49,13 @@ function SignUp() {
         'Impossible de créer ton compte pour le moment.',
       )
     } finally {
-      setIsLoading(false)
+      setLoadingAction(null)
     }
   }
 
   async function handleGoogleSignIn() {
     setError('')
-    setIsLoading(true)
+    setLoadingAction('google')
 
     try {
       const result = await signInWithGoogle()
@@ -70,7 +71,7 @@ function SignUp() {
         'Impossible de continuer avec Google pour le moment.',
       )
     } finally {
-      setIsLoading(false)
+      setLoadingAction(null)
     }
   }
 
@@ -222,7 +223,7 @@ function SignUp() {
             disabled:cursor-not-allowed disabled:opacity-60
           "
         >
-          {isLoading
+          {loadingAction === 'email'
             ? 'Création du compte...'
             : 'Créer mon compte'}
         </button>
@@ -253,7 +254,9 @@ function SignUp() {
         "
       >
         <GoogleIcon />
-        Continuer avec Google
+        {loadingAction === 'google'
+          ? 'Création avec Google...'
+          : 'Continuer avec Google'}
       </button>
     </AuthLayout>
   )

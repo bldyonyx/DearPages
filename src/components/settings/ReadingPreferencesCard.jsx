@@ -20,6 +20,7 @@ function ReadingPreferencesCard({
 }) {
   return (
     <section
+      aria-busy={isLoading || isSaving}
       className={`
         rounded-3xl border border-darkwood/10
         bg-cream/80 p-5 shadow-sm
@@ -60,6 +61,8 @@ function ReadingPreferencesCard({
 
       {isLoading ? (
         <p
+          role="status"
+          aria-live="polite"
           className={`
             mt-7 text-sm font-bold text-walnut/70
             ${settingsLarge.description}

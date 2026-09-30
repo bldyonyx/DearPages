@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 
 import { useAuth } from '../../context/AuthContext.jsx'
+import LoadingState from '../ui/LoadingState.jsx'
 
 function PublicOnlyRoute() {
   const {
@@ -11,7 +12,11 @@ function PublicOnlyRoute() {
   } = useAuth()
 
   if (isAuthLoading || (user && isPreferencesLoading)) {
-    return null
+    return (
+      <main className="p-6">
+        <LoadingState message="Chargement..." />
+      </main>
+    )
   }
 
   if (!user) {

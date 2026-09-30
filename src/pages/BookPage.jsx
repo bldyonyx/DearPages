@@ -54,7 +54,9 @@ function BookDetailsLoadingState() {
         md:px-8
         lg:px-11 lg:py-10
       "
-      aria-label="Chargement des details du livre"
+      role="status"
+      aria-live="polite"
+      aria-label="Chargement des détails du livre"
     >
       <div
         className="

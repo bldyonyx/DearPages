@@ -1,6 +1,10 @@
 function LoadingState({ message = 'Chargement...' }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-10">
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col items-center justify-center gap-3 py-10"
+    >
       <div
         className="h-8 w-8 animate-spin rounded-full border-4 border-walnut/20 border-t-darkwood"
         aria-hidden="true"

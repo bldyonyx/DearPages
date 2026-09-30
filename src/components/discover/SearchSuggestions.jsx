@@ -7,6 +7,8 @@ function SearchSuggestions({ suggestions, isLoading }) {
   if (isLoading) {
     return (
       <div
+        role="status"
+        aria-live="polite"
         className="
           absolute left-0 right-0 top-full z-20
           mt-2 rounded-2xl

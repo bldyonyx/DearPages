@@ -212,6 +212,8 @@ function MyLibrary() {
 
       {isLoading ? (
         <p
+          role="status"
+          aria-live="polite"
           className={`
             mt-8 font-ui text-sm text-walnut/65
             ${libraryLarge.description}

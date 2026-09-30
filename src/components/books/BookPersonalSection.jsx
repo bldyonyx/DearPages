@@ -49,6 +49,8 @@ function BookPersonalSection({
         <div className="mt-3 h-px w-full bg-walnut/15" />
 
         <p
+          role="status"
+          aria-live="polite"
           className={`
             mt-5 font-ui text-sm text-walnut
             ${bookLarge.personalText}

@@ -71,7 +71,11 @@ function Dashboard() {
       <DashboardHeader user={user} />
 
       {isLibraryLoading && (
-        <p className="mt-8 font-ui text-sm text-walnut/65">
+        <p
+          role="status"
+          aria-live="polite"
+          className="mt-8 font-ui text-sm text-walnut/65"
+        >
           Chargement de ton dashboard...
         </p>
       )}

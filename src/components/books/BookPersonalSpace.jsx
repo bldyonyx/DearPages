@@ -455,6 +455,7 @@ function BookPersonalSpace({
           <BookFinishedDate
             finishedAt={libraryBook?.finishedAt}
             disabled={isSaving}
+            isSaving={isSaving}
             onSave={handleFinishedDateChange}
           />
         )}

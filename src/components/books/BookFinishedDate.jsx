@@ -16,6 +16,7 @@ import {
 function BookFinishedDate({
   finishedAt,
   disabled = false,
+  isSaving = false,
   onSave,
 }) {
   const currentYear = new Date().getFullYear()
@@ -71,6 +72,7 @@ function BookFinishedDate({
   }, [])
 
   const currentDate = getReadingMonthYear(finishedAt)
+  const isDisabled = disabled || isSaving
 
   const years = Array.from(
     { length: currentYear - 1999 },
@@ -141,7 +143,7 @@ function BookFinishedDate({
         <button
           type="button"
           onClick={() => setIsEditing(true)}
-          disabled={disabled}
+          disabled={isDisabled}
           className="
             mt-3 inline-flex
             items-center gap-2
@@ -181,6 +183,7 @@ function BookFinishedDate({
       ) : (
         <div
           ref={editorRef}
+          aria-busy={isSaving}
           className="
             mt-3
             rounded-2xl
@@ -206,7 +209,7 @@ function BookFinishedDate({
                       : 'month'
                   )
                 }
-                disabled={disabled}
+                disabled={isDisabled}
                 aria-expanded={
                   openDropdown === 'month'
                 }
@@ -321,7 +324,7 @@ function BookFinishedDate({
                       : 'year'
                   )
                 }
-                disabled={disabled}
+                disabled={isDisabled}
                 aria-expanded={
                   openDropdown === 'year'
                 }
@@ -433,7 +436,7 @@ function BookFinishedDate({
             <button
               type="button"
               onClick={handleSave}
-              disabled={disabled}
+              disabled={isDisabled}
               className="
                 inline-flex
                 items-center gap-2
@@ -463,7 +466,7 @@ function BookFinishedDate({
             <button
               type="button"
               onClick={handleCancel}
-              disabled={disabled}
+              disabled={isDisabled}
               className="
                 inline-flex
                 items-center gap-2
@@ -489,7 +492,7 @@ function BookFinishedDate({
             <button
               type="button"
               onClick={handleUnknown}
-              disabled={disabled}
+              disabled={isDisabled}
               className="
                 font-ui text-xs
                 text-walnut/60
@@ -506,6 +509,14 @@ function BookFinishedDate({
               Je ne sais plus
             </button>
           </div>
+
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-3 min-h-5 font-ui text-xs text-walnut/60"
+          >
+            {isSaving ? 'Enregistrement de la date...' : ''}
+          </p>
         </div>
       )}
     </div>
