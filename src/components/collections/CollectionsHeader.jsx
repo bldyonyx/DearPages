@@ -1,23 +1,37 @@
+import { Plus } from 'lucide-react'
+
 import HeaderActions from '../layout/HeaderActions.jsx'
+import { collectionsLarge } from './collectionsResponsive.js'
 
 function CollectionsHeader({
   user,
   onCreateCollection,
 }) {
   return (
-    <header className="py-4">
+    <header className={`py-4 ${collectionsLarge.headerTop}`}>
       <div
         className="
           flex flex-col gap-4
-          lg:flex-row lg:items-center lg:justify-between
+          md:flex-row md:items-center md:justify-between
         "
       >
         <div className="min-w-0">
-          <h1 className="font-heading text-3xl font-bold text-darkwood md:text-4xl">
+          <h1
+            className={`
+              font-heading text-3xl font-bold text-darkwood md:text-4xl
+              ${collectionsLarge.pageTitle}
+            `}
+          >
             Mes collections
           </h1>
 
-          <p className="mt-2 font-ui text-sm font-semibold text-darkwood/60 md:text-base">
+          <p
+            className={`
+              mt-2 font-ui text-sm font-semibold text-darkwood/60
+              md:text-base
+              ${collectionsLarge.pageDescription}
+            `}
+          >
             Des piles de livres rangées à ta façon.
           </p>
         </div>
@@ -26,35 +40,41 @@ function CollectionsHeader({
           className="
             flex min-w-0 flex-wrap
             items-center gap-3
-            lg:flex-1
-            lg:flex-nowrap
-            lg:justify-end
+            md:flex-1
+            md:flex-nowrap
+            md:justify-end
           "
         >
           <HeaderActions
             user={user}
-            className="order-1 md:flex-none lg:order-2"
+            className="order-1 md:order-2 md:flex-none"
           />
 
-          <div className="order-2 basis-full lg:order-1 lg:basis-auto">
+          <div className="order-2 basis-full md:order-1 md:basis-auto">
             <button
               type="button"
               onClick={onCreateCollection}
               className="
-                inline-flex h-10
+                inline-flex h-10 w-full
                 cursor-pointer
                 shrink-0 items-center
-                justify-center
+                justify-center gap-2
                 rounded-full border
                 border-lime/70
                 bg-lime/70 px-4
                 font-bold text-darkwood
                 shadow-sm
                 hover:bg-lime
-                md:h-11 md:px-5
+                md:h-11 md:w-auto md:px-5
               "
             >
-              + Nouvelle collection
+              <Plus
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0"
+                strokeWidth={1.8}
+              />
+
+              <span>Nouvelle collection</span>
             </button>
           </div>
         </div>

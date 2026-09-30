@@ -28,7 +28,7 @@ function PageLayout() {
       {/* Mobile + tablette header */}
       <header
         className="
-          fixed left-0 top-0 z-20
+          fixed left-0 top-0 z-50
           flex h-16 w-full
           items-center justify-between
 

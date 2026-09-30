@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 
 import BookCover from '../../books/BookCover.jsx'
+import { collectionsLarge } from '../collectionsResponsive.js'
 
 function getBookCount(collection) {
   return Object.keys(collection.books || {}).length
@@ -79,36 +80,39 @@ function CollectionCard({
 
   return (
     <article
-      className="
-        group relative h-full min-h-56 min-w-0
-        rounded-[24px] border border-walnut/15
+      className={`
+        group relative z-0 h-full min-h-56 min-w-0
+        rounded-3xl border border-walnut/15
         bg-cream/90 shadow-sm transition
         hover:-translate-y-0.5
         hover:border-walnut/25
         hover:shadow-md
-      "
+        ${collectionsLarge.card}
+      `}
     >
       <Link
         to={`/collections/${collection.id}`}
-        className="
+        className={`
           flex h-full min-w-0 flex-col
-          rounded-[24px] p-5
+          rounded-3xl p-5
           focus:outline-none
           focus-visible:ring-2
           focus-visible:ring-darkwood/30
-        "
+          ${collectionsLarge.cardPadding}
+        `}
         aria-label={`Ouvrir la collection ${collection.name}`}
       >
         <div className="flex min-w-0 items-start gap-4 pr-11">
           <div className="min-w-0 flex-1">
             <h2
               title={collection.name}
-              className="
-                overflow-hidden break-words
+              className={`
+                overflow-hidden wrap-break-word
                 font-heading text-2xl
                 font-bold leading-tight
                 text-darkwood
-              "
+                ${collectionsLarge.cardTitle}
+              `}
               style={{
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
@@ -119,19 +123,48 @@ function CollectionCard({
               {collection.name}
             </h2>
 
-            <p className="mt-1 font-ui text-xs font-bold text-walnut/65">
-              {bookCount} {bookCount > 1 ? 'livres' : 'livre'}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p
+                className={`
+                  font-ui text-xs font-bold text-walnut/65
+                  ${collectionsLarge.smallText}
+                `}
+              >
+                {bookCount} {bookCount > 1 ? 'livres' : 'livre'}
+              </p>
+
+              {collection.pinned && (
+                <span
+                  className={`
+                    inline-flex items-center gap-1
+                    font-ui text-xs font-bold
+                    text-walnut/65
+                    ${collectionsLarge.smallText}
+                  `}
+                >
+                  <span aria-hidden="true">·</span>
+
+                  <Pin
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                    strokeWidth={1.8}
+                  />
+
+                  <span>Épinglée</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {collection.description && (
           <p
-            className="
+            className={`
               mt-3 min-w-0 overflow-hidden
-              break-words font-ui text-sm
+              wrap-break-word font-ui text-sm
               leading-6 text-walnut/70
-            "
+              ${collectionsLarge.description}
+            `}
             style={{
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
@@ -144,21 +177,23 @@ function CollectionCard({
         )}
 
         <div
-          className="
+          className={`
             mt-auto grid min-h-28
             grid-cols-4 items-end gap-3
             pt-6
-          "
+            ${collectionsLarge.previewGrid}
+          `}
         >
           {bookCount === 0 ? (
             <div
-              className="
+              className={`
                 col-span-4 flex min-h-24
                 items-center rounded-2xl
                 border border-dashed
                 border-walnut/15
                 bg-parchment/35 px-4
-              "
+                ${collectionsLarge.previewGrid}
+              `}
             >
               <p className="font-ui text-xs font-bold text-walnut/55">
                 aucun livre pour le moment ♡

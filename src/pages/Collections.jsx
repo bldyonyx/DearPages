@@ -4,6 +4,7 @@ import CollectionEditModal from '../components/collections/modals/CollectionEdit
 import CollectionsEmptyState from '../components/collections/CollectionsEmptyState.jsx'
 import CollectionsGrid from '../components/collections/CollectionsGrid.jsx'
 import CollectionsHeader from '../components/collections/CollectionsHeader.jsx'
+import { collectionsLarge } from '../components/collections/collectionsResponsive.js'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import LoadingState from '../components/ui/LoadingState.jsx'
 import useCollections from '../hooks/useCollections.js'
@@ -40,7 +41,7 @@ function Collections() {
   } = useCollections()
 
   return (
-    <div className="p-6">
+    <div className={`p-6 ${collectionsLarge.shell}`}>
       <CollectionsHeader
         user={user}
         onCreateCollection={openCreateModal}
@@ -48,24 +49,26 @@ function Collections() {
 
       {isLoading ? (
         <section
-          className="
+          className={`
             mt-8 rounded-[28px]
             border border-walnut/10
             bg-cream/65 p-5
             shadow-sm
             sm:p-7
-          "
+            ${collectionsLarge.sectionGap}
+          `}
         >
           <LoadingState message="Chargement de tes collections..." />
         </section>
       ) : error ? (
         <section
-          className="
+          className={`
             mt-8 rounded-[28px]
             border border-dustyrose/30
             bg-dustyrose/20
             px-5 py-4
-          "
+            ${collectionsLarge.sectionGap}
+          `}
         >
           <ErrorState
             message={error}

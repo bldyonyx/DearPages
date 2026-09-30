@@ -1,4 +1,5 @@
 import CollectionCard from './cards/CollectionCard.jsx'
+import { collectionsLarge } from './collectionsResponsive.js'
 
 function CollectionsGrid({
   collections,
@@ -8,13 +9,15 @@ function CollectionsGrid({
   onPinCollection,
 }) {
   return (
-    <section className="mt-8">
+    <section className={`mt-8 ${collectionsLarge.sectionGap}`}>
       <div
-        className="
+        className={`
           grid gap-5
-          sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]
+          sm:grid-cols-2
           xl:grid-cols-3
-        "
+          ${collectionsLarge.gridGap}
+          ${collectionsLarge.collectionGrid}
+        `}
       >
         {collections.map((collection) => (
           <CollectionCard
