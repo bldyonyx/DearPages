@@ -37,6 +37,7 @@ function DiscoverHome({
 
       {!isLoading && error && (
         <p
+          role="alert"
           className={`
             max-w-[calc(100vw-3rem)] wrap-break-word font-ui text-sm
             text-darkwood/60 md:max-w-full

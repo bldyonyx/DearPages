@@ -39,6 +39,7 @@ function SearchResults({
 
       {error && (
         <p
+          role="alert"
           className={`
             mt-8 font-ui text-sm text-darkwood
             ${discoverLarge.description}

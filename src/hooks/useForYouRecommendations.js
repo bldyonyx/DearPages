@@ -363,7 +363,7 @@ function useForYouRecommendations(
         ...currentState,
         [subject]: {
           ...currentState[subject],
-          error: 'Impossible de rafraichir ce genre pour le moment.',
+          error: 'Impossible de rafraîchir ce genre pour le moment.',
           isLoading: false,
         },
       }))

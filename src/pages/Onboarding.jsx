@@ -105,7 +105,7 @@ function Onboarding() {
 
     if (!user?.uid) {
       setSaveError(
-        'Impossible de retrouver ta session. Reconnecte-toi puis reessaie.'
+        'Impossible de retrouver ta session. Reconnecte-toi puis réessaie.'
       )
       return
     }
@@ -123,7 +123,7 @@ function Onboarding() {
     } catch (firebaseError) {
       console.error(firebaseError)
       setSaveError(
-        "Impossible d'enregistrer tes preferences pour le moment."
+        "Impossible d'enregistrer tes préférences pour le moment."
       )
     } finally {
       setIsSaving(false)

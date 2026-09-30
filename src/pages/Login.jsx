@@ -162,7 +162,7 @@ function Login() {
         </label>
 
         {error && (
-          <p className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-red-700">
             {error}
           </p>
         )}

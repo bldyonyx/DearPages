@@ -440,7 +440,10 @@ function CurrentlyReading({
           </div>
 
           {statusError && (
-            <p className="mt-3 font-ui text-sm text-red-700 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base">
+            <p
+              role="alert"
+              className="mt-3 font-ui text-sm text-red-700 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base"
+            >
               {statusError}
             </p>
           )}

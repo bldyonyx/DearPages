@@ -3,7 +3,10 @@ function ErrorState({
   onRetry,
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+    <div
+      role="alert"
+      className="flex flex-col items-center justify-center gap-3 py-10 text-center"
+    >
       <p className="font-ui text-sm text-darkwood/70">
         {message}
       </p>

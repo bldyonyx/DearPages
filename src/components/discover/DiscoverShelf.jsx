@@ -104,7 +104,7 @@ function DiscoverShelf({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            aria-label={`Rafraichir ${title}`}
+            aria-label={`Rafraîchir ${title}`}
             className={`
               grid size-10 shrink-0 place-items-center
               rounded-full border border-walnut/20
@@ -129,6 +129,7 @@ function DiscoverShelf({
 
       {error && (
         <p
+          aria-live="polite"
           className={`
             mt-3 font-ui text-sm text-darkwood/55
             ${discoverLarge.description}

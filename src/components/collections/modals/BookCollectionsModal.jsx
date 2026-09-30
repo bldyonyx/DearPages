@@ -264,7 +264,7 @@ function BookCollectionsModal({
           </div>
 
           {error && (
-            <p className="mt-3 font-ui text-sm text-red-700">
+            <p role="alert" className="mt-3 font-ui text-sm text-red-700">
               {error}
             </p>
           )}

@@ -421,7 +421,7 @@ function useDiscoverHomeBooks({
       }
     } catch {
       setTrendingRefreshError(
-        'Impossible de rafraichir les tendances pour le moment.'
+        'Impossible de rafraîchir les tendances pour le moment.'
       )
     } finally {
       setIsTrendingRefreshing(false)
@@ -506,7 +506,7 @@ function useDiscoverHomeBooks({
       }
     } catch {
       setMustReadRefreshError(
-        'Impossible de rafraichir les incontournables pour le moment.'
+        'Impossible de rafraîchir les incontournables pour le moment.'
       )
     } finally {
       setIsMustReadRefreshing(false)

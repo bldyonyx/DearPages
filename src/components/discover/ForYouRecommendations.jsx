@@ -102,7 +102,7 @@ function ForYouRecommendations({
                   type="button"
                   onClick={() => refreshGenre(subject)}
                   disabled={isLoading}
-                  aria-label={`Rafraichir les suggestions ${label}`}
+                  aria-label={`Rafraîchir les suggestions ${label}`}
                   className={`
                     grid size-10 shrink-0 place-items-center
                     rounded-full border border-walnut/20
@@ -126,6 +126,7 @@ function ForYouRecommendations({
 
               {error && (
                 <p
+                  aria-live="polite"
                   className={`
                     mt-3 font-ui text-sm text-darkwood/55
                     ${discoverLarge.description}

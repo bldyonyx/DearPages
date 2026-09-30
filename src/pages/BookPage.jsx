@@ -127,7 +127,7 @@ function BookPage() {
   if (!isBookLoading && !book) {
     return (
       <main className="px-5 py-6 sm:px-7 lg:px-9">
-        <p className="font-ui text-sm text-red-700">
+        <p role="alert" className="font-ui text-sm text-red-700">
           {error || 'Livre introuvable.'}
         </p>
       </main>
@@ -168,7 +168,7 @@ function BookPage() {
             />
 
             {error && (
-              <p className="mt-4 font-ui text-sm text-red-700">
+              <p role="alert" className="mt-4 font-ui text-sm text-red-700">
                 {error}
               </p>
             )}

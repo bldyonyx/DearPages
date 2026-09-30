@@ -61,6 +61,7 @@ function AccountCard({
 
       {error && (
         <p
+          role="alert"
           className={`
             mt-4 text-sm font-bold text-walnut
             ${settingsLarge.description}
@@ -117,6 +118,7 @@ function AccountCard({
 
         {deleteError && (
           <p
+            role="alert"
             className={`
               mt-4 text-sm font-bold text-walnut
               ${settingsLarge.description}

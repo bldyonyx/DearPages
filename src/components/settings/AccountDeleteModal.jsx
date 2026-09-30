@@ -106,7 +106,10 @@ function AccountDeleteModal({
         )}
 
         {error && (
-          <p className="font-ui text-sm font-bold text-walnut">
+          <p
+            role="alert"
+            className="font-ui text-sm font-bold text-walnut"
+          >
             {error}
           </p>
         )}

@@ -74,7 +74,7 @@ function RemoveBookModal({
         </div>
 
         <p className="mt-5 font-handwritten text-lg text-olive">
-          juste pour etre sure ♡
+          juste pour être sûre ♡
         </p>
 
         <h2
@@ -99,7 +99,7 @@ function RemoveBookModal({
           "
         >
           Ce livre sera retiré de ta bibliothèque.
-          Tes notes, ta review et ta note étoilée seront
+          Tes notes, ton avis et ta note étoilée seront
           également supprimées.
         </p>
 

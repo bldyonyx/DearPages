@@ -119,10 +119,10 @@ function BookPersonalSpace({
         updatedAt: Date.now(),
       }))
 
-      setMessage('Review enregistrée ♡')
+      setMessage('Avis enregistré ♡')
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError('Impossible d’enregistrer ta review.')
+      setError('Impossible d’enregistrer ton avis.')
     } finally {
       setIsSaving(false)
     }
@@ -358,6 +358,7 @@ function BookPersonalSpace({
 
                 {error && (
                   <p
+                    role="alert"
                     className={`
                       font-ui text-sm text-red-700
                       ${bookLarge.personalText}
@@ -470,7 +471,7 @@ function BookPersonalSpace({
                 ${bookLarge.personalSubheading}
               `}
             >
-              Ma review
+              Mon avis
             </h3>
 
             <BookNotesEditor
@@ -505,6 +506,7 @@ function BookPersonalSpace({
 
                 {error && (
                   <p
+                    role="alert"
                     className={`
                       font-ui text-sm text-red-700
                       ${bookLarge.personalText}

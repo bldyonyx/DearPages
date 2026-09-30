@@ -65,7 +65,7 @@ function CompleteStep({
       </div>
 
       {saveError && (
-        <p className="mt-4 text-sm font-bold text-walnut">
+        <p role="alert" className="mt-4 text-sm font-bold text-walnut">
           {saveError}
         </p>
       )}

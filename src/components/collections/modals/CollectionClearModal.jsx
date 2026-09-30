@@ -32,7 +32,10 @@ function CollectionClearModal({
         </p>
 
         {error && (
-          <p className="rounded-xl border border-dustyrose/30 bg-dustyrose/20 px-3 py-2 font-ui text-sm leading-6 text-darkwood">
+          <p
+            role="alert"
+            className="rounded-xl border border-dustyrose/30 bg-dustyrose/20 px-3 py-2 font-ui text-sm leading-6 text-darkwood"
+          >
             {error}
           </p>
         )}

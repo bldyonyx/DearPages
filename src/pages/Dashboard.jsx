@@ -82,6 +82,7 @@ function Dashboard() {
 
       {!isLibraryLoading && libraryError && (
         <div
+          role="alert"
           className="
             mt-8 rounded-3xl
             border border-dustyrose/30

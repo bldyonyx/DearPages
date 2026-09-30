@@ -94,7 +94,7 @@ export function useBookLibraryState({
             bookId,
             routeKey,
             message:
-              'Impossible de charger ta bibliotheque pour ce livre.',
+              'Impossible de charger ta bibliothèque pour ce livre.',
           })
         }
       } finally {

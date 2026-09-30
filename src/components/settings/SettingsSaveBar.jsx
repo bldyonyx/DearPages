@@ -39,7 +39,9 @@ function SettingsSaveBar({
     >
       <div className="min-w-0">
         <p
-          role={isSaving ? 'status' : undefined}
+          role={
+            isStatusError ? 'alert' : isSaving ? 'status' : undefined
+          }
           aria-live={isSaving ? 'polite' : undefined}
           className={[
             'text-sm font-bold',
