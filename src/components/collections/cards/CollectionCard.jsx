@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  Heart,
   MoreHorizontal,
   Pencil,
   Pin,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react'
 
 import BookCover from '../../books/BookCover.jsx'
+import { getCollectionIcon } from '../../../data/collectionIcons.js'
 import { collectionsLarge } from '../collectionsResponsive.js'
 
 function getBookCount(collection) {
@@ -53,6 +55,9 @@ function CollectionCard({
 }) {
   const bookCount = getBookCount(collection)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  const collectionIcon = getCollectionIcon(collection.icon)
+  const CollectionIcon = collectionIcon.icon
 
   function handleDeleteClick(event) {
     event.stopPropagation()
@@ -102,7 +107,26 @@ function CollectionCard({
         `}
         aria-label={`Ouvrir la collection ${collection.name}`}
       >
-        <div className="flex min-w-0 items-start gap-4 pr-11">
+        <div className="flex min-w-0 items-start gap-3 pr-11">
+          <div
+            className="
+              flex h-10 w-10 shrink-0
+              items-center justify-center
+              rounded-full border
+              border-walnut/15
+              bg-parchment/60
+              text-walnut
+              shadow-sm
+            "
+            title={collectionIcon.label}
+          >
+            <CollectionIcon
+              aria-hidden="true"
+              className="h-5 w-5"
+              strokeWidth={1.8}
+            />
+          </div>
+
           <div className="min-w-0 flex-1">
             <h2
               title={collection.name}
@@ -195,9 +219,21 @@ function CollectionCard({
                 ${collectionsLarge.previewGrid}
               `}
             >
-              <p className="font-ui text-xs font-bold text-walnut/55">
-                aucun livre pour le moment ♡
-              </p>
+              <div
+                className="
+                  flex items-center gap-1.5
+                  font-ui text-xs font-bold
+                  text-walnut/55
+                "
+              >
+                <span>aucun livre pour le moment</span>
+
+                <Heart
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 shrink-0"
+                  strokeWidth={1.8}
+                />
+              </div>
             </div>
           ) : (
             previewBooks.map((preview) => (
@@ -210,7 +246,7 @@ function CollectionCard({
         </div>
       </Link>
 
-      <div className="absolute right-4 top-4 z-20">
+      <div className="absolute right-4 top-4 z-20 flex items-center gap-1">
         <button
           type="button"
           onClick={handleMenuClick}
@@ -266,6 +302,7 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
+
               {collection.pinned
                 ? 'Désépingler'
                 : 'Épingler'}
@@ -289,6 +326,7 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
+
               Modifier
             </button>
 
@@ -310,6 +348,7 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
+
               Supprimer
             </button>
           </div>

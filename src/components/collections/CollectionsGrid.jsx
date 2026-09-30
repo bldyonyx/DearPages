@@ -13,21 +13,28 @@ function CollectionsGrid({
       <div
         className={`
           grid gap-5
-          sm:grid-cols-2
+          sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]
           xl:grid-cols-3
           ${collectionsLarge.gridGap}
           ${collectionsLarge.collectionGrid}
         `}
       >
         {collections.map((collection) => (
-          <CollectionCard
+          <div
             key={collection.id}
-            collection={collection}
-            previewBooks={getPreviewBooks(collection)}
-            onDeleteRequest={onDeleteCollection}
-            onEditRequest={onEditCollection}
-            onPinRequest={onPinCollection}
-          />
+            className={`
+              min-w-0
+              rounded-3xl transition
+            `}
+          >
+            <CollectionCard
+              collection={collection}
+              previewBooks={getPreviewBooks(collection)}
+              onDeleteRequest={onDeleteCollection}
+              onEditRequest={onEditCollection}
+              onPinRequest={onPinCollection}
+            />
+          </div>
         ))}
       </div>
     </section>

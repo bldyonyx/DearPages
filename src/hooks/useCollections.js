@@ -15,21 +15,26 @@ import {
 } from '../services/collectionsService.js'
 import { getUserLibrary } from '../services/libraryService.js'
 
-function sortCollections(collections) {
-  return [...collections].sort((firstCollection, secondCollection) => {
-    if (firstCollection.pinned !== secondCollection.pinned) {
-      return firstCollection.pinned ? -1 : 1
-    }
+function compareCollections(
+  firstCollection,
+  secondCollection,
+) {
+  if (firstCollection.pinned !== secondCollection.pinned) {
+    return firstCollection.pinned ? -1 : 1
+  }
 
-    return (
-      (secondCollection.updatedAt ||
-        secondCollection.createdAt ||
-        0) -
-      (firstCollection.updatedAt ||
-        firstCollection.createdAt ||
-        0)
-    )
-  })
+  return (
+    (secondCollection.updatedAt ||
+      secondCollection.createdAt ||
+      0) -
+    (firstCollection.updatedAt ||
+      firstCollection.createdAt ||
+      0)
+  )
+}
+
+function sortCollections(collections) {
+  return [...collections].sort(compareCollections)
 }
 
 function getBookId(book) {
@@ -107,7 +112,9 @@ function useCollections() {
           ])
 
         if (isActive) {
-          setCollections(sortCollections(userCollections))
+          setCollections(
+            sortCollections(userCollections),
+          )
           setLibraryBooks(userLibrary)
         }
       } catch (loadError) {
@@ -224,18 +231,17 @@ function useCollections() {
       const updatedAt = Date.now()
 
       setCollections((currentCollections) =>
-        sortCollections(
-          currentCollections.map((collection) =>
-            collection.id === collectionToEdit.id
-              ? {
-                  ...collection,
-                  name: collectionData.name,
-                  description:
-                    collectionData.description || '',
-                  updatedAt,
-                }
-              : collection,
-          ),
+        currentCollections.map((collection) =>
+          collection.id === collectionToEdit.id
+            ? {
+                ...collection,
+                name: collectionData.name,
+                description:
+                  collectionData.description || '',
+                icon: collectionData.icon,
+                updatedAt,
+              }
+            : collection,
         ),
       )
 
@@ -278,15 +284,17 @@ function useCollections() {
 
       setCollections((currentCollections) =>
         sortCollections(
-          currentCollections.map((collection) =>
-            collection.id === collectionToPin.id
-              ? {
-                  ...collection,
-                  pinned: nextPinned,
-                  updatedAt,
-                }
-              : collection,
-          ),
+          currentCollections.map((collection) => {
+            if (collection.id !== collectionToPin.id) {
+              return collection
+            }
+
+            return {
+              ...collection,
+              pinned: nextPinned,
+              updatedAt,
+            }
+          }),
         ),
       )
     } catch (pinError) {

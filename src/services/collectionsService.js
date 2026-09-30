@@ -7,6 +7,7 @@ import {
   update,
 } from 'firebase/database'
 
+import { DEFAULT_COLLECTION_ICON } from '../data/collectionIcons.js'
 import { database } from './firebase.js'
 
 /**
@@ -15,6 +16,7 @@ import { database } from './firebase.js'
  * @param {Object} collection - Collection information.
  * @param {string} collection.name - Collection name.
  * @param {string} [collection.description] - Optional collection description.
+ * @param {string} [collection.icon] - Collection icon identifier.
  * @returns {Object} Collection data ready for Firebase.
  */
 function createCollectionData(collection) {
@@ -23,6 +25,7 @@ function createCollectionData(collection) {
   return {
     name: collection.name.trim(),
     description: collection.description?.trim() || '',
+    icon: collection.icon || DEFAULT_COLLECTION_ICON,
     createdAt: now,
     updatedAt: now,
     pinned: false,
@@ -47,7 +50,8 @@ function sortCollections(firstCollection, secondCollection) {
 
 /**
  * Gets all collections stored for a user.
- * Collections are returned from newest to oldest update.
+ * Collections are returned with pinned collections first, then each group by
+ * most recent update.
  *
  * @param {string} userId - Firebase Authentication user ID.
  * @returns {Promise<Object[]>} User's stored collections.
@@ -72,6 +76,7 @@ export async function getUserCollections(userId) {
     .map(([collectionId, collection]) => ({
       ...collection,
       id: collectionId,
+      icon: collection.icon || DEFAULT_COLLECTION_ICON,
       pinned: collection.pinned === true,
       books: collection.books || {},
     }))
@@ -101,11 +106,14 @@ export async function getUserCollection(userId, collectionId) {
     return null
   }
 
+  const collection = snapshot.val()
+
   return {
-    ...snapshot.val(),
+    ...collection,
     id: collectionId,
-    pinned: snapshot.val().pinned === true,
-    books: snapshot.val().books || {},
+    icon: collection.icon || DEFAULT_COLLECTION_ICON,
+    pinned: collection.pinned === true,
+    books: collection.books || {},
   }
 }
 
@@ -116,6 +124,7 @@ export async function getUserCollection(userId, collectionId) {
  * @param {Object} collection - Collection information.
  * @param {string} collection.name - Collection name.
  * @param {string} [collection.description] - Optional collection description.
+ * @param {string} [collection.icon] - Collection icon identifier.
  * @returns {Promise<string>} Created collection ID.
  */
 export async function createCollection(userId, collection) {
@@ -129,7 +138,10 @@ export async function createCollection(userId, collection) {
   )
   const collectionRef = push(collectionsRef)
 
-  await set(collectionRef, createCollectionData(collection))
+  await set(
+    collectionRef,
+    createCollectionData(collection),
+  )
 
   return collectionRef.key
 }
@@ -142,6 +154,7 @@ export async function createCollection(userId, collection) {
  * @param {Object} collection - Collection information.
  * @param {string} collection.name - Collection name.
  * @param {string} [collection.description] - Optional collection description.
+ * @param {string} [collection.icon] - Collection icon identifier.
  * @returns {Promise<void>}
  */
 export async function updateCollection(
@@ -161,6 +174,7 @@ export async function updateCollection(
   await update(collectionRef, {
     name: collection.name.trim(),
     description: collection.description?.trim() || '',
+    icon: collection.icon || DEFAULT_COLLECTION_ICON,
     updatedAt: Date.now(),
   })
 }
@@ -182,15 +196,17 @@ export async function updateCollectionPinned(
     throw new Error('Missing collection information.')
   }
 
-  const collectionRef = ref(
+  const collectionsRef = ref(
     database,
-    `users/${userId}/collections/${collectionId}`
+    `users/${userId}/collections`
   )
 
-  await update(collectionRef, {
-    pinned: Boolean(pinned),
-    updatedAt: Date.now(),
-  })
+  const updates = {
+    [`${collectionId}/pinned`]: Boolean(pinned),
+    [`${collectionId}/updatedAt`]: Date.now(),
+  }
+
+  await update(collectionsRef, updates)
 }
 
 /**
@@ -285,7 +301,10 @@ export async function removeBookFromCollection(
  * @param {string} bookId - Book ID stored in the user's library.
  * @returns {Promise<void>}
  */
-export async function removeBookFromAllCollections(userId, bookId) {
+export async function removeBookFromAllCollections(
+  userId,
+  bookId
+) {
   if (!userId || !bookId) {
     throw new Error('Missing user or book information.')
   }
