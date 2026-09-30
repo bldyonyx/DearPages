@@ -73,6 +73,19 @@
   font-display: swap;
 }
 
+
+/* Imperial Script */
+
+@font-face {
+  font-family: "Imperial Script";
+  src: url("./assets/fonts/ImperialScript/imperial-script-latin-400-normal.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 @theme {
   /* Browns */
   --color-darkwood: #453228;
@@ -100,7 +113,9 @@
   --font-heading: "Frank Ruhl Libre", serif;
   --font-ui: "Comfortaa", sans-serif;
   --font-handwritten: "Patrick Hand", cursive;
+  --font-avatar: "Imperial Script", cursive;
 }
+
 
 .app-background {
   background-color: var(--color-mintcream);
@@ -115,7 +130,9 @@
   }
 }
 
+
 /* Cache la scrollbar tout en gardant le scroll horizontal */
+
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -127,6 +144,7 @@
 
 
 /* Cache la croix native ajoutée par le navigateur aux inputs search. */
+
 input[type='search']::-webkit-search-cancel-button {
   appearance: none;
   -webkit-appearance: none;

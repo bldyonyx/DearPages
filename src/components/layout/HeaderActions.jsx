@@ -25,8 +25,8 @@ function HeaderActions({ className = '', user = null }) {
           className="h-14 w-14 md:h-16 md:w-16"
           avatarClassName="h-9 w-9 md:h-10 md:w-10"
           initialClassName="
-            h-9 w-9 text-base
-            md:h-10 md:w-10 md:text-lg
+            h-9 w-9 text-2xl
+            md:h-10 md:w-10 md:text-3xl
           "
         />
       </Link>

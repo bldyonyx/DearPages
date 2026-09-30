@@ -212,14 +212,14 @@ function DashboardHeader({ user }) {
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
               "
               initialClassName="
-                h-9 w-9 text-base
-                md:h-10 md:w-10 md:text-lg
+                h-9 w-9 text-2xl
+                md:h-10 md:w-10 md:text-3xl
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:h-12
                 [@media_(min-width:2200px)_and_(min-height:1100px)]:w-12
-                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-4xl
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:h-14
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:w-14
-                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-2xl
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-5xl
               "
             />
           </Link>

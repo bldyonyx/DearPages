@@ -59,8 +59,7 @@ function UserAvatar({
         <span
           className={`
             relative z-10 flex items-center justify-center
-            rounded-full bg-cream
-            font-heading font-bold text-darkwood
+            font-avatar font-normal leading-none text-darkwood
             ${initialClassName}
           `}
         >

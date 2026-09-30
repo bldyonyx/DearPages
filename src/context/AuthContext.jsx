@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
+
 import { auth } from '../services/firebase.js'
 import { getUserPreferences } from '../services/preferencesService.js'
 
@@ -20,6 +21,7 @@ const AuthContext = createContext(null)
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [userRevision, setUserRevision] = useState(0)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [preferences, setPreferences] = useState(null)
   const [isPreferencesLoading, setIsPreferencesLoading] =
@@ -98,6 +100,13 @@ export function AuthProvider({ children }) {
     setIsPreferencesLoading(false)
   }
 
+  function refreshUser() {
+    if (!auth.currentUser) return
+
+    setUser(auth.currentUser)
+    setUserRevision((currentRevision) => currentRevision + 1)
+  }
+
   const requiresOnboarding =
     preferences?.onboardingCompleted === false
 
@@ -105,11 +114,13 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        userRevision,
         isAuthLoading,
         preferences,
         isPreferencesLoading,
         requiresOnboarding,
         updatePreferences,
+        refreshUser,
       }}
     >
       {children}
@@ -122,11 +133,13 @@ export function AuthProvider({ children }) {
  *
  * @returns {{
  *   user: import('firebase/auth').User | null,
+ *   userRevision: number,
  *   isAuthLoading: boolean,
  *   preferences: Object | null,
  *   isPreferencesLoading: boolean,
  *   requiresOnboarding: boolean,
- *   updatePreferences: (preferences: Object | null) => void
+ *   updatePreferences: (preferences: Object | null) => void,
+ *   refreshUser: () => void
  * }}
  */
 export function useAuth() {

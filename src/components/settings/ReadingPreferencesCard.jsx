@@ -98,7 +98,7 @@ function ReadingPreferencesCard({
                       onClick={() => onToggleGenre(genre.subject)}
                       aria-pressed={isSelected}
                       className={[
-                        'max-w-full whitespace-normal break-words rounded-full border px-3 py-2 text-xs font-bold sm:px-4 sm:py-2.5 sm:text-sm',
+                        'max-w-full whitespace-normal wrap-break-word rounded-full border px-3 py-2 text-xs font-bold sm:px-4 sm:py-2.5 sm:text-sm',
                         'transition focus-visible:outline-none',
                         'focus-visible:ring-2 focus-visible:ring-olive/35',
                         settingsLarge.controlButton,
@@ -174,11 +174,11 @@ function ReadingPreferencesCard({
 
                 <span
                   className="
-                    mt-2 flex w-full max-w-[250px] items-center gap-2
+                    mt-2 flex w-full max-w-62.5 items-center gap-2
                     rounded-2xl border border-walnut/20 bg-white/45
                     px-3 py-2 focus-within:border-olive/60
                     focus-within:ring-2 focus-within:ring-lime/40
-                    sm:max-w-[230px]
+                    sm:max-w-57.5
                     [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-72
                     [@media_(min-width:2200px)_and_(min-height:1100px)]:px-4
                     [@media_(min-width:2200px)_and_(min-height:1100px)]:py-3

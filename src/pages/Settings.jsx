@@ -11,21 +11,33 @@ function Settings() {
     user,
     annualGoal,
     selectedGenres,
+    displayName,
+
     goalError,
     saveError,
     successMessage,
+    profileError,
+    profileSuccessMessage,
     logoutError,
     deleteError,
+
     hasChanges,
     isPreferencesLoading,
     isSaveDisabled,
     isSaving,
+    isEditingProfile,
+    isSavingProfile,
     isLoggingOut,
     isDeleteModalOpen,
     isDeletingAccount,
+
     toggleGenre,
     handleAnnualGoalChange,
     handleSave,
+    startProfileEditing,
+    cancelProfileEditing,
+    handleDisplayNameChange,
+    handleProfileSave,
     handleLogout,
     handleDeleteAccount,
     openDeleteModal,
@@ -36,7 +48,6 @@ function Settings() {
     <div className={`w-full min-w-0 ${settingsLarge.shell}`}>
       <div className={settingsLarge.content}>
         <header className={`py-4 ${settingsLarge.headerTop}`}>
-
           <h1
             className={`
               mt-2 font-heading text-3xl font-bold text-darkwood md:text-4xl
@@ -62,7 +73,18 @@ function Settings() {
           <div
             className={`mt-6 grid gap-6 ${settingsLarge.stack}`}
           >
-            <ProfileCard user={user} />
+            <ProfileCard
+              user={user}
+              displayName={displayName}
+              isEditing={isEditingProfile}
+              isSaving={isSavingProfile}
+              error={profileError}
+              successMessage={profileSuccessMessage}
+              onEdit={startProfileEditing}
+              onCancel={cancelProfileEditing}
+              onDisplayNameChange={handleDisplayNameChange}
+              onSave={handleProfileSave}
+            />
 
             <ReadingPreferencesCard
               annualGoal={annualGoal}

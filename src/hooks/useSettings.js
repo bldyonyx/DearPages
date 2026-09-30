@@ -10,11 +10,13 @@ import { useAuth } from '../context/AuthContext.jsx'
 import {
   deleteCurrentUserAccount,
   logOut,
+  updateUserDisplayName,
 } from '../services/authService.js'
 import { updateReadingPreferences } from '../services/preferencesService.js'
 
 const DEFAULT_ANNUAL_GOAL = 24
 const MAX_ANNUAL_GOAL = 200
+const MAX_DISPLAY_NAME_LENGTH = 50
 
 const AVAILABLE_SUBJECTS = new Set(
   AVAILABLE_GENRES.map((genre) => genre.subject)
@@ -88,6 +90,7 @@ function useSettings() {
     preferences,
     isPreferencesLoading,
     updatePreferences,
+    refreshUser,
   } = useAuth()
 
   const [selectedGenres, setSelectedGenres] = useState([])
@@ -103,6 +106,13 @@ function useSettings() {
   const [saveError, setSaveError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const [profileError, setProfileError] = useState('')
+  const [profileSuccessMessage, setProfileSuccessMessage] =
+    useState('')
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
 
   const [logoutError, setLogoutError] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -129,6 +139,13 @@ function useSettings() {
     setGoalError('')
     setSaveError('')
   }, [isPreferencesLoading, preferences])
+
+  useEffect(() => {
+    if (!user) return
+
+    // oxlint-disable-next-line react/set-state-in-effect
+    setDisplayName(user.displayName?.trim() || '')
+  }, [user])
 
   const normalizedAnnualGoal = useMemo(
     () => normalizeAnnualGoal(annualGoal),
@@ -255,6 +272,71 @@ function useSettings() {
     }
   }
 
+  function startProfileEditing() {
+    setDisplayName(user?.displayName?.trim() || '')
+    setProfileError('')
+    setProfileSuccessMessage('')
+    setIsEditingProfile(true)
+  }
+
+  function cancelProfileEditing() {
+    setDisplayName(user?.displayName?.trim() || '')
+    setProfileError('')
+    setIsEditingProfile(false)
+  }
+
+  function handleDisplayNameChange(value) {
+    setDisplayName(value)
+    setProfileError('')
+    setProfileSuccessMessage('')
+  }
+
+  async function handleProfileSave() {
+    if (!user || isSavingProfile) return
+
+    const trimmedDisplayName = displayName.trim()
+
+    if (!trimmedDisplayName) {
+      setProfileError('Choisis un nom à afficher.')
+      return
+    }
+
+    if (trimmedDisplayName.length > MAX_DISPLAY_NAME_LENGTH) {
+      setProfileError(
+        `Ton nom peut contenir ${MAX_DISPLAY_NAME_LENGTH} caractères maximum.`
+      )
+      return
+    }
+
+    if (trimmedDisplayName === user.displayName?.trim()) {
+      setIsEditingProfile(false)
+      return
+    }
+
+    setIsSavingProfile(true)
+    setProfileError('')
+    setProfileSuccessMessage('')
+
+    try {
+      const savedDisplayName = await updateUserDisplayName(
+        user,
+        trimmedDisplayName
+      )
+
+      setDisplayName(savedDisplayName)
+      refreshUser()
+      setIsEditingProfile(false)
+      setProfileSuccessMessage('Profil mis à jour ♡')
+    } catch (firebaseError) {
+      console.error(firebaseError)
+      setProfileError(
+        "Impossible de modifier ton nom pour le moment."
+      )
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
   async function handleLogout() {
     setLogoutError('')
     setIsLoggingOut(true)
@@ -305,10 +387,13 @@ function useSettings() {
 
     annualGoal,
     selectedGenres,
+    displayName,
 
     goalError,
     saveError,
     successMessage,
+    profileError,
+    profileSuccessMessage,
     logoutError,
     deleteError,
 
@@ -316,6 +401,8 @@ function useSettings() {
     isPreferencesLoading,
     isSaveDisabled,
     isSaving,
+    isEditingProfile,
+    isSavingProfile,
     isLoggingOut,
     isDeleteModalOpen,
     isDeletingAccount,
@@ -323,6 +410,10 @@ function useSettings() {
     toggleGenre,
     handleAnnualGoalChange,
     handleSave,
+    startProfileEditing,
+    cancelProfileEditing,
+    handleDisplayNameChange,
+    handleProfileSave,
     handleLogout,
     handleDeleteAccount,
     openDeleteModal,
