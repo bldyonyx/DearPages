@@ -22,12 +22,13 @@ function CollectionCoverPreview({ preview }) {
 
   return (
     <div
-      className="
-        aspect-2/3 min-w-0 overflow-hidden
+      className={`
+        aspect-2/3 w-full min-w-0 overflow-hidden
         rounded-[10px] border
         border-walnut/10 bg-parchment
         shadow-sm
-      "
+        ${collectionsLarge.previewCover}
+      `}
     >
       <BookCover
         title={title}
@@ -181,25 +182,6 @@ function CollectionCard({
           </div>
         </div>
 
-        {collection.description && (
-          <p
-            className={`
-              mt-3 min-w-0 overflow-hidden
-              wrap-break-word font-ui text-sm
-              leading-6 text-walnut/70
-              ${collectionsLarge.description}
-            `}
-            style={{
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 2,
-              overflowWrap: 'anywhere',
-            }}
-          >
-            {collection.description}
-          </p>
-        )}
-
         <div
           className={`
             mt-auto grid min-h-28
@@ -302,7 +284,6 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
-
               {collection.pinned
                 ? 'Désépingler'
                 : 'Épingler'}
@@ -326,7 +307,6 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
-
               Modifier
             </button>
 
@@ -348,7 +328,6 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
-
               Supprimer
             </button>
           </div>

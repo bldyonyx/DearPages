@@ -20,23 +20,24 @@ export const collectionsLarge = {
 
   gridGap: `
     [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-6
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-8
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-9
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-7
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-8
   `,
 
   collectionGrid: `
-    [@media_(min-width:1800px)_and_(max-width:2199px)]:grid-cols-4
+    [@media_(min-width:1800px)_and_(max-width:2199px)]:grid-cols-3
     [@media_(min-width:2200px)_and_(max-width:2399px)]:grid-cols-4
-    [@media_(min-width:2400px)]:grid-cols-5
+    [@media_(min-width:2400px)]:grid-cols-4
   `,
 
   card: `
-    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:min-h-60
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-64
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-72
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:min-h-72
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-72
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-80
   `,
 
   cardPadding: `
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:p-6
     [@media_(min-width:2200px)_and_(min-height:1100px)]:p-6
     [@media_(min-width:2400px)_and_(min-height:1300px)]:p-7
   `,
@@ -68,8 +69,15 @@ export const collectionsLarge = {
   `,
 
   previewGrid: `
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-32
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-36
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:min-h-36
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-36
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-40
+  `,
+
+  previewCover: `
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:max-w-24
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-24
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-28
   `,
 
   emptyPanel: `

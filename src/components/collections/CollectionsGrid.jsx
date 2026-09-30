@@ -22,10 +22,10 @@ function CollectionsGrid({
         {collections.map((collection) => (
           <div
             key={collection.id}
-            className={`
+            className="
               min-w-0
               rounded-3xl transition
-            `}
+            "
           >
             <CollectionCard
               collection={collection}
