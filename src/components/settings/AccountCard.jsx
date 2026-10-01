@@ -19,14 +19,6 @@ function AccountCard({
     >
       <div className="sm:flex sm:items-center sm:justify-between sm:gap-5">
         <div>
-          <p
-            className={`
-              font-handwritten text-xl text-walnut sm:text-2xl
-              ${settingsLarge.handwritten}
-            `}
-          >
-            ton compte
-          </p>
 
           <h2
             className={`

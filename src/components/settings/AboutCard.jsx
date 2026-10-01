@@ -14,14 +14,6 @@ function AboutCard() {
       `}
     >
       <div className="mb-6">
-        <p
-          className={`
-            font-handwritten text-lg text-olive
-            ${settingsLarge.handwritten}
-          `}
-        >
-          pour aller un peu plus loin ♡
-        </p>
 
         <h2
           className={`

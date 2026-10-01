@@ -29,14 +29,6 @@ function ReadingPreferencesCard({
       `}
     >
       <div>
-        <p
-          className={`
-            font-handwritten text-xl text-walnut sm:text-2xl
-            ${settingsLarge.handwritten}
-          `}
-        >
-          tes envies de lecture
-        </p>
 
         <h2
           className={`
