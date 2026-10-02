@@ -13,6 +13,7 @@ function CollectionBooksGrid({
   return (
     <section
       className={`
+        dp-section-enter
         mt-8 rounded-3xl
         border border-darkwood/10
         bg-cream/80
@@ -27,6 +28,7 @@ function CollectionBooksGrid({
     >
       <div
         className={`
+          dp-card-list-enter
           grid grid-cols-2
           gap-x-5 gap-y-14
           sm:grid-cols-3

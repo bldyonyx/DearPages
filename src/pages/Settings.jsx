@@ -47,7 +47,7 @@ function Settings() {
   return (
     <div className={`w-full min-w-0 ${settingsLarge.shell}`}>
       <div className={settingsLarge.content}>
-        <header className={`py-4 ${settingsLarge.headerTop}`}>
+        <header className={`dp-page-enter py-4 ${settingsLarge.headerTop}`}>
           <h1
             className={`
               mt-2 font-heading text-3xl font-bold text-darkwood md:text-4xl
@@ -71,7 +71,7 @@ function Settings() {
 
         {user && (
           <div
-            className={`mt-6 grid gap-6 ${settingsLarge.stack}`}
+            className={`dp-card-list-enter dp-section-enter mt-6 grid gap-6 ${settingsLarge.stack}`}
           >
             <ProfileCard
               user={user}

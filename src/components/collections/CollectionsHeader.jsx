@@ -8,7 +8,7 @@ function CollectionsHeader({
   onCreateCollection,
 }) {
   return (
-    <header className={`py-4 ${collectionsLarge.headerTop}`}>
+    <header className={`dp-page-enter py-4 ${collectionsLarge.headerTop}`}>
       <div
         className="
           flex flex-col gap-4

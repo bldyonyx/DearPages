@@ -84,7 +84,7 @@ function Discover() {
   return (
     <div className={`p-6 ${discoverLarge.shell}`}>
       {/* Header */}
-      <header className={`py-4 ${discoverLarge.headerTop}`}>
+      <header className={`dp-page-enter py-4 ${discoverLarge.headerTop}`}>
         <div
           className="
             flex items-start justify-between gap-4
@@ -123,8 +123,8 @@ function Discover() {
       <section
         className={
           isSearchMode
-            ? `mt-6 ${discoverLarge.sectionGap}`
-            : `mt-8 ${discoverLarge.firstSectionGap}`
+            ? `dp-section-enter mt-6 ${discoverLarge.sectionGap}`
+            : `dp-section-enter mt-8 ${discoverLarge.firstSectionGap}`
         }
       >
         <DiscoverSearch

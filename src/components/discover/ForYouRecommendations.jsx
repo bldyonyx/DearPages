@@ -23,7 +23,7 @@ function ForYouRecommendations({
   )
 
   return (
-    <main className={`mt-10 space-y-10 ${discoverLarge.sectionStack}`}>
+    <main className={`dp-section-enter mt-10 space-y-10 ${discoverLarge.sectionStack}`}>
       <BackButton
         to="/discover"
         className="
@@ -34,7 +34,7 @@ function ForYouRecommendations({
         Retour aux découvertes
       </BackButton>
 
-      <header>
+      <header className="dp-page-enter">
         <h2
           className={`
             font-heading text-3xl font-bold text-darkwood md:text-4xl
@@ -68,6 +68,7 @@ function ForYouRecommendations({
             <section
               key={subject}
               className={`
+                dp-section-enter
                 rounded-3xl
                 border border-darkwood/10
                 bg-cream/80
@@ -138,6 +139,7 @@ function ForYouRecommendations({
 
               <div
                 className={`
+                  dp-card-list-enter
                   mt-6 grid
                   grid-cols-2
                   gap-5

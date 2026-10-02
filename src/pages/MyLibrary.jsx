@@ -97,7 +97,7 @@ function MyLibrary() {
 
   return (
     <div className={`p-6 ${libraryLarge.shell}`}>
-      <header className={`py-4 ${libraryLarge.headerTop}`}>
+      <header className={`dp-page-enter py-4 ${libraryLarge.headerTop}`}>
         <div
           className="
             flex flex-col gap-4
@@ -240,7 +240,7 @@ function MyLibrary() {
         </div>
       ) : books.length === 0 ? (
         <div
-          className={`mt-8 ${libraryLarge.sectionGap}`}
+          className={`dp-section-enter mt-8 ${libraryLarge.sectionGap}`}
         >
           <LibraryEmptyState />
         </div>

@@ -12,7 +12,7 @@ function SearchResults({
   return (
     <section
       aria-busy={isLoading}
-      className={`mt-6 ${discoverLarge.sectionGap}`}
+      className={`dp-section-enter mt-6 ${discoverLarge.sectionGap}`}
     >
       <BackButton
         onClick={onBackToDiscover}
@@ -80,6 +80,7 @@ function SearchResults({
           {books.length > 0 && (
             <div
               className={`
+                dp-card-list-enter
                 mt-6 grid
                 grid-cols-2
                 justify-items-center

@@ -101,6 +101,7 @@ function Dashboard() {
           {/* Lecture en cours + objectif */}
           <div
             className={`
+              dp-section-enter
               mt-8 grid gap-6
               xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]
               ${dashboardLarge.firstSectionGap}
@@ -120,13 +121,14 @@ function Dashboard() {
           </div>
 
           {/* Livres récemment ajoutés */}
-          <div className={`mt-6 ${dashboardLarge.sectionGap}`}>
+          <div className={`dp-section-enter mt-6 ${dashboardLarge.sectionGap}`}>
             <RecentlyAdded books={recentBooks} />
           </div>
 
           {/* Statistiques + compagnon */}
           <div
             className={`
+              dp-section-enter
               mt-6
               flex flex-col gap-6
               min-[1380px]:flex-row

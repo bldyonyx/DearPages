@@ -9,9 +9,10 @@ function CollectionsGrid({
   onPinCollection,
 }) {
   return (
-    <section className={`mt-8 ${collectionsLarge.sectionGap}`}>
+    <section className={`dp-section-enter mt-8 ${collectionsLarge.sectionGap}`}>
       <div
         className={`
+          dp-card-list-enter
           grid gap-5
           sm:grid-cols-[repeat(auto-fit,minmax(18rem,1fr))]
           xl:grid-cols-3

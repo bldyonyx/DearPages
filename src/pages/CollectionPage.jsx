@@ -77,6 +77,7 @@ function CollectionPage() {
       <div className={pageClassName}>
         <section
           className={`
+            dp-section-enter
             mt-8 rounded-3xl
             border border-darkwood/10
             bg-cream/80 p-5
@@ -97,6 +98,7 @@ function CollectionPage() {
       <div className={pageClassName}>
         <section
           className={`
+            dp-section-enter
             mt-8 rounded-[28px]
             border border-dustyrose/30
             bg-dustyrose/20
@@ -118,6 +120,7 @@ function CollectionPage() {
       <div className={pageClassName}>
         <section
           className={`
+            dp-section-enter
             mx-auto mt-8 max-w-2xl
             rounded-3xl
             border border-darkwood/10

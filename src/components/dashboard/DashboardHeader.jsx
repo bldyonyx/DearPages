@@ -31,7 +31,7 @@ function DashboardHeader({ user }) {
   }
 
   return (
-    <header className={`py-4 ${dashboardLarge.headerTop}`}>
+    <header className={`dp-page-enter py-4 ${dashboardLarge.headerTop}`}>
       <div
         className="
           flex flex-col gap-4

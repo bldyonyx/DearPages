@@ -185,6 +185,42 @@ input[type='search']::-webkit-search-cancel-button {
   }
 }
 
+@keyframes dear-pages-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dear-pages-section-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dear-pages-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .dp-menu-enter {
   animation: dear-pages-menu-enter 140ms ease-out both;
 }
@@ -195,6 +231,18 @@ input[type='search']::-webkit-search-cancel-button {
 
 .dp-dialog-enter {
   animation: dear-pages-dialog-enter 180ms ease-out both;
+}
+
+.dp-page-enter {
+  animation: dear-pages-page-enter 260ms ease-out both;
+}
+
+.dp-section-enter {
+  animation: dear-pages-section-enter 240ms ease-out 60ms both;
+}
+
+.dp-card-list-enter > * {
+  animation: dear-pages-card-enter 220ms ease-out 90ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -208,7 +256,10 @@ input[type='search']::-webkit-search-cancel-button {
 
   .dp-menu-enter,
   .dp-backdrop-enter,
-  .dp-dialog-enter {
+  .dp-dialog-enter,
+  .dp-page-enter,
+  .dp-section-enter,
+  .dp-card-list-enter > * {
     animation: none !important;
   }
 }

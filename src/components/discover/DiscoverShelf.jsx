@@ -16,7 +16,7 @@ function DiscoverShelf({
   if (books.length === 0) return null
 
   return (
-    <section>
+    <section className="dp-section-enter">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -141,6 +141,7 @@ function DiscoverShelf({
 
       <div
         className={`
+          dp-card-list-enter
           mt-6 grid
           grid-cols-2
           gap-5

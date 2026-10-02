@@ -4,6 +4,7 @@ function CollectionsEmptyState({ onCreateCollection }) {
   return (
     <section
       className={`
+        dp-section-enter
         mt-8 max-w-2xl rounded-3xl
         border border-darkwood/10
         bg-cream/80

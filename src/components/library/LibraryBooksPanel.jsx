@@ -13,6 +13,7 @@ function LibraryBooksPanel({
   return (
     <section
       className={`
+        dp-section-enter
         mt-8
         rounded-3xl
         border border-darkwood/10
@@ -36,6 +37,7 @@ function LibraryBooksPanel({
       {visibleBooks.length > 0 ? (
         <div
           className={`
+            dp-card-list-enter
             mt-7 grid
             grid-cols-2
             gap-x-5 gap-y-14

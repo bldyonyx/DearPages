@@ -6,6 +6,7 @@ function CollectionPageEmptyState({ onAddBooks }) {
   return (
     <section
       className={`
+        dp-section-enter
         mx-auto mt-8 max-w-2xl
         rounded-3xl
         border border-darkwood/10

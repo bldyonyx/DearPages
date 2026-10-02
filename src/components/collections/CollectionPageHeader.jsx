@@ -28,7 +28,7 @@ function CollectionPageHeader({
 
   return (
     <header
-      className={`min-w-0 py-4 ${collectionPageLarge.headerTop}`}
+      className={`dp-page-enter min-w-0 py-4 ${collectionPageLarge.headerTop}`}
     >
       <BackButton
         to="/collections"

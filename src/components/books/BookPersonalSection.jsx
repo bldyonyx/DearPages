@@ -23,6 +23,7 @@ function BookPersonalSection({
     return (
       <section
         className={`
+          dp-section-enter
           mt-14 w-full min-w-0
           ${bookLarge.personalSection}
           ${bookLarge.sectionGap}
@@ -65,6 +66,7 @@ function BookPersonalSection({
   return (
     <section
       className={`
+        dp-section-enter
         mt-14 w-full min-w-0
         ${bookLarge.personalSection}
         ${bookLarge.sectionGap}

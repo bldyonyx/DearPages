@@ -19,7 +19,7 @@ function DiscoverHome({
   return (
     <div
       aria-busy={isLoading}
-      className={`mt-10 space-y-12 ${discoverLarge.sectionStack}`}
+      className={`dp-section-enter mt-10 space-y-12 ${discoverLarge.sectionStack}`}
     >
       {isLoading && (
         <p

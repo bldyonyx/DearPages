@@ -38,6 +38,7 @@ function BookDescriptionSection({
   return (
     <section
       className={`
+        dp-section-enter
         mt-14 w-full min-w-0
         ${bookLarge.section}
         ${bookLarge.sectionGap}

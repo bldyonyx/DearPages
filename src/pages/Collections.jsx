@@ -50,6 +50,7 @@ function Collections() {
       {isLoading ? (
         <section
           className={`
+            dp-section-enter
             mt-8 rounded-3xl
             border border-darkwood/10
             bg-cream/80 p-5
@@ -63,6 +64,7 @@ function Collections() {
       ) : error ? (
         <section
           className={`
+            dp-section-enter
             mt-8 rounded-[28px]
             border border-dustyrose/30
             bg-dustyrose/20

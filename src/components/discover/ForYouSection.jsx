@@ -13,6 +13,7 @@ function ForYouSection({
   return (
     <section
       className={`
+        dp-section-enter
         rounded-3xl
         border border-darkwood/10
         bg-cream/80
@@ -128,6 +129,7 @@ function ForYouSection({
 
       <div
         className={`
+          dp-card-list-enter
           mt-7 grid
           grid-cols-2
           gap-5

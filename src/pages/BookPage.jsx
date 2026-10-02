@@ -28,6 +28,7 @@ function BookDetailsLoadingState() {
   return (
     <section
       className="
+        dp-section-enter
         min-h-90
         rounded-3xl
         border border-darkwood/10
@@ -125,10 +126,12 @@ function BookPage() {
           ${bookLarge.pagePadding}
         `}
       >
-        <BackButton
-          onClick={() => navigate(-1)}
-          className={`mb-5 ${bookLarge.backButton}`}
-        />
+        <div className="dp-page-enter">
+          <BackButton
+            onClick={() => navigate(-1)}
+            className={`mb-5 ${bookLarge.backButton}`}
+          />
+        </div>
 
         {!canRenderBookDetails ? (
           <BookDetailsLoadingState />

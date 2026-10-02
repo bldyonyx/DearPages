@@ -136,6 +136,7 @@ function BookDetails({
   return (
     <section
       className="
+        dp-section-enter
         rounded-3xl
         border border-darkwood/10
         bg-cream/80
