@@ -70,7 +70,7 @@ function ReadingPreferencesCard({
               ${settingsLarge.preferencesGrid}
             `}
           >
-            <div className="min-w-0">
+            <div className={`min-w-0 ${settingsLarge.preferenceGenres}`}>
               <h3
                 className={`
                   text-sm font-bold text-darkwood
@@ -120,7 +120,7 @@ function ReadingPreferencesCard({
               </p>
             </div>
 
-            <div className="min-w-0">
+            <div className={`min-w-0 ${settingsLarge.preferenceGoal}`}>
               <h3
                 className={`
                   text-sm font-bold text-darkwood

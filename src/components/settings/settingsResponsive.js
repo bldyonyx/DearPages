@@ -4,7 +4,6 @@ export const settingsLarge = {
     sm:px-7
     lg:px-6 lg:py-6
     [@media_(min-width:1400px)_and_(max-height:950px)]:py-5
-    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:px-8
     [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:pt-8
     [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:pb-3
     [@media_(min-width:2200px)_and_(min-height:1100px)]:p-8
@@ -13,9 +12,7 @@ export const settingsLarge = {
 
   content: `
     mx-auto w-full max-w-6xl
-    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:max-w-7xl
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-[88rem]
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-[96rem]
+    lg:mx-0 lg:max-w-none
   `,
 
   headerTop: `
@@ -72,9 +69,21 @@ export const settingsLarge = {
 
   preferencesGrid: `
     [@media_(min-width:1400px)_and_(max-height:950px)]:gap-6
-    [@media_(min-width:1800px)_and_(min-height:1050px)]:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.55fr)]
+    [@media_(min-width:1600px)]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.45fr)]
+    [@media_(min-width:1800px)_and_(min-height:1050px)]:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.35fr)]
     [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-10
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:grid-cols-[minmax(0,1.75fr)_minmax(340px,0.25fr)]
     [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-12
+  `,
+
+  preferenceGenres: `
+    [@media_(min-width:1600px)]:max-w-[78rem]
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-[88rem]
+  `,
+
+  preferenceGoal: `
+    [@media_(min-width:1600px)]:max-w-sm
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-md
   `,
 
   controlButton: `
