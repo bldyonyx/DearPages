@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getOpenLibraryBooksBySubject } from '../services/trendingBooksApi'
 import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import { addBooksToIdentitySet } from '../utils/recommendationSelection'
 import {
@@ -10,7 +11,10 @@ import {
 const RECOMMENDATIONS_PER_GENRE = 5
 const CANDIDATE_POOL_SIZE = 40
 const MAX_REFRESH_WINDOW_ATTEMPTS = 4
+const MAX_FALLBACK_WINDOW_ATTEMPTS = 2
 const EMPTY_EXCLUDED_BOOK_IDS = []
+const REFRESH_ERROR_MESSAGE =
+  'Impossible de rafraîchir les suggestions pour le moment.'
 
 function createInitialGenreState(preferences) {
   return preferences.reduce(
@@ -73,6 +77,20 @@ function shouldFetchGenreRecommendations(savedState) {
   )
 }
 
+function getVisibleBookId(book) {
+  return String(book?.id || '')
+}
+
+function haveSameVisibleBookIds(currentBooks, nextBooks) {
+  if (currentBooks.length !== nextBooks.length) return false
+
+  const currentBookIds = new Set(currentBooks.map(getVisibleBookId))
+
+  return nextBooks.every((book) =>
+    currentBookIds.has(getVisibleBookId(book))
+  )
+}
+
 /**
  * Charge les recommandations personnalisees de la vue etendue.
  *
@@ -97,6 +115,7 @@ function useForYouRecommendations(
     () => createInitialGenreState(preferences)
   )
   const shownIdentityKeysByGenreRef = useRef({})
+  const refreshingGenresRef = useRef(new Set())
 
   useEffect(() => {
     if (!isEnabled || !userId) return
@@ -194,6 +213,8 @@ function useForYouRecommendations(
               currentBooks: savedState?.books || [],
               windowSize: CANDIDATE_POOL_SIZE,
               maxAttempts: MAX_REFRESH_WINDOW_ATTEMPTS,
+              fallbackBooksLoader: getOpenLibraryBooksBySubject,
+              maxFallbackAttempts: MAX_FALLBACK_WINDOW_ATTEMPTS,
             })
           }
         )
@@ -278,7 +299,15 @@ function useForYouRecommendations(
   async function refreshGenre(subject) {
     const currentGenre = genreState[subject]
 
-    if (!currentGenre || currentGenre.isLoading) return
+    if (
+      !currentGenre ||
+      currentGenre.isLoading ||
+      refreshingGenresRef.current.has(subject)
+    ) {
+      return
+    }
+
+    refreshingGenresRef.current.add(subject)
 
     setGenreState((currentState) => ({
       ...currentState,
@@ -295,7 +324,6 @@ function useForYouRecommendations(
         new Set()
       const {
         books: selectedBooks,
-        didResetCycle,
         isPoolExhausted,
         seenIdentityKeys,
         startIndex,
@@ -308,11 +336,17 @@ function useForYouRecommendations(
         currentBooks: currentGenre.books,
         windowSize: CANDIDATE_POOL_SIZE,
         maxAttempts: MAX_REFRESH_WINDOW_ATTEMPTS,
+        fallbackBooksLoader: getOpenLibraryBooksBySubject,
+        maxFallbackAttempts: MAX_FALLBACK_WINDOW_ATTEMPTS,
       })
 
       shownIdentityKeys = seenIdentityKeys
 
-      if (selectedBooks.length) {
+      const didChangeVisibleBooks =
+        selectedBooks.length > 0 &&
+        !haveSameVisibleBookIds(currentGenre.books, selectedBooks)
+
+      if (didChangeVisibleBooks) {
         addBooksToIdentitySet(shownIdentityKeys, selectedBooks)
         shownIdentityKeysByGenreRef.current[subject] =
           shownIdentityKeys
@@ -338,13 +372,14 @@ function useForYouRecommendations(
         return
       }
 
+      shownIdentityKeysByGenreRef.current[subject] =
+        shownIdentityKeys
+
       setGenreState((currentState) => ({
         ...currentState,
         [subject]: {
           ...currentState[subject],
-          error: didResetCycle
-            ? 'Nouveau cycle prepare pour ce genre.'
-            : 'Aucune nouvelle suggestion disponible pour ce genre.',
+          error: '',
           isLoading: false,
           startIndex,
         },
@@ -363,10 +398,12 @@ function useForYouRecommendations(
         ...currentState,
         [subject]: {
           ...currentState[subject],
-          error: 'Impossible de rafraîchir ce genre pour le moment.',
+          error: REFRESH_ERROR_MESSAGE,
           isLoading: false,
         },
       }))
+    } finally {
+      refreshingGenresRef.current.delete(subject)
     }
   }
 

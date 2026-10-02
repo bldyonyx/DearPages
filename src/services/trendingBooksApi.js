@@ -4,6 +4,14 @@ import { getPreferredIsbn } from './coverUtils.js'
 const OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json'
 const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org'
 const OPEN_LIBRARY_COVERS_URL = 'https://covers.openlibrary.org/b/id'
+const OPEN_LIBRARY_SUBJECT_QUERIES = {
+  classics: 'classics',
+  crime: 'crime fiction',
+  comics: 'comics',
+  'science fiction': 'science fiction',
+  'self help': 'self help',
+  'young adult': 'young adult fiction',
+}
 
 /**
  * Extrait une description Open Library.
@@ -71,6 +79,65 @@ export async function getTrendingBooksDetails(limit = 10) {
       source: 'open-library',
     }
   })
+}
+
+function formatOpenLibrarySearchBook(book) {
+  const isbns = book.isbn || []
+  const normalizedId = book.key.replace('/works/', '')
+
+  return {
+    id: normalizedId,
+    googleBooksId: normalizedId,
+    openLibraryId: book.key,
+    title: book.title || 'Titre inconnu',
+    authors: book.author_name || ['Auteur inconnu'],
+    isbn: getPreferredIsbn(isbns),
+    isbns,
+    cover: book.cover_i
+      ? `${OPEN_LIBRARY_COVERS_URL}/${book.cover_i}-L.jpg?default=false`
+      : null,
+    source: 'open-library',
+  }
+}
+
+/**
+ * Recherche des livres Open Library par sujet.
+ *
+ * Cette source sert de secours borne lorsque les fenetres Google Books
+ * d'un rayon Discover ne fournissent plus assez d'alternatives.
+ *
+ * @param {string} subject - Sujet Dear Pages ou sujet Open Library.
+ * @param {number} [limit=40] - Nombre maximum de resultats.
+ * @param {number} [page=1] - Page Open Library a recuperer.
+ * @returns {Promise<Array>} Livres Open Library formates pour Dear Pages.
+ * @throws {Error} Si la requete Open Library echoue.
+ */
+export async function getOpenLibraryBooksBySubject(
+  subject,
+  limit = 40,
+  page = 1
+) {
+  const normalizedSubject = String(subject || '').trim()
+  const params = new URLSearchParams({
+    subject:
+      OPEN_LIBRARY_SUBJECT_QUERIES[normalizedSubject] ||
+      normalizedSubject,
+    limit: String(limit),
+    page: String(page),
+    fields: 'key,title,author_name,isbn,cover_i',
+  })
+
+  let data
+
+  try {
+    data = await fetchJsonOnce(
+      `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`
+    )
+  } catch {
+    throw new Error('Impossible de recuperer ces suggestions.')
+  }
+
+  return (data.docs || []).map(formatOpenLibrarySearchBook)
 }
 
 /**

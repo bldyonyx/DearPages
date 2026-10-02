@@ -1,5 +1,5 @@
 const STORAGE_PREFIX = 'booktracker:recommendations'
-const FOR_YOU_CACHE_VERSION = 'v4'
+const FOR_YOU_CACHE_VERSION = 'v5'
 
 function getUserStorageScope(userId) {
   return `user:${userId}`

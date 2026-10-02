@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { getBooksBySubject } from '../services/booksApi'
-import { getTrendingBooksDetails } from '../services/trendingBooksApi'
+import {
+  getOpenLibraryBooksBySubject,
+  getTrendingBooksDetails,
+} from '../services/trendingBooksApi'
 import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import {
   addBooksToIdentitySet,
@@ -15,6 +17,7 @@ import {
 const HOME_SHELF_BOOK_LIMIT = 7
 const HOME_GOOGLE_CANDIDATE_POOL_SIZE = 40
 const HOME_MAX_GOOGLE_WINDOW_ATTEMPTS = 4
+const HOME_MAX_FALLBACK_WINDOW_ATTEMPTS = 2
 const HOME_TRENDING_CANDIDATE_POOL_SIZE = 100
 const EMPTY_EXCLUDED_BOOK_IDS = []
 
@@ -201,6 +204,8 @@ function useDiscoverHomeBooks({
               currentBooks: savedForYouState?.books || [],
               windowSize: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
               maxAttempts: HOME_MAX_GOOGLE_WINDOW_ATTEMPTS,
+              fallbackBooksLoader: getOpenLibraryBooksBySubject,
+              maxFallbackAttempts: HOME_MAX_FALLBACK_WINDOW_ATTEMPTS,
             })
           : Promise.resolve({
               books: [],
@@ -215,12 +220,27 @@ function useDiscoverHomeBooks({
               HOME_TRENDING_CANDIDATE_POOL_SIZE
             ),
         savedMustReadState
-          ? Promise.resolve(savedMustReadState.books)
-          : getBooksBySubject(
-              'classics',
-              HOME_GOOGLE_CANDIDATE_POOL_SIZE,
-              0
-            ),
+          ? Promise.resolve({
+              books: savedMustReadState.books,
+              startIndex: savedMustReadState.startIndex,
+              seenIdentityKeys:
+                mustReadShownIdentityKeysRef.current,
+              isPoolExhausted:
+                savedMustReadState.isPoolExhausted,
+            })
+          : fetchRecommendationBatch({
+              subject: 'classics',
+              startIndex: 0,
+              limit: HOME_SHELF_BOOK_LIMIT,
+              shownIdentityKeys:
+                mustReadShownIdentityKeysRef.current,
+              excludedBookIds,
+              currentBooks: [],
+              windowSize: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
+              maxAttempts: HOME_MAX_GOOGLE_WINDOW_ATTEMPTS,
+              fallbackBooksLoader: getOpenLibraryBooksBySubject,
+              maxFallbackAttempts: HOME_MAX_FALLBACK_WINDOW_ATTEMPTS,
+            }),
       ]).then((results) => {
 
       if (!isActive) return
@@ -308,31 +328,28 @@ function useDiscoverHomeBooks({
         setMustReadBooks(savedMustReadState.books)
         setMustReadStartIndex(savedMustReadState.startIndex)
       } else if (mustReadsResult.status === 'fulfilled') {
-        const selectedMustReadBooks = selectRecommendationBooks(
-          mustReadsResult.value,
-          {
-            limit: HOME_SHELF_BOOK_LIMIT,
-            alreadyShownIdentityKeys:
-              mustReadShownIdentityKeysRef.current,
-            excludedBookIds,
-            preferBooksWithCovers: true,
-          }
-        )
+        const selectedMustReadBooks =
+          mustReadsResult.value.books
 
+        mustReadShownIdentityKeysRef.current =
+          mustReadsResult.value.seenIdentityKeys ||
+          mustReadShownIdentityKeysRef.current
         addBooksToIdentitySet(
           mustReadShownIdentityKeysRef.current,
           selectedMustReadBooks
         )
         setMustReadBooks(selectedMustReadBooks)
-        setMustReadStartIndex(HOME_GOOGLE_CANDIDATE_POOL_SIZE)
+        setMustReadStartIndex(mustReadsResult.value.startIndex)
         if (selectedMustReadBooks.length) {
           writeRecommendationState(
             RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
             {
               books: selectedMustReadBooks,
-              startIndex: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
+              startIndex: mustReadsResult.value.startIndex,
               seenIdentityKeys:
                 mustReadShownIdentityKeysRef.current,
+              isPoolExhausted:
+                mustReadsResult.value.isPoolExhausted,
             }
           )
         }
@@ -431,78 +448,61 @@ function useDiscoverHomeBooks({
   async function refreshMustReadBooks() {
     if (isMustReadRefreshing) return
 
-    const requestedStartIndex = mustReadStartIndex
-    const nextStartIndex =
-      requestedStartIndex + HOME_GOOGLE_CANDIDATE_POOL_SIZE
-
     setIsMustReadRefreshing(true)
     setMustReadRefreshError('')
 
     try {
-      const books = await getBooksBySubject(
-        'classics',
-        HOME_GOOGLE_CANDIDATE_POOL_SIZE,
-        requestedStartIndex
-      )
-      const selectedBooks = selectRecommendationBooks(books, {
+      const {
+        books: selectedBooks,
+        isPoolExhausted,
+        seenIdentityKeys,
+        startIndex,
+      } = await fetchRecommendationBatch({
+        subject: 'classics',
+        startIndex: mustReadStartIndex,
         limit: HOME_SHELF_BOOK_LIMIT,
-        alreadyShownIdentityKeys:
-          mustReadShownIdentityKeysRef.current,
+        shownIdentityKeys: mustReadShownIdentityKeysRef.current,
         excludedBookIds,
-        preferBooksWithCovers: true,
+        currentBooks: mustReadBooks,
+        windowSize: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
+        maxAttempts: HOME_MAX_GOOGLE_WINDOW_ATTEMPTS,
+        fallbackBooksLoader: getOpenLibraryBooksBySubject,
+        maxFallbackAttempts: HOME_MAX_FALLBACK_WINDOW_ATTEMPTS,
       })
-      const shouldAdvanceStartIndex = books.length > 0
-      const shouldResetCycle = books.length === 0
 
       if (selectedBooks.length) {
+        mustReadShownIdentityKeysRef.current = seenIdentityKeys
         addBooksToIdentitySet(
           mustReadShownIdentityKeysRef.current,
           selectedBooks
         )
         setMustReadBooks(selectedBooks)
-        setMustReadStartIndex(nextStartIndex)
+        setMustReadStartIndex(startIndex)
         setMustReadRefreshError('')
         writeRecommendationState(
           RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
           {
             books: selectedBooks,
-            startIndex: nextStartIndex,
+            startIndex,
             seenIdentityKeys: mustReadShownIdentityKeysRef.current,
-          }
-        )
-      } else if (shouldResetCycle) {
-        const resetSeenIdentityKeys =
-          createSeenIdentitySetFromBooks(mustReadBooks)
-
-        mustReadShownIdentityKeysRef.current =
-          resetSeenIdentityKeys
-        setMustReadStartIndex(0)
-        setMustReadRefreshError(
-          'Aucun nouvel incontournable disponible pour le moment.'
-        )
-        writeRecommendationState(
-          RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
-          {
-            books: mustReadBooks,
-            startIndex: 0,
-            seenIdentityKeys: resetSeenIdentityKeys,
+            isPoolExhausted,
           }
         )
       } else {
         setMustReadRefreshError(
           'Aucun nouvel incontournable disponible pour le moment.'
         )
-        if (shouldAdvanceStartIndex) {
-          setMustReadStartIndex(nextStartIndex)
-          writeRecommendationState(
-            RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
-            {
-              books: mustReadBooks,
-              startIndex: nextStartIndex,
-              seenIdentityKeys: mustReadShownIdentityKeysRef.current,
-            }
-          )
-        }
+        mustReadShownIdentityKeysRef.current = seenIdentityKeys
+        setMustReadStartIndex(startIndex)
+        writeRecommendationState(
+          RECOMMENDATION_STORAGE_KEYS.mustReads(userId),
+          {
+            books: mustReadBooks,
+            startIndex,
+            seenIdentityKeys: mustReadShownIdentityKeysRef.current,
+            isPoolExhausted,
+          }
+        )
       }
     } catch {
       setMustReadRefreshError(
