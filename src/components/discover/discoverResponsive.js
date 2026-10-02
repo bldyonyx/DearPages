@@ -140,4 +140,74 @@ export const discoverLarge = {
     [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
     [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
   `,
+
+  searchResultsBackButton: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+  `,
+
+  searchResultsPanel: `
+    [@media_(min-width:1400px)_and_(max-height:950px)]:p-6
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:p-8
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:p-9
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:p-10
+  `,
+
+  searchResultsWidth: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-[92rem]
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-[98rem]
+  `,
+
+  searchResultsHeader: `
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-2
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3
+  `,
+
+  searchResultsTitle: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-3xl
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-3xl
+  `,
+
+  searchResultsMeta: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+  `,
+
+  searchResultsGrid: `
+    sm:grid-cols-3
+    lg:grid-cols-4
+    xl:grid-cols-5
+    [@media_(min-width:1800px)_and_(min-height:1050px)]:grid-cols-6
+  `,
+
+  searchResultsGridGap: `
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-x-7
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:gap-y-14
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-x-8
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-y-16
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-x-9
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-y-[4.5rem]
+  `,
+
+  searchResultsCardWrap: `
+    [@media_(min-width:1800px)_and_(min-height:1050px)_and_(max-width:2199px)]:max-w-44
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-48
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-48
+  `,
+
+  searchResultsBookTitle: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-xl
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-xl
+  `,
+
+  searchResultsBookAuthor: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
+  `,
+
+  searchResultsEmptyPanel: `
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:px-8
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:py-16
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:py-18
+  `,
 }
