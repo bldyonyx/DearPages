@@ -150,6 +150,11 @@ input[type='search']::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
 
+.dp-custom-cursor-active,
+.dp-custom-cursor-active * {
+  cursor: none !important;
+}
+
 
 @keyframes dear-pages-menu-enter {
   from {
