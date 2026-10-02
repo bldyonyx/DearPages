@@ -4,6 +4,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import greenBackground from '../../assets/textures/green-bg.jpg'
 import stripesBrown from '../../assets/textures/stripes-brown.jpg'
 import stripesBrownWide from '../../assets/textures/stripes-brown-wide.jpg'
+import BackToTopButton from '../ui/BackToTopButton'
 import MobileNav from './MobileNav'
 import Sidebar from './sidebar/Sidebar'
 
@@ -164,6 +165,7 @@ function PageLayout() {
       </main>
 
       <MobileNav />
+      <BackToTopButton />
     </div>
   )
 }
