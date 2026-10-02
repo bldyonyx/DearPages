@@ -58,6 +58,15 @@ function shouldFetchHomeForYou(savedState) {
   )
 }
 
+function shouldRefillShelf(savedState) {
+  if (!savedState) return true
+
+  return (
+    savedState.books.length < HOME_SHELF_BOOK_LIMIT &&
+    !savedState.isPoolExhausted
+  )
+}
+
 /**
  * Charge les selections de la vue Decouvrir par defaut.
  *
@@ -123,6 +132,10 @@ function useDiscoverHomeBooks({
       )
       const shouldFetchForYou =
         shouldFetchHomeForYou(savedForYouState)
+      const shouldFetchTrending =
+        shouldRefillShelf(savedTrendingState)
+      const shouldFetchMustReads =
+        shouldRefillShelf(savedMustReadState)
 
       setIsDiscoverLoading(true)
       setDiscoverError('')
@@ -184,8 +197,8 @@ function useDiscoverHomeBooks({
 
       if (
         !shouldFetchForYou &&
-        savedTrendingState &&
-        savedMustReadState
+        !shouldFetchTrending &&
+        !shouldFetchMustReads
       ) {
         return
       }
@@ -214,12 +227,17 @@ function useDiscoverHomeBooks({
                 forYouShownIdentityKeysRef.current,
               isPoolExhausted: savedForYouState.isPoolExhausted,
             }),
-        savedTrendingState
-          ? Promise.resolve(savedTrendingState.books)
-          : getTrendingBooksDetails(
-              HOME_TRENDING_CANDIDATE_POOL_SIZE
-            ),
-        savedMustReadState
+        shouldFetchTrending
+          ? Promise.resolve(savedTrendingState?.candidatePool || [])
+              .then((candidatePool) =>
+                candidatePool.length
+                  ? candidatePool
+                  : getTrendingBooksDetails(
+                      HOME_TRENDING_CANDIDATE_POOL_SIZE
+                    )
+              )
+          : Promise.resolve(savedTrendingState.books),
+        !shouldFetchMustReads && savedMustReadState
           ? Promise.resolve({
               books: savedMustReadState.books,
               startIndex: savedMustReadState.startIndex,
@@ -230,12 +248,14 @@ function useDiscoverHomeBooks({
             })
           : fetchRecommendationBatch({
               subject: 'classics',
-              startIndex: 0,
-              limit: HOME_SHELF_BOOK_LIMIT,
+              startIndex: savedMustReadState?.startIndex || 0,
+              limit:
+                HOME_SHELF_BOOK_LIMIT -
+                (savedMustReadState?.books.length || 0),
               shownIdentityKeys:
                 mustReadShownIdentityKeysRef.current,
               excludedBookIds,
-              currentBooks: [],
+              currentBooks: savedMustReadState?.books || [],
               windowSize: HOME_GOOGLE_CANDIDATE_POOL_SIZE,
               maxAttempts: HOME_MAX_GOOGLE_WINDOW_ATTEMPTS,
               fallbackBooksLoader: getOpenLibraryBooksBySubject,
@@ -290,46 +310,57 @@ function useDiscoverHomeBooks({
       }
 
       // Tendances du moment
-      if (savedTrendingState) {
+      if (!shouldFetchTrending && savedTrendingState) {
         setTrendingBooks(savedTrendingState.books)
       } else if (trendingResult.status === 'fulfilled') {
         trendingCandidatePoolRef.current = trendingResult.value
         isTrendingPoolExhaustedRef.current = false
+        const savedTrendingBooks = savedTrendingState?.books || []
         const selectedTrendingBooks = selectRecommendationBooks(
           trendingCandidatePoolRef.current,
           {
-            limit: HOME_SHELF_BOOK_LIMIT,
+            limit:
+              HOME_SHELF_BOOK_LIMIT -
+              savedTrendingBooks.length,
             alreadyShownIdentityKeys:
               trendingShownIdentityKeysRef.current,
             excludedBookIds,
             preferBooksWithCovers: true,
           }
         )
+        const nextTrendingBooks = [
+          ...savedTrendingBooks,
+          ...selectedTrendingBooks,
+        ].slice(0, HOME_SHELF_BOOK_LIMIT)
+        isTrendingPoolExhaustedRef.current =
+          nextTrendingBooks.length < HOME_SHELF_BOOK_LIMIT
 
         addBooksToIdentitySet(
           trendingShownIdentityKeysRef.current,
-          selectedTrendingBooks
+          nextTrendingBooks
         )
-        setTrendingBooks(selectedTrendingBooks)
-        if (selectedTrendingBooks.length) {
+        setTrendingBooks(nextTrendingBooks)
+        if (nextTrendingBooks.length) {
           writeTrendingState(userId, {
-            books: selectedTrendingBooks,
+            books: nextTrendingBooks,
             candidatePool: trendingCandidatePoolRef.current,
             seenIdentityKeys: trendingShownIdentityKeysRef.current,
             isPoolExhausted: isTrendingPoolExhaustedRef.current,
           })
         }
       } else {
-        setTrendingBooks([])
+        setTrendingBooks(savedTrendingState?.books || [])
       }
 
       // Les incontournables
-      if (savedMustReadState) {
+      if (!shouldFetchMustReads && savedMustReadState) {
         setMustReadBooks(savedMustReadState.books)
         setMustReadStartIndex(savedMustReadState.startIndex)
       } else if (mustReadsResult.status === 'fulfilled') {
-        const selectedMustReadBooks =
-          mustReadsResult.value.books
+        const selectedMustReadBooks = [
+          ...(savedMustReadState?.books || []),
+          ...mustReadsResult.value.books,
+        ].slice(0, HOME_SHELF_BOOK_LIMIT)
 
         mustReadShownIdentityKeysRef.current =
           mustReadsResult.value.seenIdentityKeys ||
@@ -349,12 +380,13 @@ function useDiscoverHomeBooks({
               seenIdentityKeys:
                 mustReadShownIdentityKeysRef.current,
               isPoolExhausted:
-                mustReadsResult.value.isPoolExhausted,
+                mustReadsResult.value.isPoolExhausted ||
+                selectedMustReadBooks.length < HOME_SHELF_BOOK_LIMIT,
             }
           )
         }
       } else {
-        setMustReadBooks([])
+        setMustReadBooks(savedMustReadState?.books || [])
       }
 
       const hasFailedRequest = results.some(

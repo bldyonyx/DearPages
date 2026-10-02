@@ -8,7 +8,7 @@ import {
   writeRecommendationState,
 } from '../utils/recommendationSessionStorage'
 
-const RECOMMENDATIONS_PER_GENRE = 5
+const RECOMMENDATIONS_PER_GENRE = 7
 const CANDIDATE_POOL_SIZE = 40
 const MAX_REFRESH_WINDOW_ATTEMPTS = 4
 const MAX_FALLBACK_WINDOW_ATTEMPTS = 2
@@ -64,6 +64,7 @@ function writeGenreState(
       startIndex,
       seenIdentityKeys,
       isPoolExhausted,
+      bookLimit: RECOMMENDATIONS_PER_GENRE,
     }
   )
 }
@@ -71,9 +72,13 @@ function writeGenreState(
 function shouldFetchGenreRecommendations(savedState) {
   if (!savedState) return true
 
+  if (savedState.books.length >= RECOMMENDATIONS_PER_GENRE) {
+    return false
+  }
+
   return (
-    savedState.books.length < RECOMMENDATIONS_PER_GENRE &&
-    !savedState.isPoolExhausted
+    !savedState.isPoolExhausted ||
+    savedState.bookLimit < RECOMMENDATIONS_PER_GENRE
   )
 }
 
@@ -261,6 +266,7 @@ function useForYouRecommendations(
                 seenIdentityKeys:
                   shownIdentityKeysByGenreRef.current[subject],
                 isPoolExhausted: result.value.isPoolExhausted,
+                bookLimit: RECOMMENDATIONS_PER_GENRE,
               }
             )
           }

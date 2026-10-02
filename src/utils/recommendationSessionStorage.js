@@ -44,6 +44,8 @@ function isValidRecommendationState(value) {
       value.candidatePool === undefined) &&
     (typeof value.isPoolExhausted === 'boolean' ||
       value.isPoolExhausted === undefined) &&
+    (typeof value.bookLimit === 'number' ||
+      value.bookLimit === undefined) &&
     (typeof value.startIndex === 'number' ||
       value.startIndex === undefined)
   )
@@ -73,6 +75,7 @@ export function readRecommendationState(key) {
       seenIdentityKeys: parsedValue.seenIdentityKeys,
       candidatePool: parsedValue.candidatePool || [],
       isPoolExhausted: Boolean(parsedValue.isPoolExhausted),
+      bookLimit: parsedValue.bookLimit || 0,
     }
   } catch {
     return null
@@ -90,6 +93,7 @@ export function readRecommendationState(key) {
  * @param {Iterable<string>} state.seenIdentityKeys - Session seen identities.
  * @param {Array<Object>} [state.candidatePool] - Stored candidates for locally rotated shelves.
  * @param {boolean} [state.isPoolExhausted=false] - Whether a stored local pool has no unseen books left.
+ * @param {number} [state.bookLimit=0] - Target shelf size used when this snapshot was written.
  */
 export function writeRecommendationState(
   key,
@@ -99,6 +103,7 @@ export function writeRecommendationState(
     seenIdentityKeys,
     candidatePool,
     isPoolExhausted = false,
+    bookLimit = 0,
   }
 ) {
   const storage = getSessionStorage()
@@ -114,6 +119,7 @@ export function writeRecommendationState(
         seenIdentityKeys: Array.from(seenIdentityKeys || []),
         candidatePool,
         isPoolExhausted,
+        bookLimit,
       })
     )
   } catch {
