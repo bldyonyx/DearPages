@@ -116,6 +116,7 @@ function getLargeTitleSize(title = '') {
 function BookDetails({
   book,
   libraryBook,
+  shouldAnimate = true,
   isLibraryLoading = false,
   isSaving,
   libraryError,
@@ -135,8 +136,8 @@ function BookDetails({
 
   return (
     <section
-      className="
-        dp-section-enter
+      className={`
+        ${shouldAnimate ? 'dp-section-enter' : ''}
         rounded-3xl
         border border-darkwood/10
         bg-cream/80
@@ -145,7 +146,7 @@ function BookDetails({
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10
-      "
+      `}
     >
       <div
         className={`

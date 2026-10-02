@@ -24,11 +24,11 @@ const STATUS_OPTIONS = [
   { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
 ]
 
-function BookDetailsLoadingState() {
+function BookDetailsLoadingState({ shouldAnimate = true }) {
   return (
     <section
-      className="
-        dp-section-enter
+      className={`
+        ${shouldAnimate ? 'dp-section-enter' : ''}
         min-h-90
         rounded-3xl
         border border-darkwood/10
@@ -38,7 +38,7 @@ function BookDetailsLoadingState() {
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10
-      "
+      `}
       role="status"
       aria-live="polite"
       aria-label="Chargement des détails du livre"
@@ -125,20 +125,19 @@ function BookPage() {
           ${bookLarge.pagePadding}
         `}
       >
-        <div className="dp-page-enter">
+        <div key={id} className="dp-page-enter">
           <BackButton
             onClick={() => navigate(-1)}
             className={`mb-5 ${bookLarge.backButton}`}
           />
-        </div>
 
-        {!canRenderBookDetails ? (
-          <BookDetailsLoadingState />
-        ) : (
-          <>
+          {!canRenderBookDetails ? (
+            <BookDetailsLoadingState shouldAnimate={false} />
+          ) : (
             <BookDetails
               book={book}
               libraryBook={libraryBook}
+              shouldAnimate={false}
               isLibraryLoading={isLibraryLoading}
               isSaving={isSaving}
               libraryError={libraryError}
@@ -147,7 +146,11 @@ function BookPage() {
               onStatusChange={handleStatusChange}
               onRemoveFromLibrary={handleOpenRemoveModal}
             />
+          )}
+        </div>
 
+        {canRenderBookDetails && (
+          <div key={`book-sections-${id}`}>
             {error && (
               <p
                 role="alert"
@@ -171,7 +174,7 @@ function BookPage() {
                 onLibraryBookChange={setLibraryBook}
               />
             )}
-          </>
+          </div>
         )}
       </main>
 

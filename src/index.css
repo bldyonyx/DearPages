@@ -211,7 +211,7 @@ input[type='search']::-webkit-search-cancel-button {
 @keyframes dear-pages-page-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
 
   to {
@@ -223,7 +223,7 @@ input[type='search']::-webkit-search-cancel-button {
 @keyframes dear-pages-section-enter {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(7px);
   }
 
   to {
@@ -235,7 +235,7 @@ input[type='search']::-webkit-search-cancel-button {
 @keyframes dear-pages-card-enter {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
 
   to {
@@ -257,15 +257,15 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 .dp-page-enter {
-  animation: dear-pages-page-enter 260ms ease-out both;
+  animation: dear-pages-page-enter 300ms ease-out both;
 }
 
 .dp-section-enter {
-  animation: dear-pages-section-enter 240ms ease-out 60ms both;
+  animation: dear-pages-section-enter 280ms ease-out 60ms both;
 }
 
 .dp-card-list-enter > * {
-  animation: dear-pages-card-enter 220ms ease-out 90ms both;
+  animation: dear-pages-card-enter 250ms ease-out 90ms both;
 }
 
 

@@ -182,31 +182,34 @@ function CollectionPage() {
   const bookToRemoveId = bookToRemove
     ? getBookId(bookToRemove)
     : ''
+  const collectionPageAnimationKey = collection.id
 
   return (
     <div className={pageClassName}>
-      <CollectionPageHeader
-        collection={collection}
-        bookCount={collectionBooks.length}
-        isActionsMenuOpen={isHeaderActionsMenuOpen}
-        actionsMenuRef={headerActionsMenuRef}
-        onToggleActionsMenu={toggleHeaderActionsMenu}
-        onAddBooks={openBooksModal}
-        onEditCollection={openEditModalFromMenu}
-        onClearCollection={openClearModalFromMenu}
-      />
-
-      {collectionBooks.length === 0 ? (
-        <CollectionPageEmptyState
+      <div key={collectionPageAnimationKey}>
+        <CollectionPageHeader
+          collection={collection}
+          bookCount={collectionBooks.length}
+          isActionsMenuOpen={isHeaderActionsMenuOpen}
+          actionsMenuRef={headerActionsMenuRef}
+          onToggleActionsMenu={toggleHeaderActionsMenu}
           onAddBooks={openBooksModal}
+          onEditCollection={openEditModalFromMenu}
+          onClearCollection={openClearModalFromMenu}
         />
-      ) : (
-        <CollectionBooksGrid
-          books={collectionBooks}
-          removingBookId={removingBookId}
-          onRemoveBook={openRemoveBookModal}
-        />
-      )}
+
+        {collectionBooks.length === 0 ? (
+          <CollectionPageEmptyState
+            onAddBooks={openBooksModal}
+          />
+        ) : (
+          <CollectionBooksGrid
+            books={collectionBooks}
+            removingBookId={removingBookId}
+            onRemoveBook={openRemoveBookModal}
+          />
+        )}
+      </div>
 
       <CollectionBooksModal
         isOpen={isBooksModalOpen}
