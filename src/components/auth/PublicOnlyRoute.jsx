@@ -12,15 +12,17 @@ function PublicOnlyRoute() {
     isAuthBootstrapPending,
     requiresOnboarding,
   } = useAuth()
+
   const isWaitingForPreferences =
     isAuthBootstrapPending ||
     (user && (isPreferencesLoading || !isPreferencesResolved))
 
   if (isAuthLoading || isWaitingForPreferences) {
     return (
-      <main className="p-6">
-        <LoadingState message="Chargement..." />
-      </main>
+      <LoadingState
+        message="Chargement..."
+        fullscreen
+      />
     )
   }
 

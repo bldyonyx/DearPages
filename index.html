@@ -1,13 +1,64 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/favicon.svg"
+    />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <meta
+      name="theme-color"
+      content="#EEF3DA"
+    />
+
     <title>Dear Pages</title>
+
+    <style>
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      html,
+      body {
+        background-color: #EEF3DA;
+      }
+
+      body {
+        min-height: 100vh;
+
+        background-image:
+          linear-gradient(
+            90deg,
+            rgba(144, 153, 119, 0.08) 50%,
+            transparent 50%
+          ),
+          linear-gradient(
+            rgba(144, 153, 119, 0.08) 50%,
+            transparent 50%
+          );
+
+        background-size: 90px 90px;
+      }
+    </style>
   </head>
+
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+
+    <script
+      type="module"
+      src="/src/main.jsx"
+    ></script>
   </body>
 </html>

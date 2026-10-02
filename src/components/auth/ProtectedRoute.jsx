@@ -3,6 +3,7 @@ import {
   Outlet,
   useLocation,
 } from 'react-router-dom'
+
 import { useAuth } from '../../context/AuthContext.jsx'
 import LoadingState from '../ui/LoadingState.jsx'
 
@@ -19,15 +20,17 @@ function ProtectedRoute() {
   } = useAuth()
 
   const isOnboardingRoute = location.pathname === '/onboarding'
+
   const isWaitingForPreferences =
     isAuthBootstrapPending ||
     (user && (isPreferencesLoading || !isPreferencesResolved))
 
   if (isAuthLoading || isWaitingForPreferences) {
     return (
-      <main className="p-6">
-        <LoadingState message="Chargement..." />
-      </main>
+      <LoadingState
+        message="Chargement..."
+        fullscreen
+      />
     )
   }
 
