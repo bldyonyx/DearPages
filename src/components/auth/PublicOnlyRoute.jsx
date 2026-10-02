@@ -8,10 +8,15 @@ function PublicOnlyRoute() {
     user,
     isAuthLoading,
     isPreferencesLoading,
+    isPreferencesResolved,
+    isAuthBootstrapPending,
     requiresOnboarding,
   } = useAuth()
+  const isWaitingForPreferences =
+    isAuthBootstrapPending ||
+    (user && (isPreferencesLoading || !isPreferencesResolved))
 
-  if (isAuthLoading || (user && isPreferencesLoading)) {
+  if (isAuthLoading || isWaitingForPreferences) {
     return (
       <main className="p-6">
         <LoadingState message="Chargement..." />

@@ -12,13 +12,18 @@ function ProtectedRoute() {
     user,
     isAuthLoading,
     isPreferencesLoading,
-    preferences,
+    isPreferencesResolved,
+    isAuthBootstrapPending,
+    hasCompletedOnboarding,
     requiresOnboarding,
   } = useAuth()
 
   const isOnboardingRoute = location.pathname === '/onboarding'
+  const isWaitingForPreferences =
+    isAuthBootstrapPending ||
+    (user && (isPreferencesLoading || !isPreferencesResolved))
 
-  if (isAuthLoading || (user && isPreferencesLoading)) {
+  if (isAuthLoading || isWaitingForPreferences) {
     return (
       <main className="p-6">
         <LoadingState message="Chargement..." />
@@ -34,10 +39,7 @@ function ProtectedRoute() {
     return <Navigate to="/onboarding" replace />
   }
 
-  if (
-    preferences?.onboardingCompleted === true &&
-    isOnboardingRoute
-  ) {
+  if (hasCompletedOnboarding && isOnboardingRoute) {
     return <Navigate to="/" replace />
   }
 

@@ -18,7 +18,11 @@ import {
 
 function SignUp() {
   const navigate = useNavigate()
-  const { updatePreferences } = useAuth()
+  const {
+    beginAuthBootstrap,
+    endAuthBootstrap,
+    updatePreferences,
+  } = useAuth()
 
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -28,11 +32,21 @@ function SignUp() {
   const [loadingAction, setLoadingAction] = useState(null)
   const isLoading = Boolean(loadingAction)
 
+  function navigateAfterAuthentication(preferences) {
+    const requiresOnboarding =
+      preferences?.onboardingCompleted === false
+
+    navigate(requiresOnboarding ? '/onboarding' : '/', {
+      replace: true,
+    })
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
 
     setError('')
     setLoadingAction('email')
+    beginAuthBootstrap()
 
     try {
       const result = await signUpWithEmail(
@@ -42,13 +56,14 @@ function SignUp() {
       )
 
       updatePreferences(result.preferences)
-      navigate('/')
+      navigateAfterAuthentication(result.preferences)
     } catch (firebaseError) {
       console.error(firebaseError)
       setError(
         'Impossible de créer ton compte pour le moment.',
       )
     } finally {
+      endAuthBootstrap()
       setLoadingAction(null)
     }
   }
@@ -56,6 +71,7 @@ function SignUp() {
   async function handleGoogleSignIn() {
     setError('')
     setLoadingAction('google')
+    beginAuthBootstrap()
 
     try {
       const result = await signInWithGoogle()
@@ -64,13 +80,14 @@ function SignUp() {
         updatePreferences(result.preferences)
       }
 
-      navigate('/')
+      navigateAfterAuthentication(result.preferences)
     } catch (firebaseError) {
       console.error(firebaseError)
       setError(
         'Impossible de continuer avec Google pour le moment.',
       )
     } finally {
+      endAuthBootstrap()
       setLoadingAction(null)
     }
   }
@@ -254,6 +271,7 @@ function SignUp() {
         "
       >
         <GoogleIcon />
+
         {loadingAction === 'google'
           ? 'Création avec Google...'
           : 'Continuer avec Google'}

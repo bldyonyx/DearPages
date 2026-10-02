@@ -11,6 +11,17 @@ import { auth } from '../services/firebase.js'
 import { getUserPreferences } from '../services/preferencesService.js'
 
 const AuthContext = createContext(null)
+const ONBOARDING_STATUS = {
+  UNKNOWN: 'unknown',
+  REQUIRED: 'required',
+  COMPLETE: 'complete',
+}
+
+function getOnboardingStatus(nextPreferences) {
+  return nextPreferences?.onboardingCompleted === false
+    ? ONBOARDING_STATUS.REQUIRED
+    : ONBOARDING_STATUS.COMPLETE
+}
 
 /**
  * Provides the current Firebase authentication state
@@ -26,6 +37,13 @@ export function AuthProvider({ children }) {
   const [preferences, setPreferences] = useState(null)
   const [isPreferencesLoading, setIsPreferencesLoading] =
     useState(false)
+  const [isPreferencesResolved, setIsPreferencesResolved] =
+    useState(false)
+  const [isAuthBootstrapPending, setIsAuthBootstrapPending] =
+    useState(false)
+  const [onboardingStatus, setOnboardingStatus] = useState(
+    ONBOARDING_STATUS.UNKNOWN
+  )
   const preferencesRequestIdRef = useRef(0)
 
   useEffect(() => {
@@ -33,6 +51,8 @@ export function AuthProvider({ children }) {
       auth,
       (firebaseUser) => {
         setPreferences(null)
+        setIsPreferencesResolved(false)
+        setOnboardingStatus(ONBOARDING_STATUS.UNKNOWN)
         setIsPreferencesLoading(Boolean(firebaseUser))
         setUser(firebaseUser)
         setIsAuthLoading(false)
@@ -48,6 +68,8 @@ export function AuthProvider({ children }) {
     if (!user?.uid) {
       preferencesRequestIdRef.current += 1
       setPreferences(null)
+      setIsPreferencesResolved(true)
+      setOnboardingStatus(ONBOARDING_STATUS.UNKNOWN)
       setIsPreferencesLoading(false)
       return
     }
@@ -67,6 +89,10 @@ export function AuthProvider({ children }) {
           preferencesRequestIdRef.current === requestId
         ) {
           setPreferences(userPreferences)
+          setIsPreferencesResolved(true)
+          setOnboardingStatus(
+            getOnboardingStatus(userPreferences)
+          )
         }
       } catch (firebaseError) {
         console.error(firebaseError)
@@ -76,6 +102,8 @@ export function AuthProvider({ children }) {
           preferencesRequestIdRef.current === requestId
         ) {
           setPreferences(null)
+          setIsPreferencesResolved(false)
+          setOnboardingStatus(ONBOARDING_STATUS.UNKNOWN)
         }
       } finally {
         if (
@@ -97,7 +125,19 @@ export function AuthProvider({ children }) {
   function updatePreferences(nextPreferences) {
     preferencesRequestIdRef.current += 1
     setPreferences(nextPreferences)
+    setIsPreferencesResolved(true)
+    setOnboardingStatus(getOnboardingStatus(nextPreferences))
     setIsPreferencesLoading(false)
+  }
+
+  function beginAuthBootstrap() {
+    setIsAuthBootstrapPending(true)
+    setIsPreferencesResolved(false)
+    setOnboardingStatus(ONBOARDING_STATUS.UNKNOWN)
+  }
+
+  function endAuthBootstrap() {
+    setIsAuthBootstrapPending(false)
   }
 
   function refreshUser() {
@@ -108,7 +148,9 @@ export function AuthProvider({ children }) {
   }
 
   const requiresOnboarding =
-    preferences?.onboardingCompleted === false
+    onboardingStatus === ONBOARDING_STATUS.REQUIRED
+  const hasCompletedOnboarding =
+    onboardingStatus === ONBOARDING_STATUS.COMPLETE
 
   return (
     <AuthContext.Provider
@@ -118,8 +160,14 @@ export function AuthProvider({ children }) {
         isAuthLoading,
         preferences,
         isPreferencesLoading,
+        isPreferencesResolved,
+        isAuthBootstrapPending,
+        onboardingStatus,
         requiresOnboarding,
+        hasCompletedOnboarding,
         updatePreferences,
+        beginAuthBootstrap,
+        endAuthBootstrap,
         refreshUser,
       }}
     >
@@ -137,8 +185,14 @@ export function AuthProvider({ children }) {
  *   isAuthLoading: boolean,
  *   preferences: Object | null,
  *   isPreferencesLoading: boolean,
+ *   isPreferencesResolved: boolean,
+ *   isAuthBootstrapPending: boolean,
+ *   onboardingStatus: 'unknown' | 'required' | 'complete',
  *   requiresOnboarding: boolean,
+ *   hasCompletedOnboarding: boolean,
  *   updatePreferences: (preferences: Object | null) => void,
+ *   beginAuthBootstrap: () => void,
+ *   endAuthBootstrap: () => void,
  *   refreshUser: () => void
  * }}
  */

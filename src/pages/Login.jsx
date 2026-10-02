@@ -18,7 +18,11 @@ import {
 
 function Login() {
   const navigate = useNavigate()
-  const { updatePreferences } = useAuth()
+  const {
+    beginAuthBootstrap,
+    endAuthBootstrap,
+    updatePreferences,
+  } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,6 +51,7 @@ function Login() {
   async function handleGoogleSignIn() {
     setError('')
     setLoadingAction('google')
+    beginAuthBootstrap()
 
     try {
       const result = await signInWithGoogle()
@@ -62,6 +67,7 @@ function Login() {
         'Impossible de continuer avec Google pour le moment.',
       )
     } finally {
+      endAuthBootstrap()
       setLoadingAction(null)
     }
   }
