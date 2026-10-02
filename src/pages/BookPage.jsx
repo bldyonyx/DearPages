@@ -35,7 +35,6 @@ function BookDetailsLoadingState() {
         bg-cream/80
         px-5 py-6
         shadow-sm
-        backdrop-blur-[2px]
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10

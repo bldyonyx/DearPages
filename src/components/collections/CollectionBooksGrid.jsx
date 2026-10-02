@@ -19,7 +19,6 @@ function CollectionBooksGrid({
         bg-cream/80
         p-5
         shadow-sm
-        backdrop-blur-[2px]
         sm:p-7
         lg:p-8
         ${collectionPageLarge.sectionGap}

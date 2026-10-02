@@ -142,7 +142,6 @@ function BookDetails({
         bg-cream/80
         px-5 py-6
         shadow-[0_8px_30px_rgba(83,55,76,0.07)]
-        backdrop-blur-[2px]
         sm:px-7 sm:py-8
         md:px-8
         lg:px-11 lg:py-10

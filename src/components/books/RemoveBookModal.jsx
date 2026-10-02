@@ -18,7 +18,6 @@ function RemoveBookModal({
         flex items-center justify-center
         bg-darkwood/45
         px-4 py-5
-        backdrop-blur-[2px]
         sm:px-5
       "
       onClick={onCancel}

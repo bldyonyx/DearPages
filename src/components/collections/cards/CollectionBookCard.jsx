@@ -35,7 +35,7 @@ function CollectionBookCard({
             items-center justify-center rounded-full
             border border-walnut/10
             bg-cream/90 text-walnut
-            shadow-sm backdrop-blur-[1px]
+            shadow-sm
             transition-colors
             hover:border-walnut/25
             hover:bg-cream
