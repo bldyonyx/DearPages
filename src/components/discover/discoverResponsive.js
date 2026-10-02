@@ -154,8 +154,8 @@ export const discoverLarge = {
   `,
 
   searchResultsWidth: `
-    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-[92rem]
-    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-[98rem]
+    [@media_(min-width:2200px)_and_(min-height:1100px)]:max-w-none
+    [@media_(min-width:2400px)_and_(min-height:1300px)]:max-w-none
   `,
 
   searchResultsHeader: `
@@ -176,7 +176,7 @@ export const discoverLarge = {
   searchResultsGrid: `
     sm:grid-cols-3
     lg:grid-cols-4
-    xl:grid-cols-5
+    xl:grid-cols-6
     [@media_(min-width:1800px)_and_(min-height:1050px)]:grid-cols-6
   `,
 
