@@ -6,13 +6,14 @@ import { getUserCollections } from '../../services/collectionsService.js'
 
 import {
   BOOK_STATUSES,
+  updateBookAbandonedAt,
   updateBookFinishedAt,
   updateBookNote,
   updateBookRating,
   updateBookReview,
 } from '../../services/libraryService.js'
 
-import BookFinishedDate from './BookFinishedDate.jsx'
+import BookFinalStatusDate from './BookFinalStatusDate.jsx'
 import BookNotesEditor from './BookNotesEditor.jsx'
 import { bookLarge } from './bookResponsive.js'
 
@@ -186,6 +187,41 @@ function BookPersonalSpace({
     }
   }
 
+  async function handleAbandonedDateChange(abandonedAt) {
+    setIsSaving(true)
+    setMessage('')
+    setError('')
+
+    try {
+      await updateBookAbandonedAt(
+        userId,
+        bookId,
+        abandonedAt
+      )
+
+      onLibraryBookChange((currentBook) => ({
+        ...currentBook,
+        abandonedAt,
+        updatedAt: Date.now(),
+      }))
+
+      setMessage(
+        abandonedAt
+          ? 'Date d’abandon enregistrée ♡'
+          : 'Date d’abandon retirée.'
+      )
+    } catch (firebaseError) {
+      console.error(firebaseError)
+      setError(
+        'Impossible d’enregistrer la date d’abandon.'
+      )
+
+      throw firebaseError
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const showsNotes =
     status === BOOK_STATUSES.TO_READ ||
     status === BOOK_STATUSES.READING
@@ -199,6 +235,9 @@ function BookPersonalSpace({
 
   const showsFinishedDate =
     status === BOOK_STATUSES.FINISHED
+
+  const showsAbandonedDate =
+    status === BOOK_STATUSES.ABANDONED
 
   return (
     <section
@@ -452,16 +491,33 @@ function BookPersonalSpace({
         )}
 
         {showsFinishedDate && (
-          <BookFinishedDate
-            finishedAt={libraryBook?.finishedAt}
+          <BookFinalStatusDate
+            title="Lecture terminée"
+            value={libraryBook?.finishedAt}
             disabled={isSaving}
             isSaving={isSaving}
             onSave={handleFinishedDateChange}
           />
         )}
 
+        {showsAbandonedDate && (
+          <BookFinalStatusDate
+            title="Lecture abandonnée"
+            value={libraryBook?.abandonedAt}
+            disabled={isSaving}
+            isSaving={isSaving}
+            onSave={handleAbandonedDateChange}
+          />
+        )}
+
         {showsReview && (
-          <div className={showsRating ? 'mt-8' : ''}>
+          <div
+            className={
+              showsRating || showsAbandonedDate
+                ? 'mt-8'
+                : ''
+            }
+          >
             <h3
               className={`
                 mb-4

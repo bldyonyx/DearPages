@@ -46,6 +46,10 @@ function createLibraryBook(book, status) {
     libraryBook.finishedAt = Date.now()
   }
 
+  if (status === BOOK_STATUSES.ABANDONED) {
+    libraryBook.abandonedAt = Date.now()
+  }
+
   return libraryBook
 }
 
@@ -134,10 +138,10 @@ export async function getLibraryBook(userId, bookId) {
 /**
  * Changes the reading status of a book already stored in the user's library.
  *
- * When a book enters the "finished" status, a finishedAt timestamp is stored.
- * When it leaves "finished", finishedAt is removed from Realtime Database.
+ * When a book enters a final status, its matching timestamp is stored.
+ * When it leaves that final status, the matching timestamp is removed.
  * If the requested status already matches the stored status, nothing is
- * written, so an existing finishedAt is not replaced unnecessarily.
+ * written, so an existing final-status date is not replaced unnecessarily.
  *
  * @param {string} userId - Firebase Authentication user ID.
  * @param {string} bookId - Book ID.
@@ -182,6 +186,14 @@ export async function updateBookStatus(
     updatedBook.finishedAt = null
   }
 
+  if (status === BOOK_STATUSES.ABANDONED) {
+    updatedBook.abandonedAt = Date.now()
+  } else if (
+    storedBook?.status === BOOK_STATUSES.ABANDONED
+  ) {
+    updatedBook.abandonedAt = null
+  }
+
   await update(bookRef, updatedBook)
 
   return updatedBook
@@ -216,6 +228,39 @@ export async function updateBookFinishedAt(
 
   await update(bookRef, {
     finishedAt: finishedAt ?? null,
+    updatedAt: Date.now(),
+  })
+}
+
+/**
+ * Updates the month and year when a book was abandoned.
+ *
+ * The stored timestamp represents the selected month and year,
+ * not an exact reading abandonment date.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} bookId - Book ID.
+ * @param {number|null} abandonedAt - Reading abandonment timestamp.
+ * @returns {Promise<void>}
+ */
+export async function updateBookAbandonedAt(
+  userId,
+  bookId,
+  abandonedAt
+) {
+  if (!userId || !bookId) {
+    throw new Error(
+      'Missing information to update abandoned date.'
+    )
+  }
+
+  const bookRef = ref(
+    database,
+    `users/${userId}/library/${bookId}`
+  )
+
+  await update(bookRef, {
+    abandonedAt: abandonedAt ?? null,
     updatedAt: Date.now(),
   })
 }

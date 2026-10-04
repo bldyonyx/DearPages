@@ -13,15 +13,16 @@ import {
   READING_MONTHS,
 } from '../../utils/readingDateUtils.js'
 
-function BookFinishedDate({
-  finishedAt,
+function BookFinalStatusDate({
+  title,
+  value,
   disabled = false,
   isSaving = false,
   onSave,
 }) {
   const currentYear = new Date().getFullYear()
 
-  const initialDate = getReadingMonthYear(finishedAt)
+  const initialDate = getReadingMonthYear(value)
 
   const [isEditing, setIsEditing] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null)
@@ -37,7 +38,7 @@ function BookFinishedDate({
   const editorRef = useRef(null)
 
   useEffect(() => {
-    const nextDate = getReadingMonthYear(finishedAt)
+    const nextDate = getReadingMonthYear(value)
 
     setMonth(
       nextDate?.month ?? new Date().getMonth()
@@ -46,7 +47,7 @@ function BookFinishedDate({
     setYear(
       nextDate?.year ?? currentYear
     )
-  }, [finishedAt, currentYear])
+  }, [value, currentYear])
 
   useEffect(() => {
     function handleOutsideClick(event) {
@@ -71,7 +72,7 @@ function BookFinishedDate({
     }
   }, [])
 
-  const currentDate = getReadingMonthYear(finishedAt)
+  const currentDate = getReadingMonthYear(value)
   const isDisabled = disabled || isSaving
 
   const years = Array.from(
@@ -80,7 +81,7 @@ function BookFinishedDate({
   )
 
   function handleCancel() {
-    const savedDate = getReadingMonthYear(finishedAt)
+    const savedDate = getReadingMonthYear(value)
 
     setMonth(
       savedDate?.month ?? new Date().getMonth()
@@ -136,7 +137,7 @@ function BookFinishedDate({
   return (
     <div className="mt-8">
       <h3 className="font-heading text-2xl font-bold text-darkwood">
-        Lecture terminée
+        {title}
       </h3>
 
       {!isEditing ? (
@@ -525,4 +526,4 @@ function BookFinishedDate({
   )
 }
 
-export default BookFinishedDate
+export default BookFinalStatusDate

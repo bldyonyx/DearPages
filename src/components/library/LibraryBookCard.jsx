@@ -9,10 +9,16 @@ import { libraryLarge } from './libraryResponsive.js'
 function LibraryBookCard({ book }) {
   const isFinished =
     book.status === BOOK_STATUSES.FINISHED
+  const isAbandoned =
+    book.status === BOOK_STATUSES.ABANDONED
 
-  const finishedDate = isFinished
+  const finalStatusDate = isFinished
     ? formatReadingMonthYear(book.finishedAt)
-    : ''
+    : isAbandoned
+      ? formatReadingMonthYear(book.abandonedAt)
+      : ''
+
+  const showsFinalStatusDate = isFinished || isAbandoned
 
   return (
     <Link
@@ -82,7 +88,7 @@ function LibraryBookCard({ book }) {
         <div className="mt-auto pt-3">
           <StatusBadge status={book.status} />
 
-          {isFinished && (
+          {showsFinalStatusDate && (
             <p
               className={`
                 mt-1.5
@@ -91,7 +97,7 @@ function LibraryBookCard({ book }) {
                 ${libraryLarge.bookAuthor}
               `}
             >
-              {finishedDate || 'Date inconnue'}
+              {finalStatusDate || 'Date inconnue'}
             </p>
           )}
         </div>
