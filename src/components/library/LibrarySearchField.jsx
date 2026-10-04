@@ -1,7 +1,11 @@
 import { Search, X } from 'lucide-react'
 
+import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder.js'
 import { libraryLarge } from './libraryResponsive.js'
 import Input from '../ui/Input.jsx'
+
+const LIBRARY_SEARCH_PLACEHOLDER =
+  'Rechercher dans ma bibliothèque...'
 
 function LibrarySearchField({
   id,
@@ -10,8 +14,11 @@ function LibrarySearchField({
   onClearSearch,
   autoFocus = false,
 }) {
+  const { containerRef, placeholder } =
+    useResponsivePlaceholder(LIBRARY_SEARCH_PLACEHOLDER)
+
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <Search
         aria-hidden="true"
         strokeWidth={1.8}
@@ -33,7 +40,7 @@ function LibrarySearchField({
         onChange={(event) =>
           onSearchChange(event.target.value)
         }
-        placeholder="Rechercher dans ma bibliothèque..."
+        placeholder={placeholder}
         aria-label="Rechercher dans ma bibliothèque"
         autoFocus={autoFocus}
         className={`

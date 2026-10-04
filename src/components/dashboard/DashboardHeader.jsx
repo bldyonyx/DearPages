@@ -2,9 +2,12 @@ import { Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder.js'
 import Input from '../ui/Input'
 import UserAvatar from '../ui/UserAvatar.jsx'
 import { dashboardLarge } from './dashboardResponsive.js'
+
+const DASHBOARD_SEARCH_PLACEHOLDER = 'Rechercher un livre...'
 
 function getDisplayName(user) {
   return user?.displayName?.trim() || user?.email || 'lectrice'
@@ -13,6 +16,18 @@ function getDisplayName(user) {
 function DashboardHeader({ user }) {
   const [search, setSearch] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const {
+    containerRef: desktopSearchRef,
+    placeholder: desktopSearchPlaceholder,
+  } = useResponsivePlaceholder(DASHBOARD_SEARCH_PLACEHOLDER, {
+    minWidth: 280,
+  })
+  const {
+    containerRef: mobileSearchRef,
+    placeholder: mobileSearchPlaceholder,
+  } = useResponsivePlaceholder(DASHBOARD_SEARCH_PLACEHOLDER, {
+    minWidth: 280,
+  })
   const navigate = useNavigate()
   const displayName = getDisplayName(user)
 
@@ -68,6 +83,7 @@ function DashboardHeader({ user }) {
         <div className="flex min-w-0 items-center gap-3 md:flex-1 md:justify-end">
           {/* Recherche tablette + desktop */}
           <form
+            ref={desktopSearchRef}
             onSubmit={handleSubmit}
             className="
               relative hidden min-w-0
@@ -100,7 +116,7 @@ function DashboardHeader({ user }) {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Rechercher un livre..."
+              placeholder={desktopSearchPlaceholder}
               aria-label="Rechercher un livre"
               className="
                 w-full rounded-full!
@@ -229,6 +245,7 @@ function DashboardHeader({ user }) {
       {/* Barre de recherche ouverte sur mobile */}
       {isSearchOpen && (
         <form
+          ref={mobileSearchRef}
           onSubmit={handleSubmit}
           className="relative mt-4 w-full md:hidden"
         >
@@ -249,7 +266,7 @@ function DashboardHeader({ user }) {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Rechercher un livre..."
+            placeholder={mobileSearchPlaceholder}
             aria-label="Rechercher un livre"
             autoFocus
             className="w-full rounded-full! py-3 pl-12 pr-12"

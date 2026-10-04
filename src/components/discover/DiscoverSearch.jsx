@@ -1,9 +1,13 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder'
 import Input from '../ui/Input'
 import SearchSuggestions from './SearchSuggestions'
 import { discoverLarge } from './discoverResponsive'
+
+const DISCOVER_SEARCH_PLACEHOLDER =
+  'Rechercher un titre, un auteur...'
 
 function DiscoverSearch({
   search,
@@ -15,6 +19,8 @@ function DiscoverSearch({
   isSuggestionsLoading,
 }) {
   const searchRef = useRef(null)
+  const { containerRef, placeholder } =
+    useResponsivePlaceholder(DISCOVER_SEARCH_PLACEHOLDER)
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
   const trimmedSearch = search.trim()
   const trimmedSubmittedQuery = submittedQuery.trim()
@@ -84,7 +90,7 @@ function DiscoverSearch({
         ${discoverLarge.searchForm}
       `}
     >
-      <div className="relative">
+      <div ref={containerRef} className="relative">
         {/* Loupe */}
         <Search
           aria-hidden="true"
@@ -106,7 +112,7 @@ function DiscoverSearch({
           value={search}
           onChange={handleChange}
           onFocus={handleFocus}
-          placeholder="Rechercher un titre, un auteur..."
+          placeholder={placeholder}
           aria-label="Rechercher un livre"
           autoComplete="off"
           className={`

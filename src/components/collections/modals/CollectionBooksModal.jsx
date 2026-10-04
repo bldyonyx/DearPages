@@ -5,10 +5,14 @@ import {
   addBookToCollection,
   removeBookFromCollection,
 } from '../../../services/collectionsService.js'
+import useResponsivePlaceholder from '../../../hooks/useResponsivePlaceholder.js'
 import BookCover from '../../books/BookCover.jsx'
 import Button from '../../ui/Button.jsx'
 import Input from '../../ui/Input.jsx'
 import Modal from '../../ui/Modal.jsx'
+
+const COLLECTION_BOOKS_SEARCH_PLACEHOLDER =
+  'Rechercher un livre ou un auteur...'
 
 function getBookId(book) {
   return book.googleBooksId || book.id
@@ -32,6 +36,11 @@ function CollectionBooksModal({
   const [search, setSearch] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+  const { containerRef, placeholder } =
+    useResponsivePlaceholder(
+      COLLECTION_BOOKS_SEARCH_PLACEHOLDER,
+      { minWidth: 300 }
+    )
 
   useEffect(() => {
     if (!isOpen || !collection) {
@@ -181,17 +190,19 @@ function CollectionBooksModal({
         </div>
       ) : (
         <form onSubmit={handleSave}>
-          <Input
-            id="collection-books-search"
-            type="search"
-            value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
-            placeholder="Rechercher un livre ou un auteur..."
-            aria-label="Rechercher dans ma bibliothèque"
-            className="mb-4 w-full rounded-full! px-5 py-2.5"
-          />
+          <div ref={containerRef}>
+            <Input
+              id="collection-books-search"
+              type="search"
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+              placeholder={placeholder}
+              aria-label="Rechercher dans ma bibliothèque"
+              className="mb-4 w-full rounded-full! px-5 py-2.5"
+            />
+          </div>
 
           <div className="hide-scrollbar max-h-88 space-y-2 overflow-y-auto pr-1">
             {visibleBooks.length > 0 ? (
