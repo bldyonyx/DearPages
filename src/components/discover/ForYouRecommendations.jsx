@@ -158,6 +158,7 @@ function ForYouRecommendations({
                     className={`
                       mx-auto w-full max-w-40
                       ${discoverLarge.bookWrap}
+                      ${discoverLarge.bookVisibility}
                       ${index >= 2 ? 'hidden md:block' : ''}
                       ${index >= 3 ? 'md:hidden lg:block' : ''}
                       ${index >= 4 ? 'lg:hidden xl:block' : ''}
