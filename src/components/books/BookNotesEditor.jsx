@@ -296,16 +296,16 @@ function BookNotesEditor({
 
       <div className="relative">
         {!value && (
-          <p
+          <span
             className="
               pointer-events-none absolute
               left-4 top-4
               font-ui text-sm
-              text-walnut/45
+              leading-7 text-walnut/45
             "
           >
             {placeholder}
-          </p>
+          </span>
         )}
 
         <div
