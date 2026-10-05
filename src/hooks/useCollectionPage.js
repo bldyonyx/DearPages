@@ -23,6 +23,7 @@ function getBookId(book) {
 function useCollectionPage() {
   const { id: collectionId } = useParams()
   const { user } = useAuth()
+  const userId = user?.uid
 
   const [collection, setCollection] = useState(null)
   const [libraryBooks, setLibraryBooks] = useState([])
@@ -56,7 +57,7 @@ function useCollectionPage() {
   const headerActionsMenuRef = useRef(null)
 
   const loadCollectionPage = useCallback(async () => {
-    if (!user?.uid || !collectionId) {
+    if (!userId || !collectionId) {
       return
     }
 
@@ -66,8 +67,8 @@ function useCollectionPage() {
 
       const [collectionData, userLibrary] =
         await Promise.all([
-          getUserCollection(user.uid, collectionId),
-          getUserLibrary(user.uid),
+          getUserCollection(userId, collectionId),
+          getUserLibrary(userId),
         ])
 
       setCollection(collectionData)
@@ -84,13 +85,13 @@ function useCollectionPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [collectionId, user?.uid])
+  }, [collectionId, userId])
 
   useEffect(() => {
     let isActive = true
 
     async function loadActiveCollectionPage() {
-      if (!user?.uid || !collectionId) {
+      if (!userId || !collectionId) {
         return
       }
 
@@ -100,8 +101,8 @@ function useCollectionPage() {
 
         const [collectionData, userLibrary] =
           await Promise.all([
-            getUserCollection(user.uid, collectionId),
-            getUserLibrary(user.uid),
+            getUserCollection(userId, collectionId),
+            getUserLibrary(userId),
           ])
 
         if (isActive) {
@@ -131,7 +132,7 @@ function useCollectionPage() {
     return () => {
       isActive = false
     }
-  }, [collectionId, user?.uid])
+  }, [collectionId, userId])
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -207,7 +208,7 @@ function useCollectionPage() {
 
   async function handleUpdateCollection(collectionData) {
     if (
-      !user?.uid ||
+      !userId ||
       !collectionToEdit?.id ||
       isSavingCollection
     ) {
@@ -219,7 +220,7 @@ function useCollectionPage() {
       setError('')
 
       await updateCollection(
-        user.uid,
+        userId,
         collectionToEdit.id,
         collectionData,
       )
@@ -252,7 +253,7 @@ function useCollectionPage() {
   }
 
   async function handleRemoveBookFromCollection(bookId) {
-    if (!user?.uid || !collection?.id || !bookId) {
+    if (!userId || !collection?.id || !bookId) {
       return false
     }
 
@@ -261,7 +262,7 @@ function useCollectionPage() {
       setError('')
 
       await removeBookFromCollection(
-        user.uid,
+        userId,
         collection.id,
         bookId,
       )
@@ -351,7 +352,7 @@ function useCollectionPage() {
 
   async function handleClearCollection() {
     if (
-      !user?.uid ||
+      !userId ||
       !collection?.id ||
       isClearingCollection
     ) {
@@ -363,7 +364,7 @@ function useCollectionPage() {
       setClearCollectionError('')
 
       await clearCollectionBooks(
-        user.uid,
+        userId,
         collection.id,
       )
 

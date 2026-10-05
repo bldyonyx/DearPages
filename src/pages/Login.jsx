@@ -41,7 +41,6 @@ function Login() {
       await signInWithEmail(email.trim(), password)
       navigate('/')
     } catch (firebaseError) {
-      console.error(firebaseError)
       setError(getEmailSignInErrorMessage(firebaseError))
     } finally {
       setLoadingAction(null)

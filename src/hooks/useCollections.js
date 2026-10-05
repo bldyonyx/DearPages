@@ -43,6 +43,7 @@ function getBookId(book) {
 
 function useCollections() {
   const { user } = useAuth()
+  const userId = user?.uid
 
   const [collections, setCollections] = useState([])
   const [libraryBooks, setLibraryBooks] = useState([])
@@ -63,7 +64,7 @@ function useCollections() {
   const [isSavingEdit, setIsSavingEdit] = useState(false)
 
   const loadCollections = useCallback(async () => {
-    if (!user?.uid) {
+    if (!userId) {
       return
     }
 
@@ -73,8 +74,8 @@ function useCollections() {
 
       const [userCollections, userLibrary] =
         await Promise.all([
-          getUserCollections(user.uid),
-          getUserLibrary(user.uid),
+          getUserCollections(userId),
+          getUserLibrary(userId),
         ])
 
       setCollections(sortCollections(userCollections))
@@ -91,13 +92,13 @@ function useCollections() {
     } finally {
       setIsLoading(false)
     }
-  }, [user?.uid])
+  }, [userId])
 
   useEffect(() => {
     let isActive = true
 
     async function loadActiveCollections() {
-      if (!user?.uid) {
+      if (!userId) {
         return
       }
 
@@ -107,8 +108,8 @@ function useCollections() {
 
         const [userCollections, userLibrary] =
           await Promise.all([
-            getUserCollections(user.uid),
-            getUserLibrary(user.uid),
+            getUserCollections(userId),
+            getUserLibrary(userId),
           ])
 
         if (isActive) {
@@ -140,10 +141,10 @@ function useCollections() {
     return () => {
       isActive = false
     }
-  }, [user?.uid])
+  }, [userId])
 
   async function handleCreateCollection(collection) {
-    if (!user?.uid) {
+    if (!userId) {
       return false
     }
 
@@ -151,10 +152,10 @@ function useCollections() {
       setIsSubmitting(true)
       setError('')
 
-      await createCollection(user.uid, collection)
+      await createCollection(userId, collection)
 
       const userCollections = await getUserCollections(
-        user.uid,
+        userId,
       )
 
       setCollections(sortCollections(userCollections))
@@ -178,7 +179,7 @@ function useCollections() {
   }
 
   async function handleDeleteCollection() {
-    if (!user?.uid || !collectionToDelete?.id) {
+    if (!userId || !collectionToDelete?.id) {
       return
     }
 
@@ -187,7 +188,7 @@ function useCollections() {
       setError('')
 
       await deleteCollection(
-        user.uid,
+        userId,
         collectionToDelete.id,
       )
 
@@ -214,7 +215,7 @@ function useCollections() {
   }
 
   async function handleUpdateCollection(collectionData) {
-    if (!user?.uid || !collectionToEdit?.id) {
+    if (!userId || !collectionToEdit?.id) {
       return false
     }
 
@@ -223,7 +224,7 @@ function useCollections() {
       setError('')
 
       await updateCollection(
-        user.uid,
+        userId,
         collectionToEdit.id,
         collectionData,
       )
@@ -265,7 +266,7 @@ function useCollections() {
   }
 
   async function handleTogglePinned(collectionToPin) {
-    if (!user?.uid || !collectionToPin?.id) {
+    if (!userId || !collectionToPin?.id) {
       return
     }
 
@@ -275,7 +276,7 @@ function useCollections() {
       setError('')
 
       await updateCollectionPinned(
-        user.uid,
+        userId,
         collectionToPin.id,
         nextPinned,
       )

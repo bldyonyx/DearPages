@@ -57,8 +57,7 @@ function SignUp() {
 
       updatePreferences(result.preferences)
       navigateAfterAuthentication(result.preferences)
-    } catch (firebaseError) {
-      console.error(firebaseError)
+    } catch {
       setError(
         'Impossible de créer ton compte pour le moment.',
       )
