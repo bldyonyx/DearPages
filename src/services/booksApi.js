@@ -1,5 +1,11 @@
 import { fetchJsonOnce } from '../utils/inFlightRequest'
 import {
+  buildAuthorSearchQuery,
+  buildTitleSearchQuery,
+  hasSufficientSearchMatches,
+  mergeAndRankSearchBooks,
+} from '../utils/bookSearchRelevance.js'
+import {
   getBestGoogleCover,
   getIndustryIdentifierIsbns,
   getPreferredIsbn,
@@ -7,6 +13,11 @@ import {
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes'
 const API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
+const SEARCH_RESULTS_LIMIT = 20
+const SEARCH_CANDIDATE_LIMIT = 40
+const TITLE_SEARCH_CANDIDATE_LIMIT = 20
+const SUGGESTION_CANDIDATE_LIMIT = 10
+const SUGGESTION_RESULTS_LIMIT = 5
 const GOOGLE_SUBJECT_QUERIES = {
   crime: 'subject:"crime fiction"',
   comics: 'subject:"comics graphic novels"',
@@ -420,6 +431,39 @@ async function getGoogleBooksData(url, message) {
   }
 }
 
+function createVolumesSearchUrl(query, options = {}) {
+  const params = new URLSearchParams({
+    q: query,
+    maxResults: String(options.maxResults || SEARCH_RESULTS_LIMIT),
+  })
+
+  if (options.printType) {
+    params.set('printType', options.printType)
+  }
+
+  if (API_KEY) {
+    params.set('key', API_KEY)
+  }
+
+  return `${BASE_URL}?${params.toString()}`
+}
+
+async function searchGoogleBooksCandidates(
+  query,
+  maxResults,
+  message
+) {
+  const data = await getGoogleBooksData(
+    createVolumesSearchUrl(query, {
+      maxResults,
+      printType: 'books',
+    }),
+    message
+  )
+
+  return data.items?.map(formatBook) || []
+}
+
 /**
  * Recherche des livres dans l'API Google Books.
  *
@@ -427,14 +471,51 @@ async function getGoogleBooksData(url, message) {
  * @returns {Promise<Array>} Liste des livres trouvés et formatés.
  */
 export async function searchBooks(query) {
-  const data = await getGoogleBooksData(
-    `${BASE_URL}?q=${encodeURIComponent(
-      query
-    )}&langRestrict=fr&maxResults=20&key=${API_KEY}`,
+  const trimmedQuery = query.trim()
+
+  if (!trimmedQuery) return []
+
+  const broadCandidates = await searchGoogleBooksCandidates(
+    trimmedQuery,
+    SEARCH_CANDIDATE_LIMIT,
     'Impossible de récupérer les livres.'
   )
 
-  return data.items?.map(formatBook) || []
+  const titleCandidates = await searchGoogleBooksCandidates(
+    buildTitleSearchQuery(trimmedQuery),
+    TITLE_SEARCH_CANDIDATE_LIMIT,
+    'Impossible de récupérer les livres.'
+  )
+
+  const rankedInitialCandidates = mergeAndRankSearchBooks(
+    [broadCandidates, titleCandidates],
+    trimmedQuery,
+    SEARCH_RESULTS_LIMIT
+  )
+
+  const authorQuery = buildAuthorSearchQuery(trimmedQuery)
+
+  if (
+    !authorQuery ||
+    hasSufficientSearchMatches(
+      rankedInitialCandidates,
+      trimmedQuery
+    )
+  ) {
+    return rankedInitialCandidates
+  }
+
+  const authorCandidates = await searchGoogleBooksCandidates(
+    authorQuery,
+    TITLE_SEARCH_CANDIDATE_LIMIT,
+    'Impossible de récupérer les livres.'
+  )
+
+  return mergeAndRankSearchBooks(
+    [broadCandidates, titleCandidates, authorCandidates],
+    trimmedQuery,
+    SEARCH_RESULTS_LIMIT
+  )
 }
 
 /**
@@ -451,14 +532,17 @@ export async function getBookSuggestions(query) {
     return []
   }
 
-  const data = await getGoogleBooksData(
-    `${BASE_URL}?q=${encodeURIComponent(
-      trimmedQuery
-    )}&langRestrict=fr&maxResults=5&key=${API_KEY}`,
+  const candidates = await searchGoogleBooksCandidates(
+    trimmedQuery,
+    SUGGESTION_CANDIDATE_LIMIT,
     'Impossible de récupérer les suggestions.'
   )
 
-  return data.items?.map(formatBook) || []
+  return mergeAndRankSearchBooks(
+    [candidates],
+    trimmedQuery,
+    SUGGESTION_RESULTS_LIMIT
+  )
 }
 
 /**
