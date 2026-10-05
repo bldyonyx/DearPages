@@ -1,5 +1,7 @@
 const OPEN_LIBRARY_ISBN_COVERS_URL =
   'https://covers.openlibrary.org/b/isbn'
+const OPEN_LIBRARY_BOOKS_API_URL =
+  'https://openlibrary.org/api/books'
 
 const openLibraryCoverCache = new Map()
 
@@ -99,32 +101,68 @@ export function isOpenLibraryCoverUrl(coverUrl) {
   }
 }
 
-function loadImage(url) {
-  return new Promise((resolve) => {
-    const image = new Image()
-
-    image.onload = () => {
-      if (!image.decode) {
-        resolve(url)
-        return
-      }
-
-      image.decode().then(
-        () => resolve(url),
-        () => resolve(null)
-      )
-    }
-    image.onerror = () => resolve(null)
-    image.decoding = 'async'
-    image.src = url
+function getOpenLibraryBooksApiUrl(normalizedIsbn) {
+  const params = new URLSearchParams({
+    bibkeys: `ISBN:${normalizedIsbn}`,
+    jscmd: 'data',
+    format: 'json',
   })
+
+  return `${OPEN_LIBRARY_BOOKS_API_URL}?${params.toString()}`
+}
+
+function getOpenLibraryLargeCoverUrl(coverUrl) {
+  if (!isOpenLibraryCoverUrl(coverUrl)) {
+    return null
+  }
+
+  try {
+    const url = new URL(coverUrl)
+
+    url.searchParams.set('default', 'false')
+
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
+function getOpenLibraryMetadataCover(
+  metadata,
+  normalizedIsbn
+) {
+  const book = metadata?.[`ISBN:${normalizedIsbn}`]
+
+  return getOpenLibraryLargeCoverUrl(book?.cover?.large)
+}
+
+async function fetchOpenLibraryCoverByIsbn(normalizedIsbn) {
+  if (typeof fetch !== 'function') {
+    return null
+  }
+
+  try {
+    const response = await fetch(
+      getOpenLibraryBooksApiUrl(normalizedIsbn)
+    )
+
+    if (!response.ok) {
+      return null
+    }
+
+    return getOpenLibraryMetadataCover(
+      await response.json(),
+      normalizedIsbn
+    )
+  } catch {
+    return null
+  }
 }
 
 export function resolveOpenLibraryCoverByIsbn(isbn) {
   const normalizedIsbn = normalizeIsbn(isbn)
-  const coverUrl = getOpenLibraryIsbnCoverUrl(isbn)
 
-  if (!normalizedIsbn || !coverUrl) {
+  if (!normalizedIsbn) {
     return Promise.resolve(null)
   }
 
@@ -151,29 +189,27 @@ export function resolveOpenLibraryCoverByIsbn(isbn) {
     return cachedCover.promise
   }
 
-  const request =
-    typeof Image === 'undefined'
-      ? Promise.resolve(coverUrl)
-      : loadImage(coverUrl)
+  const cachedRequest =
+    fetchOpenLibraryCoverByIsbn(normalizedIsbn).then(
+      (resolvedCover) => {
+        openLibraryCoverCache.set(
+          normalizedIsbn,
+          resolvedCover
+            ? {
+                status:
+                  OPEN_LIBRARY_COVER_CACHE_STATUS.RESOLVED,
+                cover: resolvedCover,
+              }
+            : {
+                status:
+                  OPEN_LIBRARY_COVER_CACHE_STATUS.MISSING,
+                cover: null,
+              }
+        )
 
-  const cachedRequest = request.then((resolvedCover) => {
-    openLibraryCoverCache.set(
-      normalizedIsbn,
-      resolvedCover
-        ? {
-            status:
-              OPEN_LIBRARY_COVER_CACHE_STATUS.RESOLVED,
-            cover: resolvedCover,
-          }
-        : {
-            status:
-              OPEN_LIBRARY_COVER_CACHE_STATUS.MISSING,
-            cover: null,
-          }
+        return resolvedCover
+      }
     )
-
-    return resolvedCover
-  })
 
   openLibraryCoverCache.set(normalizedIsbn, {
     status: OPEN_LIBRARY_COVER_CACHE_STATUS.PENDING,
@@ -182,4 +218,8 @@ export function resolveOpenLibraryCoverByIsbn(isbn) {
   })
 
   return cachedRequest
+}
+
+export function clearOpenLibraryCoverCache() {
+  openLibraryCoverCache.clear()
 }
