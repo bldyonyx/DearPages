@@ -29,7 +29,6 @@ function ReadingPreferencesCard({
       `}
     >
       <div>
-
         <h2
           className={`
             mt-1 font-heading text-3xl font-bold leading-tight text-darkwood
@@ -157,7 +156,10 @@ function ReadingPreferencesCard({
                 })}
               </div>
 
-              <label className="mt-5 block">
+              <label
+                htmlFor="annual-reading-goal"
+                className="mt-5 block"
+              >
                 <span
                   className={`
                     text-sm font-bold text-darkwood
@@ -180,6 +182,8 @@ function ReadingPreferencesCard({
                   "
                 >
                   <input
+                    id="annual-reading-goal"
+                    name="annualReadingGoal"
                     type="number"
                     inputMode="numeric"
                     min="1"
