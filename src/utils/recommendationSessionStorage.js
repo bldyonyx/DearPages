@@ -1,5 +1,7 @@
 const STORAGE_PREFIX = 'booktracker:recommendations'
-const FOR_YOU_CACHE_VERSION = 'v5'
+const FOR_YOU_CACHE_VERSION = 'v6'
+const TRENDING_CACHE_VERSION = 'v3'
+const MUST_READS_CACHE_VERSION = 'v2'
 
 function getUserStorageScope(userId) {
   return `user:${userId}`
@@ -13,11 +15,11 @@ export const RECOMMENDATION_STORAGE_KEYS = {
   trending: (userId) =>
     `${STORAGE_PREFIX}:${getUserStorageScope(
       userId
-    )}:discover:trending`,
+    )}:discover:trending:${TRENDING_CACHE_VERSION}`,
   mustReads: (userId) =>
     `${STORAGE_PREFIX}:${getUserStorageScope(
       userId
-    )}:discover:must-reads`,
+    )}:discover:must-reads:${MUST_READS_CACHE_VERSION}`,
   forYouGenre: (userId, signature, subject) =>
     `${STORAGE_PREFIX}:${getUserStorageScope(
       userId

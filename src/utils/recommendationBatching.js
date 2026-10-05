@@ -1,4 +1,5 @@
 import { getBooksBySubjectWindow } from '../services/booksApi'
+import { isExplicitDiscoveryBook } from './discoveryContentSafety'
 import {
   addBooksToIdentitySet,
   getBookIdentityKeys,
@@ -29,6 +30,10 @@ function mergeUniqueBooks(books) {
   })
 
   return uniqueBooks
+}
+
+function filterSafeDiscoveryBooks(books) {
+  return books.filter((book) => !isExplicitDiscoveryBook(book))
 }
 
 function selectFromCandidates(
@@ -172,7 +177,10 @@ export async function fetchRecommendationBatch({
       continue
     }
 
-    candidateBooks = mergeUniqueBooks([...candidateBooks, ...books])
+    candidateBooks = mergeUniqueBooks([
+      ...candidateBooks,
+      ...filterSafeDiscoveryBooks(books),
+    ])
     nextStartIndex = windowNextStartIndex
     const selection = selectFromCandidates(candidateBooks, {
       limit,
@@ -212,7 +220,7 @@ export async function fetchRecommendationBatch({
 
       candidateBooks = mergeUniqueBooks([
         ...candidateBooks,
-        ...fallbackBooks,
+        ...filterSafeDiscoveryBooks(fallbackBooks),
       ])
       const selection = selectFromCandidates(candidateBooks, {
         limit,

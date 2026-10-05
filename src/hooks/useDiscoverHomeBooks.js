@@ -29,6 +29,51 @@ function createSeenIdentitySetFromBooks(books) {
   return seenIdentityKeys
 }
 
+export function selectTrendingRefreshBooks(
+  candidatePool,
+  {
+    limit = HOME_SHELF_BOOK_LIMIT,
+    shownIdentityKeys = new Set(),
+    excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS,
+  } = {}
+) {
+  const unseenBooks = selectRecommendationBooks(candidatePool, {
+    limit,
+    alreadyShownIdentityKeys: shownIdentityKeys,
+    excludedBookIds,
+    preferBooksWithCovers: true,
+  })
+
+  if (unseenBooks.length >= limit) {
+    const nextShownIdentityKeys = new Set(shownIdentityKeys)
+
+    addBooksToIdentitySet(nextShownIdentityKeys, unseenBooks)
+
+    return {
+      books: unseenBooks,
+      seenIdentityKeys: nextShownIdentityKeys,
+      isPoolExhausted: false,
+    }
+  }
+
+  const resetSeenIdentityKeys =
+    createSeenIdentitySetFromBooks(unseenBooks)
+  const recycledBooks = selectRecommendationBooks(candidatePool, {
+    limit: limit - unseenBooks.length,
+    alreadyShownIdentityKeys: resetSeenIdentityKeys,
+    excludedBookIds,
+    preferBooksWithCovers: true,
+  })
+  const books = [...unseenBooks, ...recycledBooks].slice(0, limit)
+  const nextShownIdentityKeys = createSeenIdentitySetFromBooks(books)
+
+  return {
+    books,
+    seenIdentityKeys: nextShownIdentityKeys,
+    isPoolExhausted: books.length < limit,
+  }
+}
+
 function writeTrendingState(
   userId,
   {
@@ -438,23 +483,27 @@ function useDiscoverHomeBooks({
         trendingShownIdentityKeysRef.current = shownIdentityKeys
       }
 
-      const selectedBooks = selectRecommendationBooks(candidatePool, {
+      const {
+        books: selectedBooks,
+        seenIdentityKeys: nextShownIdentityKeys,
+        isPoolExhausted,
+      } = selectTrendingRefreshBooks(candidatePool, {
         limit: HOME_SHELF_BOOK_LIMIT,
-        alreadyShownIdentityKeys: shownIdentityKeys,
+        shownIdentityKeys,
         excludedBookIds,
-        preferBooksWithCovers: true,
       })
 
       if (selectedBooks.length) {
-        addBooksToIdentitySet(shownIdentityKeys, selectedBooks)
-        trendingShownIdentityKeysRef.current = shownIdentityKeys
+        trendingShownIdentityKeysRef.current =
+          nextShownIdentityKeys
+        isTrendingPoolExhaustedRef.current = isPoolExhausted
         setTrendingBooks(selectedBooks)
         setTrendingRefreshError('')
         writeTrendingState(userId, {
           books: selectedBooks,
           candidatePool,
-          seenIdentityKeys: shownIdentityKeys,
-          isPoolExhausted: false,
+          seenIdentityKeys: nextShownIdentityKeys,
+          isPoolExhausted,
         })
       } else {
         isTrendingPoolExhaustedRef.current = true

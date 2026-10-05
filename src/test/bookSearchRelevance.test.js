@@ -34,7 +34,12 @@ function book({
   }
 }
 
-function googleItem(id, title, authors = ['Auteur inconnu']) {
+function googleItem(
+  id,
+  title,
+  authors = ['Auteur inconnu'],
+  categories = []
+) {
   return {
     id,
     volumeInfo: {
@@ -43,6 +48,7 @@ function googleItem(id, title, authors = ['Auteur inconnu']) {
       industryIdentifiers: [],
       language: 'en',
       printType: 'BOOK',
+      categories,
     },
   }
 }
@@ -349,5 +355,27 @@ describe('booksApi search request behavior', () => {
     expect(fetchMock.mock.calls[0][0]).toContain('maxResults=10')
     expect(fetchMock.mock.calls[0][0]).not.toContain('langRestrict')
     expect(suggestions).toHaveLength(5)
+  })
+
+  it('does not filter explicit categories from ordinary user search', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('explicit-1', 'Explicit User Search Result', [
+            'Author',
+          ], ['Erotica']),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Explicit User Search Result')
+
+    expect(results).toHaveLength(1)
+    expect(results[0].id).toBe('explicit-1')
+    expect(results[0].categories).toEqual(['Erotica'])
   })
 })
