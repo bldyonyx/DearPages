@@ -54,7 +54,7 @@ function SidebarBrand() {
             [@media(min-height:1400px)]:lg:text-[38px]
           "
         >
-          Dear Pages TEST UPDATE
+          Dear Pages
         </span>
       </NavLink>
     </div>
