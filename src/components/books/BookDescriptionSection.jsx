@@ -125,9 +125,15 @@ function BookDescriptionSection({
       )}
 
       {descriptionTranslation.translationError && (
-        <p className="mt-3 font-ui text-xs text-red-700">
-          {descriptionTranslation.translationError}
-        </p>
+        <div className="mt-3 font-ui text-xs text-red-700">
+          <p>{descriptionTranslation.translationError}</p>
+
+          {descriptionTranslation.translationDiagnostic && (
+            <p className="mt-1 break-words">
+              {descriptionTranslation.translationDiagnostic}
+            </p>
+          )}
+        </div>
       )}
     </section>
   )

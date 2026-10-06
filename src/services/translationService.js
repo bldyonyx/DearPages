@@ -2,6 +2,50 @@ const TRANSLATION_URL =
   'https://translation.googleapis.com/language/translate/v2'
 const API_KEY = import.meta.env.VITE_GOOGLE_TRANSLATION_API_KEY
 
+function getRequestOrigin() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.location?.origin || ''
+}
+
+function getGoogleErrorReason(apiError) {
+  return apiError?.errors?.find((error) => error?.reason)
+    ?.reason
+}
+
+function createTranslationError(message, diagnostic = {}) {
+  const error = new Error(message)
+  error.status = diagnostic.status
+  error.apiError = diagnostic.apiError || null
+  error.diagnostic = {
+    status: diagnostic.status || null,
+    googleErrorCode: diagnostic.apiError?.code || null,
+    googleErrorStatus: diagnostic.apiError?.status || null,
+    googleErrorMessage: diagnostic.apiError?.message || null,
+    googleErrorReason:
+      diagnostic.reason ||
+      getGoogleErrorReason(diagnostic.apiError) ||
+      null,
+    origin: getRequestOrigin(),
+    hasApiKey: Boolean(API_KEY),
+    hasHttpResponse: diagnostic.hasHttpResponse ?? true,
+  }
+
+  return error
+}
+
+async function getGoogleErrorBody(response) {
+  try {
+    const body = await response.json()
+
+    return body?.error || null
+  } catch {
+    return null
+  }
+}
+
 function decodeHtmlEntities(value) {
   if (!value || typeof document === 'undefined') {
     return value || ''
@@ -34,7 +78,7 @@ export async function translateText(
   const sourceText = String(text || '').trim()
 
   if (!sourceText || !targetLanguage || !API_KEY) {
-    throw new Error('Translation unavailable.')
+    throw createTranslationError('Translation unavailable.')
   }
 
   const body = new URLSearchParams({
@@ -58,11 +102,19 @@ export async function translateText(
       body,
     })
   } catch {
-    throw new Error('Translation request failed.')
+    throw createTranslationError('Translation request failed.', {
+      hasHttpResponse: false,
+    })
   }
 
   if (!response.ok) {
-    throw new Error('Translation request failed.')
+    const apiError = await getGoogleErrorBody(response)
+
+    throw createTranslationError('Translation request failed.', {
+      status: response.status,
+      apiError,
+      hasHttpResponse: true,
+    })
   }
 
   let data
@@ -70,14 +122,14 @@ export async function translateText(
   try {
     data = await response.json()
   } catch {
-    throw new Error('Translation response invalid.')
+    throw createTranslationError('Translation response invalid.')
   }
 
   const translatedText =
     data?.data?.translations?.[0]?.translatedText
 
   if (typeof translatedText !== 'string' || !translatedText.trim()) {
-    throw new Error('Translation response invalid.')
+    throw createTranslationError('Translation response invalid.')
   }
 
   return decodeHtmlEntities(translatedText)
