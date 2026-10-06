@@ -12,8 +12,8 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('BookDescriptionSection translation diagnostics', () => {
-  it('shows temporary sanitized diagnostics below the friendly error', async () => {
+describe('BookDescriptionSection translation error', () => {
+  it('shows only the friendly error when translation fails', async () => {
     const translationError = new Error('Translation request failed.')
     translationError.diagnostic = {
       status: 403,
@@ -54,15 +54,11 @@ describe('BookDescriptionSection translation diagnostics', () => {
       ).toBeInTheDocument()
     })
 
-    const diagnostic = screen.getByText(
-      /Diag temporaire : status=403;/
-    )
-
-    expect(diagnostic).toHaveTextContent(
-      'reason=forbidden; message=API key restriction blocked this origin.; origin=https://dear-pages-booktracker.web.app; hasApiKey=true; hasHttpResponse=true'
-    )
-    expect(diagnostic).not.toHaveTextContent('volume-1')
-    expect(diagnostic).not.toHaveTextContent('enough words')
-
+    expect(screen.queryByText(/Diag temporaire/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/status=403/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/reason=forbidden/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/dear-pages-booktracker\.web\.app/)
+    ).not.toBeInTheDocument()
   })
 })

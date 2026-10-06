@@ -26,7 +26,7 @@ export const BOOK_STATUSES = {
  * @param {string} status - Reading status assigned to the book.
  * @returns {Object} Library book data ready for Firebase.
  */
-function createLibraryBook(book, status) {
+export function createLibraryBook(book, status) {
   const libraryBook = {
     googleBooksId: book.googleBooksId,
     title: book.title,
@@ -36,6 +36,7 @@ function createLibraryBook(book, status) {
     cover: book.cover || null,
     categories: book.categories || [],
     publishedDate: book.publishedDate || '',
+    description: book.description || '',
     source: book.source || null,
     openLibraryId: book.openLibraryId || null,
     status,

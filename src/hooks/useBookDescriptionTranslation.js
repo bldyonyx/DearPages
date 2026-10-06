@@ -10,29 +10,6 @@ import {
 
 const TARGET_LANGUAGE = 'fr'
 
-function formatTemporaryDiagnostic(error) {
-  const diagnostic = error?.diagnostic
-
-  if (!diagnostic) {
-    return ''
-  }
-
-  const parts = [
-    `status=${diagnostic.status ?? 'none'}`,
-    `code=${diagnostic.googleErrorCode ?? 'none'}`,
-    `googleStatus=${diagnostic.googleErrorStatus ?? 'none'}`,
-    `reason=${diagnostic.googleErrorReason ?? 'none'}`,
-    `message=${diagnostic.googleErrorMessage ?? 'none'}`,
-    `origin=${diagnostic.origin || 'unknown'}`,
-    `hasApiKey=${diagnostic.hasApiKey ? 'true' : 'false'}`,
-    `hasHttpResponse=${
-      diagnostic.hasHttpResponse ? 'true' : 'false'
-    }`,
-  ]
-
-  return `Diag temporaire : ${parts.join('; ')}`
-}
-
 /**
  * Owns the BookPage description translation state.
  *
@@ -87,7 +64,6 @@ export function useBookDescriptionTranslation(book) {
     isShowingTranslation: false,
     isTranslating: false,
     translationError: '',
-    translationDiagnostic: '',
   })
 
   const hasDescription = Boolean(originalDescription)
@@ -110,10 +86,6 @@ export function useBookDescriptionTranslation(book) {
   const translationError = isCurrentDescription
     ? translationState.translationError
     : ''
-  const translationDiagnostic = isCurrentDescription
-    ? translationState.translationDiagnostic
-    : ''
-
   async function translateDescription() {
     if (!isTranslationAvailable || isTranslating) {
       return
@@ -126,7 +98,6 @@ export function useBookDescriptionTranslation(book) {
         isShowingTranslation: true,
         isTranslating: false,
         translationError: '',
-        translationDiagnostic: '',
       })
       return
     }
@@ -137,7 +108,6 @@ export function useBookDescriptionTranslation(book) {
       isShowingTranslation: false,
       isTranslating: true,
       translationError: '',
-      translationDiagnostic: '',
     })
 
     try {
@@ -158,9 +128,8 @@ export function useBookDescriptionTranslation(book) {
         isShowingTranslation: true,
         isTranslating: false,
         translationError: '',
-        translationDiagnostic: '',
       })
-    } catch (translationError) {
+    } catch {
       if (activeCacheKeyRef.current !== cacheKey) {
         return
       }
@@ -172,8 +141,6 @@ export function useBookDescriptionTranslation(book) {
         isTranslating: false,
         translationError:
           'Impossible de traduire ce résumé pour le moment.',
-        translationDiagnostic:
-          formatTemporaryDiagnostic(translationError),
       })
     } finally {
       if (activeCacheKeyRef.current === cacheKey) {
@@ -196,7 +163,6 @@ export function useBookDescriptionTranslation(book) {
       isShowingTranslation: false,
       isTranslating: false,
       translationError: '',
-      translationDiagnostic: '',
     })
   }
 
@@ -218,7 +184,6 @@ export function useBookDescriptionTranslation(book) {
     isTranslating,
     isTranslationAvailable,
     translationActionLabel,
-    translationDiagnostic,
     translationError,
     showOriginalDescription,
     translateDescription,
