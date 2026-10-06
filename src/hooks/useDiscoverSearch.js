@@ -23,7 +23,6 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
   const [areSuggestionsLoading, setAreSuggestionsLoading] =
     useState(false)
   const [error, setError] = useState('')
-  const [errorDiagnostic, setErrorDiagnostic] = useState('')
 
   useEffect(() => {
     setSearch(queryFromUrl)
@@ -33,7 +32,6 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     if (!queryFromUrl) {
       setBooks([])
       setError('')
-      setErrorDiagnostic('')
       return
     }
 
@@ -43,7 +41,6 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
       try {
         setIsLoading(true)
         setError('')
-        setErrorDiagnostic('')
 
         const results = await searchBooks(queryFromUrl)
 
@@ -53,7 +50,6 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
       } catch (err) {
         if (isActive) {
           setError(err.message)
-          setErrorDiagnostic(err.googleBooksDiagnostic || '')
           setBooks([])
         }
       } finally {
@@ -136,7 +132,6 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     isLoading,
     areSuggestionsLoading,
     error,
-    errorDiagnostic,
     handleSubmit,
     handleClearSearch: clearSearch,
     handleBackToDiscover: clearSearch,

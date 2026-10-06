@@ -23,7 +23,7 @@ const GOOGLE_SUBJECT_QUERIES = {
   comics: 'subject:"comics graphic novels"',
   'young adult': 'subject:"young adult fiction"',
 }
-const DIAGNOSTIC_TEXT_LIMIT = 120
+const GOOGLE_BOOKS_RETRY_DELAY_MS = 250
 
 const SUBJECT_RELEVANCE_RULES = {
   fantasy: {
@@ -424,71 +424,39 @@ function formatBook(item) {
  * @param {string} message - Message d'erreur à utiliser si la requête échoue.
  * @returns {Promise<Object>} Réponse JSON Google Books.
  */
-function sanitizeDiagnosticText(value) {
-  return String(value || '')
-    .replace(API_KEY || /$^/, '[redacted]')
-    .replace(/([?&]key=)[^&\s]+/gi, '$1[redacted]')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, DIAGNOSTIC_TEXT_LIMIT)
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }
 
-function getApiErrorDetail(apiError, field) {
-  const errorDetail = apiError?.errors?.find((item) => item?.[field])
-
-  return apiError?.[field] || errorDetail?.[field] || ''
+function isRetryableGoogleBooksError(error) {
+  return error.status === 503
 }
 
-function createGoogleBooksDiagnostic(error, stage) {
-  if (!stage) return ''
+function createGoogleBooksError(message, error) {
+  const wrappedError = new Error(message)
+  wrappedError.status = error.status
+  wrappedError.apiError = error.apiError
+  wrappedError.cause = error
 
-  const parts = [`stage=${stage}`]
-
-  if (error.status) {
-    parts.push(`status=${error.status}`)
-  }
-
-  const reason = sanitizeDiagnosticText(
-    getApiErrorDetail(error.apiError, 'reason')
-  )
-  const apiMessage = sanitizeDiagnosticText(
-    getApiErrorDetail(error.apiError, 'message')
-  )
-
-  if (reason) {
-    parts.push(`reason=${reason}`)
-  }
-
-  if (apiMessage) {
-    parts.push(`message=${apiMessage}`)
-  }
-
-  if (!error.status) {
-    const networkMessage = sanitizeDiagnosticText(
-      `${error.name || 'Error'}: ${error.message || 'fetch failed'}`
-    )
-
-    parts.push(`network=${networkMessage || 'fetch failed'}`)
-  }
-
-  return `Diag temporaire: ${parts.join('; ')}`
+  return wrappedError
 }
 
-async function getGoogleBooksData(url, message, options = {}) {
+async function getGoogleBooksData(url, message) {
   try {
     return await fetchJsonOnce(url)
   } catch (error) {
-    const wrappedError = new Error(message)
-    const diagnostic = createGoogleBooksDiagnostic(
-      error,
-      options.searchStage
-    )
-
-    if (diagnostic) {
-      wrappedError.googleBooksDiagnostic = diagnostic
+    if (isRetryableGoogleBooksError(error)) {
+      try {
+        await delay(GOOGLE_BOOKS_RETRY_DELAY_MS)
+        return await fetchJsonOnce(url)
+      } catch (retryError) {
+        throw createGoogleBooksError(message, retryError)
+      }
     }
 
-    throw wrappedError
+    throw createGoogleBooksError(message, error)
   }
 }
 
@@ -512,16 +480,14 @@ function createVolumesSearchUrl(query, options = {}) {
 async function searchGoogleBooksCandidates(
   query,
   maxResults,
-  message,
-  options = {}
+  message
 ) {
   const data = await getGoogleBooksData(
     createVolumesSearchUrl(query, {
       maxResults,
       printType: 'books',
     }),
-    message,
-    options
+    message
   )
 
   return data.items?.map(formatBook) || []
@@ -541,15 +507,13 @@ export async function searchBooks(query) {
   const broadCandidates = await searchGoogleBooksCandidates(
     trimmedQuery,
     SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.',
-    { searchStage: 'broad' }
+    'Impossible de récupérer les livres.'
   )
 
   const titleCandidates = await searchGoogleBooksCandidates(
     buildTitleSearchQuery(trimmedQuery),
     TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.',
-    { searchStage: 'title' }
+    'Impossible de récupérer les livres.'
   )
 
   const rankedInitialCandidates = mergeAndRankSearchBooks(
@@ -573,8 +537,7 @@ export async function searchBooks(query) {
   const authorCandidates = await searchGoogleBooksCandidates(
     authorQuery,
     TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.',
-    { searchStage: 'author' }
+    'Impossible de récupérer les livres.'
   )
 
   return mergeAndRankSearchBooks(

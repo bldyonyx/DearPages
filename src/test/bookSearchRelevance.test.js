@@ -60,6 +60,20 @@ function successfulResponse(items) {
   })
 }
 
+function failedResponse(status, reason = 'backendFailed') {
+  return Promise.resolve({
+    ok: false,
+    status,
+    json: () =>
+      Promise.resolve({
+        error: {
+          message: 'Service temporarily unavailable.',
+          errors: [{ reason }],
+        },
+      }),
+  })
+}
+
 function getRequestQuery(call) {
   const url = new URL(call[0])
 
@@ -67,6 +81,7 @@ function getRequestQuery(call) {
 }
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -379,51 +394,101 @@ describe('booksApi search request behavior', () => {
     expect(results[0].categories).toEqual(['Erotica'])
   })
 
-  it('adds sanitized submitted-search diagnostics when a Google Books stage fails', async () => {
+  it('retries once when the first request returns 503 and the retry succeeds', async () => {
+    vi.useFakeTimers()
+
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('retry-success', 'Retry Success', ['Author']),
+        ])
+      )
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('retry-title', 'Retry Success', ['Author']),
+        ])
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const promise = searchBooks('Retry Success')
+    await vi.advanceTimersByTimeAsync(250)
+    const results = await promise
+
+    expect(results).toHaveLength(1)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe('Retry Success')
+    expect(getRequestQuery(fetchMock.mock.calls[1])).toBe('Retry Success')
+    expect(getRequestQuery(fetchMock.mock.calls[2])).toBe(
+      'intitle:"Retry Success"'
+    )
+  })
+
+  it('surfaces the existing error when a 503 retry also fails', async () => {
+    vi.useFakeTimers()
+
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() => failedResponse(503))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const promise = expect(searchBooks('Retry Failure')).rejects.toMatchObject({
+      message: 'Impossible de récupérer les livres.',
+      status: 503,
+      apiError: {
+        message: 'Service temporarily unavailable.',
+        errors: [{ reason: 'backendFailed' }],
+      },
+    })
+    await vi.advanceTimersByTimeAsync(250)
+    await promise
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([400, 403])(
+    'does not retry permanent Google Books %s errors',
+    async (status) => {
+      const fetchMock = vi
+        .fn()
+        .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
+
+      vi.stubGlobal('fetch', fetchMock)
+      const { searchBooks } = await import('../services/booksApi.js')
+
+      await expect(searchBooks('Permanent Failure')).rejects.toMatchObject({
+        message: 'Impossible de récupérer les livres.',
+        status,
+      })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    }
+  )
+
+  it('does not retry normal successful requests', async () => {
     const fetchMock = vi
       .fn()
       .mockImplementationOnce(() =>
         successfulResponse([
-          googleItem('weak-1', 'Weak Result', ['Other Author']),
+          googleItem('normal-broad', 'Normal Success', ['Author']),
         ])
       )
       .mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 403,
-          json: () =>
-            Promise.resolve({
-              error: {
-                message:
-                  'Quota failed for https://example.test/?key=secret-api-key&x=1',
-                errors: [{ reason: 'dailyLimitExceeded' }],
-              },
-            }),
-        })
+        successfulResponse([
+          googleItem('normal-title', 'Normal Success', ['Author']),
+        ])
       )
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
 
-    await expect(searchBooks('Diagnostic Search')).rejects.toMatchObject({
-      message: 'Impossible de récupérer les livres.',
-      googleBooksDiagnostic:
-        'Diag temporaire: stage=title; status=403; reason=dailyLimitExceeded; message=Quota failed for https://example.test/?key=[redacted]&x=1',
-    })
-  })
+    const results = await searchBooks('Normal Success')
 
-  it('adds network diagnostics when submitted search has no HTTP response', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
-
-    vi.stubGlobal('fetch', fetchMock)
-    const { searchBooks } = await import('../services/booksApi.js')
-
-    await expect(searchBooks('Network Failure')).rejects.toMatchObject({
-      message: 'Impossible de récupérer les livres.',
-      googleBooksDiagnostic:
-        'Diag temporaire: stage=broad; network=TypeError: Failed to fetch',
-    })
+    expect(results).toHaveLength(1)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
