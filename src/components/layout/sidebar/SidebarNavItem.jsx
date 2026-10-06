@@ -60,7 +60,7 @@ function SidebarNavItem({ item }) {
             lg:size-4.5
 
             [@media(min-height:1000px)]:lg:size-5
-            [@media(min-height:1200px)]:lg:size-[22px]
+            [@media(min-height:1200px)]:lg:size-5.5
             [@media(min-height:1400px)]:lg:size-6
           "
           strokeWidth={1.8}

@@ -10,7 +10,7 @@ function SidebarBrand() {
 
         [@media(min-height:1000px)]:lg:mb-14
         [@media(min-height:1200px)]:lg:mb-16
-        [@media(min-height:1400px)]:lg:mb-[72px]
+        [@media(min-height:1400px)]:lg:mb-18
       "
     >
       <NavLink
@@ -21,7 +21,7 @@ function SidebarBrand() {
           lg:gap-3.5
 
           [@media(min-height:1000px)]:lg:gap-4
-          [@media(min-height:1200px)]:lg:gap-[18px]
+          [@media(min-height:1200px)]:lg:gap-4.5
           [@media(min-height:1400px)]:lg:gap-5
         "
       >
