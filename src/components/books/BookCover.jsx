@@ -41,10 +41,6 @@ function BookCover({
   titleClassName = 'font-heading text-lg font-bold leading-snug text-darkwood',
 }) {
   const usableCover = getUsableCover(cover)
-  const shouldTryOpenLibraryCover =
-    Boolean(isbn) &&
-    source !== 'open-library' &&
-    !isOpenLibraryCoverUrl(usableCover)
   const openLibraryResolutionKey = `${isbn || ''}|${
     source || ''
   }`
@@ -57,6 +53,17 @@ function BookCover({
     covers: new Set(),
   })
   const [, setCacheVersion] = useState(0)
+  const failedCovers =
+    failedCoverState.key === failedCoverKey
+      ? failedCoverState.covers
+      : new Set()
+  const hasUsableCoverFailed =
+    Boolean(usableCover) && failedCovers.has(usableCover)
+  const shouldTryOpenLibraryCover =
+    Boolean(isbn) &&
+    source !== 'open-library' &&
+    !isOpenLibraryCoverUrl(usableCover) &&
+    (!usableCover || hasUsableCoverFailed)
   const cachedOpenLibraryCover =
     shouldTryOpenLibraryCover
       ? getCachedOpenLibraryCoverByIsbn(isbn)
@@ -74,11 +81,6 @@ function BookCover({
   const openLibraryCover = hasResolvedOpenLibraryCover
     ? cachedOpenLibraryCover.cover
     : null
-
-  const failedCovers =
-    failedCoverState.key === failedCoverKey
-      ? failedCoverState.covers
-      : new Set()
 
   useEffect(() => {
     let isActive = true

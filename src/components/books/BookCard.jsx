@@ -12,7 +12,7 @@ function BookCard({
   isbn,
   source,
   status,
-  coverLoading = 'eager',
+  coverLoading = 'lazy',
   titleClassName = '',
   authorClassName = '',
   contentClassName = '',
