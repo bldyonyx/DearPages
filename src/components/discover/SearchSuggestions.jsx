@@ -37,7 +37,8 @@ function SearchSuggestions({ suggestions, isLoading }) {
     <div
       className="
         absolute left-0 right-0 top-full z-20
-        mt-2 max-h-[min(26rem,calc(100dvh-16rem-env(safe-area-inset-bottom)))]
+        hide-scrollbar
+        mt-2 max-h-[min(16.5rem,calc(100dvh-18rem-env(safe-area-inset-bottom)))]
         overflow-x-hidden overflow-y-auto overscroll-contain rounded-2xl
         border border-walnut/20
         bg-cream
