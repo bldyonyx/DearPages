@@ -378,4 +378,52 @@ describe('booksApi search request behavior', () => {
     expect(results[0].id).toBe('explicit-1')
     expect(results[0].categories).toEqual(['Erotica'])
   })
+
+  it('adds sanitized submitted-search diagnostics when a Google Books stage fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('weak-1', 'Weak Result', ['Other Author']),
+        ])
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          status: 403,
+          json: () =>
+            Promise.resolve({
+              error: {
+                message:
+                  'Quota failed for https://example.test/?key=secret-api-key&x=1',
+                errors: [{ reason: 'dailyLimitExceeded' }],
+              },
+            }),
+        })
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    await expect(searchBooks('Diagnostic Search')).rejects.toMatchObject({
+      message: 'Impossible de récupérer les livres.',
+      googleBooksDiagnostic:
+        'Diag temporaire: stage=title; status=403; reason=dailyLimitExceeded; message=Quota failed for https://example.test/?key=[redacted]&x=1',
+    })
+  })
+
+  it('adds network diagnostics when submitted search has no HTTP response', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    await expect(searchBooks('Network Failure')).rejects.toMatchObject({
+      message: 'Impossible de récupérer les livres.',
+      googleBooksDiagnostic:
+        'Diag temporaire: stage=broad; network=TypeError: Failed to fetch',
+    })
+  })
 })

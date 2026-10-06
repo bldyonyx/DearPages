@@ -53,6 +53,7 @@ function Discover() {
     isLoading,
     areSuggestionsLoading,
     error,
+    errorDiagnostic,
     handleSubmit,
     handleClearSearch,
     handleBackToDiscover,
@@ -173,6 +174,7 @@ function Discover() {
           books={books}
           isLoading={isLoading}
           error={error}
+          errorDiagnostic={errorDiagnostic}
           onBackToDiscover={handleBackToDiscover}
         />
       )}

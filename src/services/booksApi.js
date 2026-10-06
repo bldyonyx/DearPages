@@ -23,6 +23,7 @@ const GOOGLE_SUBJECT_QUERIES = {
   comics: 'subject:"comics graphic novels"',
   'young adult': 'subject:"young adult fiction"',
 }
+const DIAGNOSTIC_TEXT_LIMIT = 120
 
 const SUBJECT_RELEVANCE_RULES = {
   fantasy: {
@@ -423,11 +424,71 @@ function formatBook(item) {
  * @param {string} message - Message d'erreur à utiliser si la requête échoue.
  * @returns {Promise<Object>} Réponse JSON Google Books.
  */
-async function getGoogleBooksData(url, message) {
+function sanitizeDiagnosticText(value) {
+  return String(value || '')
+    .replace(API_KEY || /$^/, '[redacted]')
+    .replace(/([?&]key=)[^&\s]+/gi, '$1[redacted]')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, DIAGNOSTIC_TEXT_LIMIT)
+}
+
+function getApiErrorDetail(apiError, field) {
+  const errorDetail = apiError?.errors?.find((item) => item?.[field])
+
+  return apiError?.[field] || errorDetail?.[field] || ''
+}
+
+function createGoogleBooksDiagnostic(error, stage) {
+  if (!stage) return ''
+
+  const parts = [`stage=${stage}`]
+
+  if (error.status) {
+    parts.push(`status=${error.status}`)
+  }
+
+  const reason = sanitizeDiagnosticText(
+    getApiErrorDetail(error.apiError, 'reason')
+  )
+  const apiMessage = sanitizeDiagnosticText(
+    getApiErrorDetail(error.apiError, 'message')
+  )
+
+  if (reason) {
+    parts.push(`reason=${reason}`)
+  }
+
+  if (apiMessage) {
+    parts.push(`message=${apiMessage}`)
+  }
+
+  if (!error.status) {
+    const networkMessage = sanitizeDiagnosticText(
+      `${error.name || 'Error'}: ${error.message || 'fetch failed'}`
+    )
+
+    parts.push(`network=${networkMessage || 'fetch failed'}`)
+  }
+
+  return `Diag temporaire: ${parts.join('; ')}`
+}
+
+async function getGoogleBooksData(url, message, options = {}) {
   try {
     return await fetchJsonOnce(url)
-  } catch {
-    throw new Error(message)
+  } catch (error) {
+    const wrappedError = new Error(message)
+    const diagnostic = createGoogleBooksDiagnostic(
+      error,
+      options.searchStage
+    )
+
+    if (diagnostic) {
+      wrappedError.googleBooksDiagnostic = diagnostic
+    }
+
+    throw wrappedError
   }
 }
 
@@ -451,14 +512,16 @@ function createVolumesSearchUrl(query, options = {}) {
 async function searchGoogleBooksCandidates(
   query,
   maxResults,
-  message
+  message,
+  options = {}
 ) {
   const data = await getGoogleBooksData(
     createVolumesSearchUrl(query, {
       maxResults,
       printType: 'books',
     }),
-    message
+    message,
+    options
   )
 
   return data.items?.map(formatBook) || []
@@ -478,13 +541,15 @@ export async function searchBooks(query) {
   const broadCandidates = await searchGoogleBooksCandidates(
     trimmedQuery,
     SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
+    'Impossible de récupérer les livres.',
+    { searchStage: 'broad' }
   )
 
   const titleCandidates = await searchGoogleBooksCandidates(
     buildTitleSearchQuery(trimmedQuery),
     TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
+    'Impossible de récupérer les livres.',
+    { searchStage: 'title' }
   )
 
   const rankedInitialCandidates = mergeAndRankSearchBooks(
@@ -508,7 +573,8 @@ export async function searchBooks(query) {
   const authorCandidates = await searchGoogleBooksCandidates(
     authorQuery,
     TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
+    'Impossible de récupérer les livres.',
+    { searchStage: 'author' }
   )
 
   return mergeAndRankSearchBooks(

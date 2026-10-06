@@ -15,9 +15,20 @@ export async function fetchJsonOnce(url) {
   }
 
   const request = fetch(url)
-    .then((response) => {
+    .then(async (response) => {
       if (!response.ok) {
-        throw new Error('Impossible de recuperer les donnees.')
+        let body = null
+
+        try {
+          body = await response.json()
+        } catch {
+          body = null
+        }
+
+        const error = new Error('Impossible de recuperer les donnees.')
+        error.status = response.status
+        error.apiError = body?.error || null
+        throw error
       }
 
       return response.json()

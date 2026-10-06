@@ -7,6 +7,7 @@ function SearchResults({
   books,
   isLoading,
   error,
+  errorDiagnostic,
   onBackToDiscover,
 }) {
   return (
@@ -69,6 +70,16 @@ function SearchResults({
           >
             {error}
           </p>
+          {errorDiagnostic && (
+            <p
+              className={`
+                mt-3 break-words font-ui text-xs text-darkwood/70
+                ${discoverLarge.description}
+              `}
+            >
+              {errorDiagnostic}
+            </p>
+          )}
         </div>
       )}
 
