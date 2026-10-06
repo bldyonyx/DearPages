@@ -15,7 +15,7 @@ const mobileNavigation = {
     icon: House,
   },
   '/discover': {
-    label: 'Découvrir',
+    label: 'TEST UPDATE',
     icon: Compass,
   },
   '/library': {
