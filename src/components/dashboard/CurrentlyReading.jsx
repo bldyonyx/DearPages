@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -141,13 +142,10 @@ function CurrentlyReading({
     books.length > 0 ? activeIndex % books.length : 0
 
   const currentBook = books[boundedActiveIndex] || books[0]
+
   const visibleBooks = useMemo(
-    () =>
-      getVisibleCurrentReads(books, boundedActiveIndex),
-    [
-      boundedActiveIndex,
-      books,
-    ]
+    () => getVisibleCurrentReads(books, boundedActiveIndex),
+    [boundedActiveIndex, books]
   )
 
   const navigateToIndex = useCallback(
@@ -168,10 +166,7 @@ function CurrentlyReading({
     (step) => {
       navigateToIndex(boundedActiveIndex + step)
     },
-    [
-      boundedActiveIndex,
-      navigateToIndex,
-    ]
+    [boundedActiveIndex, navigateToIndex]
   )
 
   useEffect(() => {
@@ -476,28 +471,36 @@ function CurrentlyReading({
             />
           </div>
 
+          {/* Hauteur réservée pour 3 lignes de titre */}
           <h3
             className="
               mt-3 line-clamp-3
+              min-h-[calc(3*1.25*1.5rem)]
               wrap-break-word
               font-heading text-2xl
               font-bold leading-tight
               text-darkwood
               [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-4
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-[calc(3*1.25*1.875rem)]
               [@media_(min-width:2200px)_and_(min-height:1100px)]:text-3xl
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-[calc(3*1.25*2.25rem)]
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-4xl
             "
           >
             {currentBook.title}
           </h3>
 
+          {/* Hauteur réservée pour 2 lignes d'auteur */}
           <p
             className="
               mt-1 line-clamp-2
+              min-h-10
               wrap-break-word
               font-ui text-sm
               text-darkwood/60
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-12
               [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-14
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
             "
           >
@@ -507,11 +510,13 @@ function CurrentlyReading({
 
           <div
             className="
-              mt-5 flex flex-wrap
+              mt-5 flex min-h-9 flex-wrap
               items-start gap-2
               [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-10
               [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3
               [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-12
             "
           >
             <Link
