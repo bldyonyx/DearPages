@@ -7,6 +7,8 @@ Dear Pages is a cozy book tracking web app for
 organizing your library, discovering new books,
 tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
+[Live app](https://dear-pages-booktracker.web.app) · [Documentation](https://dear-pages-docs.web.app)
+
 ---
 
 ## ✦ Features
@@ -15,15 +17,13 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Personalize your experience through onboarding preferences
 
-♡ Search for books by title, author, or keyword
+♡ Search for books by title, author, or keyword with live suggestions
 
-♡ Get search suggestions while typing
-
-♡ Discover personalized book recommendations
+♡ Discover personalized recommendations based on your favorite genres
 
 ♡ Browse trending books and timeless classics
 
-♡ Open detailed pages with book information and descriptions
+♡ Open detailed book pages with information and translated descriptions
 
 ♡ Build and organize your personal library
 
@@ -33,36 +33,89 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Create and organize custom book collections
 
-♡ Keep track of your current reads from your dashboard
+♡ Keep track of your current reads and yearly reading goal from your dashboard
 
-♡ Manage your account and reading preferences in Settings
+♡ Manage your profile and reading preferences in Settings
 
 ♡ Use Dear Pages across desktop, tablet, and mobile
 
 ---
 
-## ✦ Made with
+## ✦ A little look inside
 
-`React` · `JavaScript` · `Tailwind CSS` · `Vite`
-
-`React Router` · `Firebase` · `Google Books API` · `Open Library API` · `Google Translation API`
+<table>
+  <tr>
+    <td width="50%">
+      <strong>Dashboard</strong><br><br>
+      <img src="./screenshots/dashboard.png" alt="Dear Pages dashboard">
+    </td>
+    <td width="50%">
+      <strong>Discover</strong><br><br>
+      <img src="./screenshots/discover.png" alt="Dear Pages discover page">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>My Library</strong><br><br>
+      <img src="./screenshots/library.png" alt="Dear Pages personal library">
+    </td>
+    <td width="50%">
+      <strong>Book Page</strong><br><br>
+      <img src="./screenshots/book-page.png" alt="Dear Pages book details page">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <strong>Collections</strong><br><br>
+      <img src="./screenshots/collections.png" alt="Dear Pages collections page">
+    </td>
+    <td width="50%">
+      <strong>Settings</strong><br><br>
+      <img src="./screenshots/settings.png" alt="Dear Pages settings page">
+    </td>
+  </tr>
+</table>
 
 ---
 
-## ✦ Currently...
+## ✦ Made with
 
-Dear Pages is currently a work in progress! ૮ ˶ᵔ ᵕ ᵔ˶ ა
+### Frontend
 
-The core features are now in place, from authentication and
-onboarding to book discovery, library tracking, collections,
-ratings, reviews, notes, and personalized reading spaces.
+`React` · `JavaScript` · `Tailwind CSS` · `Vite` · `React Router`
 
-I'm currently focusing on the final UI/UX polish —
-refining responsive behavior, interactions, animations,
-loading and empty states, book covers, and overall visual consistency.
+### Backend & data
 
-Testing and final documentation are coming next
-as Dear Pages gets ready for its first complete release ♡
+`Firebase Authentication` · `Cloud Firestore`
+
+`Google Books API` · `Open Library API` · `Google Cloud Translation API`
+
+### Testing & documentation
+
+`Vitest` · `React Testing Library` · `Astro` · `Starlight`
+
+### Deployment
+
+`Firebase Hosting` · `GitHub Actions`
+
+---
+
+## ✦ Behind the pages
+
+Dear Pages combines multiple book data sources to make discovery
+and library tracking feel seamless.
+
+Google Books provides the main book data and search experience,
+while Open Library supports additional discovery and cover handling.
+English book descriptions can also be translated into French through
+Google Cloud Translation.
+
+Personal data ⸝ including library books, collections, ratings,
+reviews, notes, preferences, and reading goals ⸝ is connected
+to each authenticated user through Firebase.
+
+The project includes automated tests with Vitest and dedicated
+technical documentation built with Astro and Starlight.
 
 ---
 
