@@ -185,6 +185,28 @@ describe('BookCover cover loading performance', () => {
     ).toHaveAttribute('loading', 'lazy')
   })
 
+  it('adds intrinsic dimensions to lazy BookCard covers', () => {
+    render(
+      <MemoryRouter>
+        <BookCard
+          bookId="book-1"
+          title="Stable Lazy Ratio"
+          author="Author"
+          cover="https://books.google.com/books/content?id=ratio&printsec=frontcover&img=1"
+          isbn="9780306406157"
+          source="google-books"
+        />
+      </MemoryRouter>
+    )
+
+    const image = screen.getByRole('img', {
+      name: 'Couverture de Stable Lazy Ratio',
+    })
+
+    expect(image).toHaveAttribute('width', '200')
+    expect(image).toHaveAttribute('height', '300')
+  })
+
   it('keeps BookPage-style details covers eager', () => {
     render(
       <BookDetails

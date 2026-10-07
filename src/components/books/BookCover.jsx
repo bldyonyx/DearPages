@@ -7,6 +7,9 @@ import {
   resolveOpenLibraryCoverByIsbn,
 } from '../../services/coverUtils.js'
 
+const BOOK_COVER_INTRINSIC_WIDTH = 200
+const BOOK_COVER_INTRINSIC_HEIGHT = 300
+
 function isGooglePlaceholderCover(coverUrl) {
   if (!coverUrl) return false
 
@@ -161,6 +164,8 @@ function BookCover({
         <img
           src={visibleCover}
           alt={`Couverture de ${title}`}
+          width={BOOK_COVER_INTRINSIC_WIDTH}
+          height={BOOK_COVER_INTRINSIC_HEIGHT}
           loading={coverLoading}
           decoding="async"
           onError={handleCoverError}
