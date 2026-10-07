@@ -119,6 +119,13 @@ technical documentation built with Astro and Starlight.
 
 ---
 
+## ✦ Language
+
+Dear Pages is currently available in French ♡  
+An English version may be added in a future update.
+
+---
+
 <p align="center">
   made with ♡ one book at a time
   <br>
