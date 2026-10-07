@@ -1,15 +1,53 @@
+
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { dashboardLarge } from './dashboardResponsive.js'
+
+const CIRCLE_RADIUS = 44
+const CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS
 
 function ReadingGoal({
   completedBooks,
   goal,
 }) {
-  const percentage = Math.min(
-    Math.round((completedBooks / goal) * 100),
-    100
-  )
+  const percentage = goal > 0
+    ? Math.min(
+        Math.max(
+          Math.round((completedBooks / goal) * 100),
+          0
+        ),
+        100
+      )
+    : 0
+
+  const [animatedPercentage, setAnimatedPercentage] = useState(0)
+  const [reducedMotion, setReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    )
+
+    const prefersReducedMotion = mediaQuery.matches
+    setReducedMotion(prefersReducedMotion)
+
+    if (prefersReducedMotion) {
+      setAnimatedPercentage(percentage)
+      return
+    }
+
+    setAnimatedPercentage(0)
+
+    const timeout = window.setTimeout(() => {
+      setAnimatedPercentage(percentage)
+    }, 150)
+
+    return () => window.clearTimeout(timeout)
+  }, [percentage])
+
+  const strokeDashoffset =
+    CIRCUMFERENCE * (1 - animatedPercentage / 100)
 
   return (
     <Link
@@ -78,23 +116,28 @@ function ReadingGoal({
             <circle
               cx="50"
               cy="50"
-              r="44"
+              r={CIRCLE_RADIUS}
               fill="none"
               stroke="rgba(69, 50, 40, 0.1)"
               strokeWidth="7"
             />
 
-            {/* Progression */}
+            {/* Progression animée */}
             <circle
               cx="50"
               cy="50"
-              r="44"
+              r={CIRCLE_RADIUS}
               fill="none"
               stroke="var(--color-sage)"
               strokeWidth="7"
               strokeLinecap="round"
-              pathLength="100"
-              strokeDasharray={`${percentage} 100`}
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={strokeDashoffset}
+              style={{
+                transition: reducedMotion
+                  ? 'none'
+                  : 'stroke-dashoffset 1400ms cubic-bezier(0.22, 1, 0.36, 1)',
+              }}
             />
           </svg>
 
@@ -120,7 +163,7 @@ function ReadingGoal({
           </div>
         </div>
 
-        <p className="mt-4 text-center font-ui text-xs text-darkwood/60 sm:mt-5 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg">
+        <p className="mt-4 text-center font-ui text-xs text-darkwood/60 sm:mt-5 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8">
           {completedBooks} livre{completedBooks > 1 ? 's' : ''}{' '}
           terminé{completedBooks > 1 ? 's' : ''} cette année
         </p>
