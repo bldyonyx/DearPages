@@ -26,7 +26,7 @@ Il permet également de gérer les états nécessaires aux interactions de l'app
 
 ## JavaScript
 
-Dear Pages est actuellement développé en **JavaScript**.
+Dear Pages est développé en **JavaScript**.
 
 JavaScript est utilisé pour :
 
@@ -86,7 +86,7 @@ Les pages principales partagent `PageLayout`, tandis que les pages d'authentific
 
 ## Google Books API
 
-**Google Books API** est utilisée comme source externe pour les informations publiques concernant les livres.
+**Google Books API** est utilisée comme source externe principale pour les informations publiques concernant les livres.
 
 Elle est notamment utilisée pour :
 
@@ -104,11 +104,15 @@ Google Books répond donc principalement à la question :
 
 ## Open Library
 
-**Open Library** est utilisée pour l'étagère **Tendances du moment**.
+**Open Library** complète Google Books dans certaines parties de l'application.
 
-Cette source permet de récupérer des livres classés comme tendance sans devoir maintenir une liste manuelle dans le projet.
+Elle est notamment utilisée pour :
 
-Les données reçues sont normalisées dans `trendingBooksApi.js`.
+- alimenter l'étagère **Tendances du moment** ;
+- récupérer certaines données publiques de livres ;
+- résoudre certaines couvertures à partir d'un ISBN lorsqu'une meilleure source est disponible.
+
+Les données de tendances sont normalisées dans `trendingBooksApi.js`.
 
 Open Library ne remplace pas Google Books : les deux services fournissent des données publiques de livres, mais avec des identifiants et des formats différents.
 
@@ -116,7 +120,7 @@ Open Library ne remplace pas Google Books : les deux services fournissent des do
 
 **Google Cloud Translation API** est utilisée pour traduire certains contenus provenant des sources de livres.
 
-Elle est notamment utilisée pour les **résumés des livres** lorsque le contenu récupéré doit être présenté dans la langue choisie par l'utilisateur.
+Elle est notamment utilisée pour les **résumés des livres** lorsqu'un résumé en anglais doit être présenté en français.
 
 Le service de traduction est isolé dans un service dédié afin de séparer les appels à l'API de l'interface React.
 
@@ -128,32 +132,51 @@ VITE_GOOGLE_TRANSLATION_API_KEY
 
 Comme les autres variables `VITE_`, cette valeur est utilisée côté frontend et ne doit pas être considérée comme un secret serveur.
 
-## Recommandations temporaires
+## Recommandations
 
-Le système de recommandations actuel repose encore sur des préférences temporaires.
+Le système de recommandations combine les préférences enregistrées de l'utilisateur avec les données publiques provenant des API de livres.
 
-Il utilise :
+Il utilise notamment :
 
-- des sujets Google Books ;
-- les tendances Open Library ;
-- une sélection aléatoire dans des lots de candidats ;
+- les genres préférés enregistrés dans Firebase ;
+- des sujets Google Books correspondant à ces préférences ;
+- les tendances Open Library pour certaines étagères ;
+- des lots de candidats afin de renouveler les sélections ;
 - une déduplication par ISBN, titre/auteur et identifiants source ;
-- `sessionStorage` pour conserver les étagères pendant la session.
+- un suivi des livres déjà proposés pendant la session ;
+- `sessionStorage` pour conserver certaines sélections pendant la session.
 
-Cette architecture permet de gérer l'expérience de découverte tout en préparant son évolution vers des recommandations basées sur les préférences et les données de lecture de l'utilisateur.
+Cette organisation permet de proposer plusieurs étagères indépendantes tout en limitant les répétitions lors des rafraîchissements.
+
+Les surfaces de découverte automatiques appliquent également des règles de sélection afin d'éviter de recommander automatiquement certains contenus clairement inadaptés.
+
+Le système reste volontairement plus simple qu'un moteur de recommandation complet basé sur l'historique de lecture : les préférences de genres constituent actuellement la principale source de personnalisation.
 
 ## Firebase
 
-**Firebase** est maintenant intégré à Dear Pages pour gérer les données propres à l'utilisateur.
+**Firebase** est utilisé pour gérer les données propres à l'utilisateur ainsi que plusieurs services nécessaires au fonctionnement et au déploiement de Dear Pages.
 
-Firebase est notamment utilisé pour :
+Firebase Authentication est utilisé pour :
 
-- l'authentification ;
+- la création de compte ;
+- la connexion avec e-mail et mot de passe ;
+- la connexion avec Google ;
+- la gestion de la session utilisateur ;
+- la déconnexion ;
+- la suppression du compte.
+
+Cloud Firestore est utilisé pour enregistrer notamment :
+
 - les préférences de lecture ;
-- les données personnelles associées au compte ;
-- la bibliothèque et les fonctionnalités liées aux livres de l'utilisateur ;
+- la bibliothèque personnelle ;
+- les statuts de lecture ;
 - les collections ;
-- les notes et avis personnels.
+- les notes personnelles ;
+- les évaluations ;
+- les avis ;
+- les informations personnelles associées aux livres.
+
+Les données sont organisées par utilisateur afin d'isoler les informations de chaque compte.
 
 La configuration Firebase est fournie à l'application par des variables d'environnement.
 
@@ -162,6 +185,49 @@ La logique d'accès aux fonctionnalités Firebase est séparée dans des service
 Firebase répond donc à une question différente des API de livres :
 
 > Quelle est la relation de l'utilisateur avec ce livre ?
+
+## Firebase Hosting
+
+**Firebase Hosting** est utilisé pour publier Dear Pages.
+
+Le projet possède deux cibles distinctes :
+
+```text
+app  → application React
+docs → documentation Astro + Starlight
+```
+
+Cette séparation permet de déployer indépendamment l'application principale et sa documentation tout en utilisant le même projet Firebase.
+
+## GitHub Actions
+
+**GitHub Actions** est utilisé pour automatiser une partie du processus de déploiement.
+
+Les workflows du projet permettent notamment de :
+
+- installer les dépendances ;
+- construire l'application ;
+- déployer Dear Pages sur Firebase Hosting ;
+- créer des previews Firebase pour les Pull Requests de l'application ;
+- construire et déployer la documentation.
+
+Le déploiement depuis la branche principale peut ainsi être effectué automatiquement après les modifications validées du projet.
+
+## Vitest et React Testing Library
+
+**Vitest** est utilisé pour les tests automatisés de Dear Pages.
+
+Il s'intègre naturellement à l'environnement Vite du projet et permet de tester notamment :
+
+- les services ;
+- les utilitaires ;
+- les hooks ;
+- certains composants ;
+- les comportements interactifs importants.
+
+**React Testing Library** complète Vitest pour tester les composants React à travers leur comportement observable plutôt que leur implémentation interne.
+
+Les tests automatisés complètent les vérifications manuelles réalisées sur les principaux parcours de l'application.
 
 ## JSDoc
 
@@ -206,10 +272,15 @@ L'ensemble de ces choix peut être résumé ainsi :
 | Tailwind CSS | Styles et responsive |
 | React Router | Navigation |
 | Google Books API | Recherche et informations publiques des livres |
-| Open Library | Tendances de lecture |
+| Open Library | Tendances et certaines couvertures |
 | Google Cloud Translation API | Traduction des résumés |
-| sessionStorage | Persistance temporaire des recommandations |
-| Firebase | Authentification et données personnelles |
+| `sessionStorage` | Persistance temporaire de certaines recommandations |
+| Firebase Authentication | Comptes et authentification |
+| Cloud Firestore | Données personnelles persistantes |
+| Firebase Hosting | Hébergement de l'application et de la documentation |
+| GitHub Actions | Automatisation du déploiement |
+| Vitest | Tests automatisés |
+| React Testing Library | Tests des composants React |
 | JSDoc | Documentation technique du code |
 | Astro + Starlight | Documentation du projet |
 

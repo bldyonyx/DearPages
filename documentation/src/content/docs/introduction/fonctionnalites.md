@@ -21,6 +21,8 @@ Il permet notamment de retrouver :
 
 Les informations affichées proviennent des données réelles de l'utilisateur enregistrées dans Firebase.
 
+Lorsqu'il possède plusieurs lectures en cours, l'utilisateur peut naviguer entre elles depuis le tableau de bord. Les couvertures sont présentées sous forme de pile et la lecture active change automatiquement ou manuellement.
+
 Le tableau de bord s'adapte également aux situations où aucune lecture n'est actuellement en cours ou lorsque certaines données ne sont pas encore disponibles.
 
 ## Découvrir des livres
@@ -90,7 +92,9 @@ La fiche peut notamment présenter :
 - les catégories ;
 - le résumé.
 
-Elle constitue également le point central des actions personnelles liées au livre.
+Lorsqu'un résumé est disponible en anglais, Dear Pages peut proposer sa traduction en français à l'aide de Google Cloud Translation.
+
+La fiche constitue également le point central des actions personnelles liées au livre.
 
 L'utilisateur peut :
 
@@ -193,8 +197,8 @@ L'interface adapte notamment :
 - les modales ;
 - les différentes dispositions du tableau de bord.
 
-Le projet fait actuellement l'objet d'une dernière phase de polish afin d'améliorer la cohérence visuelle et les interactions sur desktop, tablette et mobile.
+L'application a été adaptée et vérifiée sur différentes tailles d'écran afin de conserver une navigation et une présentation cohérentes sur desktop, tablette et mobile.
 
 :::note
-Les fonctionnalités principales de Dear Pages sont maintenant implémentées. Le projet est actuellement en phase de polish, puis passera aux tests automatisés et aux dernières vérifications avant sa version finale.
+Les fonctionnalités principales de Dear Pages sont implémentées. L'application dispose également de tests automatisés et a fait l'objet de vérifications manuelles avant sa version finale.
 :::

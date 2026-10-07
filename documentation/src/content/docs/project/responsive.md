@@ -199,7 +199,7 @@ Elle est uniquement visible à partir de `lg`.
 Sa largeur évolue selon la hauteur du viewport :
 
 ```text
-lg                  → 18rem
+lg                 → 18rem
 hauteur ≥ 1000px   → 20rem
 hauteur ≥ 1200px   → 22rem
 hauteur ≥ 1400px   → 24rem
@@ -330,6 +330,10 @@ md:items-center
 md:justify-between
 ```
 
+Les suggestions de recherche sont également adaptées aux petits écrans. Leur hauteur est limitée afin qu'elles restent accessibles au-dessus de la navigation mobile.
+
+Lorsque toutes les suggestions ne peuvent pas être affichées simultanément, la liste peut défiler verticalement indépendamment de la page tout en conservant le scroll tactile.
+
 ## Résultats de recherche
 
 Les résultats de recherche utilisent une grille responsive.
@@ -364,9 +368,11 @@ ainsi que des contraintes de largeur sur certains éléments.
 
 Ces règles sont particulièrement importantes sur mobile, où les champs, les grilles et les éléments flexibles disposent de beaucoup moins d'espace.
 
+Les éléments interactifs qui possèdent leur propre zone de défilement, comme les suggestions de recherche, sont également contraints afin de ne pas passer derrière la navigation mobile fixe.
+
 ## État actuel
 
-Le responsive est actuellement pris en compte pour :
+Le responsive est pris en compte pour :
 
 - le layout général ;
 - la navigation mobile ;
@@ -378,7 +384,12 @@ Le responsive est actuellement pris en compte pour :
 - la page Découvrir ;
 - les étagères de livres ;
 - les recommandations ;
-- les résultats de recherche ;
+- les suggestions et résultats de recherche ;
+- la bibliothèque ;
+- les collections ;
+- les fiches de livres ;
+- les paramètres ;
+- les modales ;
 - les champs et éléments susceptibles de provoquer un overflow.
 
-Le responsive sera ensuite ajusté au fur et à mesure de l'évolution des pages, notamment lorsque de nouvelles interfaces nécessiteront des comportements spécifiques.
+Les principaux parcours de Dear Pages ont été vérifiés sur différentes tailles d'affichage afin de conserver une interface cohérente et utilisable sur desktop, tablette et mobile.

@@ -11,9 +11,10 @@ Les recommandations combinent plusieurs sources et mécanismes :
 - Google Books pour les recommandations par genre ;
 - Open Library pour les tendances ;
 - un système de déduplication et d'anti-répétition ;
+- un filtrage des contenus sur les surfaces de recommandation automatiques ;
 - une persistance temporaire de certaines informations pendant la session.
 
-Les préférences utilisées pour personnaliser les recommandations sont désormais associées au compte utilisateur et enregistrées avec Firebase.
+Les préférences utilisées pour personnaliser les recommandations sont associées au compte utilisateur et enregistrées avec Firebase.
 
 ## Préférences utilisateur
 
@@ -60,7 +61,7 @@ Elle applique plusieurs étapes :
 
 1. Dédupliquer les livres reçus dans le lot de candidats.
 2. Retirer les livres déjà vus pendant la session.
-3. Retirer les livres exclus, notamment lorsque certains livres doivent être ignorés.
+3. Retirer les livres exclus lorsque certains livres doivent être ignorés.
 4. Mélanger les livres restants.
 5. Garder uniquement le nombre nécessaire pour l'étagère.
 
@@ -73,6 +74,34 @@ Pour reconnaître les doublons, l'application utilise plusieurs informations d'i
 - identifiant local de l'objet.
 
 Cette stratégie permet de limiter les doublons malgré les différences entre les sources de livres.
+
+## Filtrage des recommandations automatiques
+
+Les surfaces de découverte automatiques appliquent également un filtrage avant l'affichage des livres.
+
+Cette logique est centralisée dans :
+
+```text
+src/utils/discoveryContentSafety.js
+```
+
+Elle est utilisée pour éviter que certains contenus clairement explicites soient proposés automatiquement dans les espaces de découverte.
+
+Le filtrage concerne notamment :
+
+- **Tendances du moment** ;
+- **Peut-être pour toi** ;
+- la vue étendue des recommandations par genre ;
+- **Les incontournables** ;
+- certains candidats provenant des fallbacks Open Library.
+
+Le filtrage reste volontairement ciblé.
+
+Des thèmes généraux comme la romance, les relations, la sexualité abordée dans un contexte non explicite ou certains sujets de santé ne sont pas automatiquement exclus.
+
+L'objectif est de contrôler les recommandations générées automatiquement sans empêcher la découverte normale de livres correspondant aux préférences de lecture.
+
+La recherche saisie directement par l'utilisateur reste distincte de ce mécanisme : elle répond à une demande explicite et n'utilise donc pas automatiquement le même filtrage que les étagères de recommandation.
 
 ## Livres déjà vus
 
@@ -120,6 +149,8 @@ Les tendances et les incontournables possèdent chacun leur propre bouton de raf
 
 Ces rafraîchissements sont indépendants : rafraîchir les tendances ne recharge pas les incontournables, et inversement.
 
+Les livres proposés automatiquement passent également par les règles de sélection et de filtrage adaptées à leur étagère avant leur affichage.
+
 ## Vue étendue
 
 La vue :
@@ -132,7 +163,7 @@ est affichée par `ForYouRecommendations`.
 
 Elle utilise `useForYouRecommendations` pour créer une section par genre préféré.
 
-Les genres utilisés pour cette vue proviennent désormais des préférences de lecture enregistrées pour l'utilisateur.
+Les genres utilisés pour cette vue proviennent des préférences de lecture enregistrées pour l'utilisateur.
 
 Chaque genre possède son propre état :
 
@@ -142,6 +173,8 @@ Chaque genre possède son propre état :
 - `startIndex`.
 
 Le bouton de rafraîchissement d'un genre ne recharge donc que cette section.
+
+Les candidats sont filtrés et sélectionnés avant leur affichage afin de conserver le même comportement général que les autres surfaces de recommandation automatiques.
 
 ## Gestion des erreurs et du chargement
 
@@ -157,19 +190,21 @@ Les différents composants peuvent afficher :
 - un bouton désactivé pendant un rafraîchissement ;
 - un état de chargement propre à chaque genre dans la vue étendue.
 
+Cette séparation permet à une étagère de rencontrer un problème sans rendre toute la page Découvrir inutilisable.
+
 ## Exclusion des livres de la bibliothèque
 
 Le système de sélection accepte des livres à exclure grâce à `excludedBookIds`.
 
-Cette logique permet de ne pas proposer certains livres déjà présents dans la bibliothèque lorsque les données de celle-ci sont disponibles.
+Cette logique permet de ne pas proposer certains livres déjà présents dans la bibliothèque lorsque les données correspondantes sont fournies à la sélection.
 
-La sélection des recommandations peut ainsi rester séparée de la logique de bibliothèque tout en prenant en compte les livres que l'utilisateur possède déjà.
+La sélection des recommandations peut ainsi rester séparée de la logique de bibliothèque tout en étant capable de prendre en compte les livres appartenant déjà à l'utilisateur.
 
-Cette possibilité prépare également une personnalisation plus poussée des recommandations à partir des données de lecture personnelles.
+Cette architecture permet également de faire évoluer la personnalisation sans mélanger directement la logique Firebase avec les utilitaires de sélection.
 
 ## Relation avec les préférences utilisateur
 
-Les recommandations personnalisées utilisent maintenant les préférences enregistrées pour le compte.
+Les recommandations personnalisées utilisent les préférences enregistrées pour le compte.
 
 Le fonctionnement général est donc :
 
@@ -182,6 +217,8 @@ Google Books
         ↓
 Lots de candidats
         ↓
+Filtrage des recommandations automatiques
+        ↓
 Déduplication
         ↓
 Livres déjà vus / exclus
@@ -193,7 +230,27 @@ Sélection finale
 
 Les tendances et les incontournables suivent un flux similaire, mais utilisent leurs propres sources et critères de sélection.
 
-## Actuel
+## Recherche et recommandations
+
+La recherche et les recommandations constituent deux parcours différents dans Dear Pages.
+
+Les recommandations sont générées automatiquement à partir des préférences, des tendances ou de sélections prédéfinies.
+
+La recherche, au contraire, correspond à une action explicite de l'utilisateur :
+
+```text
+Recherche utilisateur
+        ↓
+Google Books
+        ↓
+Résultats correspondant à la requête
+```
+
+Le filtrage spécifique aux recommandations automatiques n'est donc pas appliqué de la même manière à la recherche.
+
+Cette séparation permet de conserver des surfaces de découverte contrôlées tout en laissant l'utilisateur rechercher directement les livres qui l'intéressent.
+
+## État actuel
 
 Le système de recommandations comprend actuellement :
 
@@ -201,24 +258,25 @@ Le système de recommandations comprend actuellement :
 - recommandations par genres ;
 - tendances Open Library ;
 - incontournables Google Books ;
-- déduplication ;
+- déduplication multi-source ;
 - anti-répétition pendant la session ;
 - exclusion de certains livres ;
+- filtrage des contenus clairement explicites sur les surfaces automatiques ;
 - rafraîchissement indépendant par étagère ou par genre ;
 - persistance de certaines informations avec `sessionStorage` ;
 - gestion séparée des chargements et des erreurs ;
-- préparation de la sélection pour fonctionner avec la bibliothèque personnelle.
+- intégration possible des informations de la bibliothèque dans la sélection.
 
-## Évolution possible
+## Évolutions possibles
 
-Le système pourra évoluer afin d'utiliser davantage de données issues du parcours de lecture de l'utilisateur.
+Le système peut évoluer afin d'utiliser davantage de données issues du parcours de lecture de l'utilisateur.
 
-Les recommandations pourraient notamment prendre en compte :
+Les recommandations pourraient notamment prendre davantage en compte :
 
 - les livres déjà lus ;
 - les statuts de lecture ;
 - les collections ;
-- les préférences enregistrées ;
+- les évaluations et avis personnels ;
 - d'autres informations disponibles dans la bibliothèque personnelle.
 
-Ces évolutions pourront être ajoutées progressivement sans modifier le principe général de séparation entre les sources de livres, la sélection des recommandations et les données personnelles.
+Ces évolutions peuvent être ajoutées progressivement sans modifier le principe général de séparation entre les sources de livres, la sélection des recommandations et les données personnelles.

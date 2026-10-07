@@ -1,9 +1,9 @@
 ---
 title: Scripts
-description: Commandes npm utilisées pour développer, construire et documenter Dear Pages.
+description: Commandes npm utilisées pour développer, tester, construire et documenter Dear Pages.
 ---
 
-Dear Pages utilise plusieurs scripts **npm** pour simplifier les tâches courantes de développement.
+Dear Pages utilise plusieurs scripts **npm** pour simplifier les tâches courantes de développement, de vérification et de documentation.
 
 Les scripts de l'application principale sont définis dans le `package.json` situé à la racine du projet.
 
@@ -27,6 +27,8 @@ Cette commande génère une version optimisée de Dear Pages destinée à la pro
 
 Vite crée alors les fichiers nécessaires au déploiement.
 
+Cette commande est également utilisée pour vérifier que l'application peut être construite correctement avant son déploiement.
+
 ## Prévisualiser le build
 
 ```bash
@@ -36,6 +38,36 @@ npm run preview
 Cette commande permet de lancer localement la version générée par `npm run build`.
 
 Elle est utile pour vérifier le comportement de la version de production avant son déploiement.
+
+## Vérifier le code avec ESLint
+
+```bash
+npm run lint
+```
+
+Cette commande analyse le code source avec ESLint.
+
+Elle permet notamment de détecter certaines erreurs, incohérences ou utilisations problématiques avant le build ou le déploiement.
+
+## Lancer les tests
+
+Dear Pages utilise Vitest pour ses tests automatisés.
+
+```bash
+npm run test
+```
+
+Cette commande exécute la suite de tests du projet.
+
+Les tests couvrent notamment certaines parties importantes de l'application comme :
+
+- les services ;
+- les utilitaires ;
+- les hooks ;
+- les composants ;
+- certains comportements interactifs.
+
+Ils complètent les vérifications manuelles réalisées sur les principaux parcours utilisateur.
 
 ## Générer la documentation JSDoc
 
@@ -100,16 +132,23 @@ Cette version est utilisée lors du déploiement sur Firebase Hosting.
 
 ## Déploiement automatique
 
-Le déploiement de la documentation est automatisé avec GitHub Actions.
+Le déploiement de l'application et de la documentation est automatisé avec GitHub Actions.
 
-Lorsqu'une modification est poussée sur `main`, le workflow de documentation :
+Lorsqu'une modification concernée est poussée sur `main`, les workflows configurés peuvent notamment :
 
-1. installe les dépendances ;
-2. construit la documentation avec Astro ;
-3. récupère le dossier `documentation/dist/` ;
-4. le déploie sur le site Firebase Hosting dédié à la documentation.
+1. installer les dépendances ;
+2. construire le projet concerné ;
+3. récupérer les fichiers générés ;
+4. les déployer sur la cible Firebase Hosting correspondante.
 
-La documentation en ligne est donc mise à jour automatiquement après un push sur `main`.
+Dear Pages utilise deux cibles Firebase Hosting distinctes :
+
+```text
+app  → application React
+docs → documentation Astro + Starlight
+```
+
+L'application et la documentation peuvent ainsi être déployées séparément.
 
 ## Deux projets npm
 

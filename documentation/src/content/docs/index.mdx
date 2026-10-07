@@ -48,7 +48,7 @@ Cette documentation présente la conception et le développement de **Dear Pages
     aria-label="Découvrir le développement de Dear Pages"
   >
     <Card title="Développement">
-      Retrouve l'installation du projet, les variables d'environnement, les scripts et la documentation JSDoc.
+      Retrouve l'installation du projet, les variables d'environnement, les scripts, les tests et la documentation JSDoc.
     </Card>
   </a>
 
@@ -74,8 +74,10 @@ Dear Pages est construit avec :
 - **React Router** pour la navigation et les routes de l'application
 - **Google Books API** pour rechercher et récupérer les informations des livres
 - **Open Library** comme source complémentaire pour les livres, les tendances et les couvertures
+- **Google Cloud Translation API** pour traduire en français les descriptions de livres disponibles en anglais
 - **Firebase Authentication** pour l'authentification des utilisateurs
 - **Cloud Firestore** pour les données personnelles, la bibliothèque, les collections et les préférences
+- **Vitest** et **React Testing Library** pour les tests automatisés
 - **Firebase Hosting** pour le déploiement de l'application et de sa documentation
 - **GitHub Actions** pour automatiser les builds et les déploiements
 - **JSDoc** pour documenter les fonctions et services importants
@@ -83,8 +85,10 @@ Dear Pages est construit avec :
 
 ## État du projet
 
-Dear Pages est actuellement en phase de **polish et de finalisation**.
+Dear Pages a atteint sa première version complète.
 
-Les fonctionnalités principales de l'application sont implémentées. Le travail actuel porte principalement sur la cohérence visuelle, le responsive, les interactions et les dernières vérifications avant la phase de tests et la version finale.
+Les fonctionnalités principales sont implémentées : authentification, onboarding, découverte de livres, recommandations personnalisées, bibliothèque personnelle, statuts de lecture, collections, notes, avis, préférences et objectif annuel de lecture.
+
+L'application dispose également de tests automatisés avec Vitest et React Testing Library et a fait l'objet de vérifications manuelles sur ses principaux parcours et formats d'affichage.
 
 L'application et sa documentation sont déployées séparément avec Firebase Hosting et mises à jour automatiquement via GitHub Actions.
