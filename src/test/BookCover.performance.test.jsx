@@ -17,7 +17,11 @@ import {
 import BookCard from '../components/books/BookCard.jsx'
 import BookCover from '../components/books/BookCover.jsx'
 import BookDetails from '../components/books/BookDetails.jsx'
-import { clearOpenLibraryCoverCache } from '../services/coverUtils.js'
+import {
+  clearOpenLibraryCoverCache,
+  GOOGLE_COVER_CARD_WIDTH,
+  GOOGLE_COVER_PAGE_WIDTH,
+} from '../services/coverUtils.js'
 
 function mockOpenLibraryCoverResponse(coverUrl) {
   return vi.fn().mockResolvedValue({
@@ -61,7 +65,7 @@ describe('BookCover cover loading performance', () => {
       })
     ).toHaveAttribute(
       'src',
-      'https://books.google.com/books/content?id=book&printsec=frontcover&img=1'
+      `https://books.google.com/books/content?id=book&printsec=frontcover&img=1&w=${GOOGLE_COVER_CARD_WIDTH}`
     )
 
     await Promise.resolve()
@@ -93,9 +97,33 @@ describe('BookCover cover loading performance', () => {
 
     expect(image).toHaveAttribute(
       'src',
-      'https://books.google.com/books/content?id=stable&printsec=frontcover&img=1'
+      `https://books.google.com/books/content?id=stable&printsec=frontcover&img=1&w=${GOOGLE_COVER_CARD_WIDTH}`
     )
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('uses the card-sized Google source for BookCard covers', () => {
+    render(
+      <MemoryRouter>
+        <BookCard
+          bookId="book-1"
+          title="Sized Card"
+          author="Author"
+          cover="https://books.google.com/books/content?id=sized-card&printsec=frontcover&img=1&source=gbs_api"
+          isbn="9780306406157"
+          source="google-books"
+        />
+      </MemoryRouter>
+    )
+
+    expect(
+      screen.getByRole('img', {
+        name: 'Couverture de Sized Card',
+      })
+    ).toHaveAttribute(
+      'src',
+      `https://books.google.com/books/content?id=sized-card&printsec=frontcover&img=1&source=gbs_api&w=${GOOGLE_COVER_CARD_WIDTH}`
+    )
   })
 
   it('can still resolve and display an Open Library cover when no Google cover exists', async () => {
@@ -229,10 +257,46 @@ describe('BookCover cover loading performance', () => {
       />
     )
 
+    const image = screen.getByRole('img', {
+      name: 'Couverture de Eager Details',
+    })
+
+    expect(image).toHaveAttribute('loading', 'eager')
+    expect(image).toHaveAttribute(
+      'src',
+      `https://books.google.com/books/content?id=eager&printsec=frontcover&img=1&w=${GOOGLE_COVER_PAGE_WIDTH}`
+    )
+  })
+
+  it('uses the larger Google source for BookPage-style details covers', () => {
+    render(
+      <BookDetails
+        book={{
+          title: 'Larger Details',
+          authors: ['Author'],
+          cover:
+            'https://books.google.com/books/content?id=large-details&printsec=frontcover&img=1&source=gbs_api',
+          isbn: '9780306406157',
+          source: 'google-books',
+          categories: [],
+        }}
+        libraryBook={null}
+        isSaving={false}
+        libraryError=""
+        statusOptions={[]}
+        onAddToLibrary={() => {}}
+        onStatusChange={() => {}}
+        onRemoveFromLibrary={() => {}}
+      />
+    )
+
     expect(
       screen.getByRole('img', {
-        name: 'Couverture de Eager Details',
+        name: 'Couverture de Larger Details',
       })
-    ).toHaveAttribute('loading', 'eager')
+    ).toHaveAttribute(
+      'src',
+      `https://books.google.com/books/content?id=large-details&printsec=frontcover&img=1&source=gbs_api&w=${GOOGLE_COVER_PAGE_WIDTH}`
+    )
   })
 })

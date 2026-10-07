@@ -1,5 +1,6 @@
 import { Trash2 } from 'lucide-react'
 
+import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/coverUtils.js'
 import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
 import { bookLarge } from './bookResponsive.js'
@@ -174,6 +175,7 @@ function BookDetails({
             isbn={book.isbn}
             source={book.source}
             fallback="title"
+            googleCoverWidth={GOOGLE_COVER_PAGE_WIDTH}
             coverLoading="eager"
             className="
               aspect-2/3 w-full

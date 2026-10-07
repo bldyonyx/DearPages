@@ -2,6 +2,8 @@ const OPEN_LIBRARY_ISBN_COVERS_URL =
   'https://covers.openlibrary.org/b/isbn'
 const OPEN_LIBRARY_BOOKS_API_URL =
   'https://openlibrary.org/api/books'
+export const GOOGLE_COVER_CARD_WIDTH = 400
+export const GOOGLE_COVER_PAGE_WIDTH = 800
 
 const openLibraryCoverCache = new Map()
 
@@ -19,6 +21,29 @@ export const GOOGLE_COVER_PRIORITY = [
   'thumbnail',
   'smallThumbnail',
 ]
+
+function isGoogleBooksImageHost(hostname) {
+  return (
+    hostname === 'books.googleusercontent.com' ||
+    /^books\.google\./.test(hostname) ||
+    /^www\.google\./.test(hostname) ||
+    /^google\./.test(hostname)
+  )
+}
+
+function isGoogleBooksCoverUrl(url) {
+  const path = url.pathname.toLowerCase()
+
+  return (
+    isGoogleBooksImageHost(url.hostname.toLowerCase()) &&
+    url.searchParams.get('img') === '1' &&
+    (
+      path === '/books' ||
+      path === '/books/content' ||
+      path === '/books/publisher/content'
+    )
+  )
+}
 
 function normalizeIsbn(value) {
   return String(value || '')
@@ -70,6 +95,37 @@ export function getBestGoogleCover(imageLinks = {}) {
       Boolean
     ) || null
   )
+}
+
+export function getSizedGoogleBooksCoverUrl(
+  coverUrl,
+  width
+) {
+  if (!coverUrl || !width) {
+    return coverUrl
+  }
+
+  try {
+    const url = new URL(coverUrl)
+
+    if (!isGoogleBooksCoverUrl(url)) {
+      return coverUrl
+    }
+
+    if (url.protocol === 'http:') {
+      url.protocol = 'https:'
+    }
+
+    url.searchParams.set('w', String(width))
+
+    if (url.searchParams.get('zoom') === '0') {
+      url.searchParams.set('zoom', '1')
+    }
+
+    return url.toString()
+  } catch {
+    return coverUrl
+  }
 }
 
 export function getOpenLibraryIsbnCoverUrl(isbn) {

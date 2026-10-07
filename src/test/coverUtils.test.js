@@ -12,6 +12,7 @@ import {
   getIndustryIdentifierIsbns,
   getOpenLibraryIsbnCoverUrl,
   getPreferredIsbn,
+  getSizedGoogleBooksCoverUrl,
   resolveOpenLibraryCoverByIsbn,
 } from '../services/coverUtils'
 
@@ -95,6 +96,68 @@ describe('getBestGoogleCover', () => {
 
   it('returns null when Google Books has no cover', () => {
     expect(getBestGoogleCover({})).toBeNull()
+  })
+})
+
+describe('getSizedGoogleBooksCoverUrl', () => {
+  it('converts a recognized Google Books cover URL to a card-sized source', () => {
+    expect(
+      getSizedGoogleBooksCoverUrl(
+        'http://books.google.com/books/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api',
+        400
+      )
+    ).toBe(
+      'https://books.google.com/books/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api&w=400'
+    )
+  })
+
+  it('converts a recognized Google Books cover URL to a BookPage-sized source', () => {
+    expect(
+      getSizedGoogleBooksCoverUrl(
+        'https://books.google.com/books/publisher/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api',
+        800
+      )
+    ).toBe(
+      'https://books.google.com/books/publisher/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api&w=800'
+    )
+  })
+
+  it('preserves Google Books volume identity and unrelated query parameters', () => {
+    const sizedUrl = getSizedGoogleBooksCoverUrl(
+      'https://books.google.com/books/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api&imgtk=token',
+      400
+    )
+    const url = new URL(sizedUrl)
+
+    expect(url.searchParams.get('id')).toBe('mzKCDwAAQBAJ')
+    expect(url.searchParams.get('img')).toBe('1')
+    expect(url.searchParams.get('printsec')).toBe('frontcover')
+    expect(url.searchParams.get('edge')).toBe('curl')
+    expect(url.searchParams.get('source')).toBe('gbs_api')
+    expect(url.searchParams.get('imgtk')).toBe('token')
+    expect(url.searchParams.get('w')).toBe('400')
+  })
+
+  it('does not request full-resolution Google covers', () => {
+    const sizedUrl = getSizedGoogleBooksCoverUrl(
+      'https://books.google.com/books/content?id=mzKCDwAAQBAJ&printsec=frontcover&img=1&zoom=0&source=gbs_api',
+      800
+    )
+    const url = new URL(sizedUrl)
+
+    expect(url.searchParams.get('zoom')).toBe('1')
+    expect(url.searchParams.get('w')).toBe('800')
+  })
+
+  it('leaves non-Google cover URLs unchanged', () => {
+    expect(
+      getSizedGoogleBooksCoverUrl(
+        'https://covers.openlibrary.org/b/id/12345-L.jpg?default=false',
+        400
+      )
+    ).toBe(
+      'https://covers.openlibrary.org/b/id/12345-L.jpg?default=false'
+    )
   })
 })
 

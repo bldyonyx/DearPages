@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  getSizedGoogleBooksCoverUrl,
   getCachedOpenLibraryCoverByIsbn,
+  GOOGLE_COVER_CARD_WIDTH,
   OPEN_LIBRARY_COVER_CACHE_STATUS,
   isOpenLibraryCoverUrl,
   resolveOpenLibraryCoverByIsbn,
@@ -37,6 +39,7 @@ function BookCover({
   cover,
   isbn,
   source,
+  googleCoverWidth = GOOGLE_COVER_CARD_WIDTH,
   coverLoading = 'lazy',
   className = '',
   imageClassName = '',
@@ -125,6 +128,10 @@ function BookCover({
   const visibleCover = coverCandidates.find(
     (candidate) => !failedCovers.has(candidate)
   )
+  const displayCover = getSizedGoogleBooksCoverUrl(
+    visibleCover,
+    googleCoverWidth
+  )
 
   function handleCoverError() {
     if (!visibleCover) return
@@ -162,7 +169,7 @@ function BookCover({
         />
       ) : visibleCover ? (
         <img
-          src={visibleCover}
+          src={displayCover}
           alt={`Couverture de ${title}`}
           width={BOOK_COVER_INTRINSIC_WIDTH}
           height={BOOK_COVER_INTRINSIC_HEIGHT}
