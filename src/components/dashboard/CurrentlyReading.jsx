@@ -1,6 +1,15 @@
-import { useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen } from 'lucide-react'
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 
 import {
   BOOK_STATUSES,
@@ -16,9 +25,82 @@ const statusOptions = [
   { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
 ]
 
+const AUTO_ROTATION_INTERVAL_MS = 5000
+const MAX_VISIBLE_COVERS = 3
+
+function getVisibleCurrentReads(books, activeIndex) {
+  const visibleCount = Math.min(
+    MAX_VISIBLE_COVERS,
+    books.length
+  )
+
+  return Array.from({ length: visibleCount }, (_, stackIndex) => {
+    const bookIndex = (activeIndex + stackIndex) % books.length
+
+    return {
+      book: books[bookIndex],
+      bookIndex,
+      stackIndex,
+    }
+  })
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] =
+    useState(() => {
+      if (
+        typeof window === 'undefined' ||
+        typeof window.matchMedia !== 'function'
+      ) {
+        return false
+      }
+
+      return window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches
+    })
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
+      return undefined
+    }
+
+    const mediaQuery = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    )
+
+    function handleChange(event) {
+      setPrefersReducedMotion(event.matches)
+    }
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange)
+
+      return () => {
+        mediaQuery.removeEventListener(
+          'change',
+          handleChange
+        )
+      }
+    }
+
+    mediaQuery.addListener(handleChange)
+
+    return () => {
+      mediaQuery.removeListener(handleChange)
+    }
+  }, [])
+
+  return prefersReducedMotion
+}
+
 function DashboardCover({
   book,
   isSelected,
+  prefersReducedMotion,
 }) {
   return (
     <BookCover
@@ -29,15 +111,16 @@ function DashboardCover({
       fallback="title"
       className={`
         aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
-        transition-[transform,box-shadow,opacity] duration-300 ease-out
+        transition-[transform,box-shadow,opacity] ease-out
         md:w-36 lg:w-40
         [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
         [@media_(min-width:2400px)_and_(min-height:1300px)]:w-56
         ${
-          isSelected
-            ? 'scale-105 shadow-lg'
-            : 'opacity-80'
+          prefersReducedMotion
+            ? 'duration-0'
+            : 'duration-500'
         }
+        ${isSelected ? 'scale-105 shadow-lg' : ''}
       `}
       imageClassName="h-full w-full object-cover"
     />
@@ -49,17 +132,70 @@ function CurrentlyReading({
   updatingBookId,
   onStatusChange,
 }) {
-  const [selectedBookId, setSelectedBookId] = useState(
-    books[0]?.googleBooksId || null
-  )
-
+  const [activeIndex, setActiveIndex] = useState(0)
   const [isStatusOpen, setIsStatusOpen] = useState(false)
   const [statusError, setStatusError] = useState('')
+  const prefersReducedMotion = usePrefersReducedMotion()
 
-  const currentBook =
-    books.find(
-      (book) => book.googleBooksId === selectedBookId
-    ) || books[0]
+  const boundedActiveIndex =
+    books.length > 0 ? activeIndex % books.length : 0
+
+  const currentBook = books[boundedActiveIndex] || books[0]
+  const visibleBooks = useMemo(
+    () =>
+      getVisibleCurrentReads(books, boundedActiveIndex),
+    [
+      boundedActiveIndex,
+      books,
+    ]
+  )
+
+  const navigateToIndex = useCallback(
+    (nextIndex) => {
+      if (books.length === 0) return
+
+      setActiveIndex(
+        ((nextIndex % books.length) + books.length) %
+          books.length
+      )
+      setIsStatusOpen(false)
+      setStatusError('')
+    },
+    [books.length]
+  )
+
+  const navigateBy = useCallback(
+    (step) => {
+      navigateToIndex(boundedActiveIndex + step)
+    },
+    [
+      boundedActiveIndex,
+      navigateToIndex,
+    ]
+  )
+
+  useEffect(() => {
+    if (books.length <= 1 || prefersReducedMotion) {
+      return undefined
+    }
+
+    const timerId = window.setInterval(() => {
+      setActiveIndex(
+        (currentIndex) =>
+          (currentIndex + 1) % books.length
+      )
+      setIsStatusOpen(false)
+      setStatusError('')
+    }, AUTO_ROTATION_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(timerId)
+    }
+  }, [
+    boundedActiveIndex,
+    books.length,
+    prefersReducedMotion,
+  ])
 
   async function handleStatusChange(newStatus) {
     if (!currentBook || updatingBookId) return
@@ -243,54 +379,80 @@ function CurrentlyReading({
         {/* Stack de couvertures */}
         <div
           className="
-            flex items-center justify-center px-4
+            flex items-center justify-center px-4 pt-3
+            sm:pt-2
             [@media_(min-width:2200px)_and_(min-height:1100px)]:px-6
+            [@media_(min-width:2200px)_and_(min-height:1100px)]:pt-4
             [@media_(min-width:2400px)_and_(min-height:1300px)]:px-8
           "
         >
-          {books.map((book, index) => {
-            const isSelected =
-              book.googleBooksId ===
-              currentBook.googleBooksId
+          {visibleBooks.map(
+            ({
+              book,
+              bookIndex,
+              stackIndex,
+            }) => {
+              const isSelected = stackIndex === 0
+              const zIndex =
+                MAX_VISIBLE_COVERS - stackIndex
 
-            return (
-              <button
-                key={book.googleBooksId}
-                type="button"
-                onClick={() => {
-                  setSelectedBookId(
-                    book.googleBooksId
-                  )
-                  setIsStatusOpen(false)
-                }}
-                className={`
-                  relative cursor-pointer
-                  transition-transform duration-300 ease-out
-                  ${
-                    index === 0
-                      ? ''
-                      : '-ml-20 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'
+              return (
+                <button
+                  key={book.googleBooksId}
+                  type="button"
+                  onClick={() =>
+                    navigateToIndex(bookIndex)
                   }
-                  ${
-                    isSelected
-                      ? '-translate-y-3'
-                      : 'hover:-translate-y-1'
+                  className={`
+                    relative cursor-pointer
+                    transition-transform ease-out
+                    ${
+                      prefersReducedMotion
+                        ? 'duration-0'
+                        : 'duration-500'
+                    }
+                    ${
+                      stackIndex === 0
+                        ? ''
+                        : '-ml-20 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'
+                    }
+                    ${
+                      isSelected
+                        ? '-translate-y-3'
+                        : 'hover:-translate-y-1'
+                    }
+                  `}
+                  style={{
+                    zIndex,
+                    transform: `translateY(${
+                      isSelected ? '-0.75rem' : '0'
+                    }) rotate(${
+                      stackIndex === 0
+                        ? -2
+                        : stackIndex === 1
+                          ? 2
+                          : 5
+                    }deg)`,
+                  }}
+                  aria-label={`Afficher ${book.title}`}
+                  data-testid="current-reading-cover"
+                  data-active={
+                    isSelected ? 'true' : 'false'
                   }
-                `}
-                style={{
-                  zIndex: isSelected
-                    ? books.length + 1
-                    : books.length - index,
-                }}
-                aria-label={`Afficher ${book.title}`}
-              >
-                <DashboardCover
-                  book={book}
-                  isSelected={isSelected}
-                />
-              </button>
-            )
-          })}
+                  data-book-id={book.googleBooksId}
+                  data-stack-position={stackIndex}
+                >
+                  <DashboardCover
+                    book={book}
+                    isSelected={isSelected}
+                    prefersReducedMotion={
+                      prefersReducedMotion
+                    }
+                  />
+                </button>
+              )
+            }
+          )}
         </div>
 
         {/* Informations du livre sélectionné */}
@@ -450,43 +612,95 @@ function CurrentlyReading({
 
           {/* Navigation entre les lectures */}
           {books.length > 1 && (
-            <div className="mt-6 flex flex-wrap items-center gap-4 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8 [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-5">
-              <div className="flex gap-2">
-                {books.map((book) => (
-                  <button
-                    key={book.googleBooksId}
-                    type="button"
-                    onClick={() => {
-                      setSelectedBookId(
-                        book.googleBooksId
-                      )
-                      setIsStatusOpen(false)
-                    }}
-                    className={`
-                      h-2.5 w-2.5
-                      cursor-pointer
-                      rounded-full
-                      transition-[transform,background-color] duration-300 ease-out
-                      [@media_(min-width:2200px)_and_(min-height:1100px)]:h-3
-                      [@media_(min-width:2200px)_and_(min-height:1100px)]:w-3
-                      ${
-                        book.googleBooksId ===
-                        currentBook.googleBooksId
-                          ? 'scale-125 bg-darkwood'
-                          : 'bg-darkwood/20 hover:bg-darkwood/40'
+            <div className="mt-6 inline-flex flex-col items-center gap-2.5 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8">
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                <div className="flex gap-2">
+                  {books.map((book, bookIndex) => (
+                    <button
+                      key={book.googleBooksId}
+                      type="button"
+                      onClick={() =>
+                        navigateToIndex(bookIndex)
                       }
-                    `}
-                    aria-label={`Sélectionner ${book.title}`}
-                  />
-                ))}
+                      className={`
+                        h-2.5 w-2.5
+                        cursor-pointer
+                        rounded-full
+                        transition-[transform,background-color] duration-300 ease-out
+                        [@media_(min-width:2200px)_and_(min-height:1100px)]:h-3
+                        [@media_(min-width:2200px)_and_(min-height:1100px)]:w-3
+                        ${
+                          bookIndex === boundedActiveIndex
+                            ? 'scale-125 bg-darkwood'
+                            : 'bg-darkwood/20 hover:bg-darkwood/40'
+                        }
+                      `}
+                      aria-label={`Sélectionner ${book.title}`}
+                    />
+                  ))}
+                </div>
+
+                <p className="font-ui text-xs text-darkwood/50 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm">
+                  {books.length}{' '}
+                  {books.length === 1
+                    ? 'lecture en cours'
+                    : 'lectures en cours'}
+                </p>
               </div>
 
-              <p className="font-ui text-xs text-darkwood/50 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm">
-                {books.length}{' '}
-                {books.length === 1
-                  ? 'lecture en cours'
-                  : 'lectures en cours'}
-              </p>
+              <div className="flex items-center justify-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => navigateBy(-1)}
+                  className="
+                    flex h-9 w-9
+                    cursor-pointer
+                    items-center justify-center
+                    rounded-full
+                    text-darkwood/65
+                    transition-[transform,background-color,color] duration-200 ease-out
+                    hover:-translate-y-0.5
+                    hover:bg-darkwood/5
+                    hover:text-darkwood
+                    focus:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-olive/30
+                  "
+                  aria-label="Lecture précédente"
+                >
+                  <ChevronLeft
+                    aria-hidden="true"
+                    strokeWidth={1.8}
+                    className="h-3.5 w-3.5"
+                  />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigateBy(1)}
+                  className="
+                    flex h-9 w-9
+                    cursor-pointer
+                    items-center justify-center
+                    rounded-full
+                    text-darkwood/65
+                    transition-[transform,background-color,color] duration-200 ease-out
+                    hover:-translate-y-0.5
+                    hover:bg-darkwood/5
+                    hover:text-darkwood
+                    focus:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-olive/30
+                  "
+                  aria-label="Lecture suivante"
+                >
+                  <ChevronRight
+                    aria-hidden="true"
+                    strokeWidth={1.8}
+                    className="h-3.5 w-3.5"
+                  />
+                </button>
+              </div>
             </div>
           )}
         </div>
