@@ -29,7 +29,7 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Build and organize your personal library
 
-♡ Track books as À lire, En cours, Terminé, or Abandonné
+♡ Track books as To read, Reading, Finished, or Abandoned
 
 ♡ Add personal ratings, reviews, and notes to your books
 
@@ -123,7 +123,7 @@ reviews, notes, preferences, and reading goals ⸝ is connected
 to each authenticated user through Firebase.
 
 The project includes automated tests with Vitest and dedicated
-technical documentation built with Astro and Starlight.
+bilingual technical documentation built with Astro and Starlight.
 
 ---
 
