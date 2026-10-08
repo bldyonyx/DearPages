@@ -1,4 +1,5 @@
 import { BookOpen, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import greenBackground from '../../assets/textures/green-bg.jpg'
@@ -9,6 +10,8 @@ import MobileNav from './MobileNav'
 import Sidebar from './sidebar/Sidebar'
 
 function PageLayout() {
+  const { t } = useTranslation()
+
   return (
     <div
       className="
@@ -49,7 +52,7 @@ function PageLayout() {
       >
         <NavLink
           to="/"
-          aria-label="Dear Pages — Accueil"
+          aria-label={t('navigation.homeAria')}
           className="
             flex min-w-0
             items-center
@@ -82,8 +85,8 @@ function PageLayout() {
 
         <NavLink
           to="/settings"
-          aria-label="Paramètres"
-          title="Paramètres"
+          aria-label={t('navigation.settings')}
+          title={t('navigation.settings')}
           className={({ isActive }) =>
             [
               'flex size-10 shrink-0',

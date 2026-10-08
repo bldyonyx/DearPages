@@ -1,0 +1,38 @@
+{
+  "common": {
+    "appName": "Dear Pages",
+    "cancel": "Annuler",
+    "error": "Une erreur est survenue.",
+    "loading": "Chargement...",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "settings": "Paramètres",
+    "back": "Retour",
+    "backToTop": "Retour en haut"
+  },
+  "language": {
+    "applicationLanguage": "Langue de l'application",
+    "description": "Choisis la langue utilisée dans l'interface.",
+    "fr": "Français",
+    "en": "English"
+  },
+  "navigation": {
+    "main": "Navigation principale",
+    "mobile": "Navigation mobile principale",
+    "home": "Accueil",
+    "discover": "Découvrir",
+    "library": "Bibliothèque",
+    "myLibrary": "Ma bibliothèque",
+    "collections": "Collections",
+    "settings": "Paramètres",
+    "homeAria": "Dear Pages — Accueil",
+    "openProfileSettings": "Ouvrir les paramètres du profil"
+  },
+  "loading": {
+    "fullscreenMessage": "quelques pages se préparent ♡"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "description": "Ajuste ce qui guide Dear Pages, sans perdre le fil de tes lectures."
+  }
+}

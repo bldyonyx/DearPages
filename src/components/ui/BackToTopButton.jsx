@@ -1,10 +1,12 @@
 import { ArrowUp } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const SCROLL_THRESHOLD = 240
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
 function BackToTopButton() {
+  const { t } = useTranslation()
   const frameRef = useRef(null)
   const isVisibleRef = useRef(false)
   const [isVisible, setIsVisible] = useState(false)
@@ -60,8 +62,8 @@ function BackToTopButton() {
   return (
     <button
       type="button"
-      aria-label="Retour en haut"
-      title="Retour en haut"
+      aria-label={t('common.backToTop')}
+      title={t('common.backToTop')}
       onClick={handleClick}
       className={[
         'fixed right-4 z-30',

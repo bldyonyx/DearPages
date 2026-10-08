@@ -1,13 +1,16 @@
 import { ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 function BackButton({
   to,
   onClick,
-  children = 'Retour',
+  children,
   className = '',
 }) {
   const navigate = useNavigate()
+  const { t } = useTranslation()
+  const label = children ?? t('common.back')
 
   const classes = `
     group inline-flex
@@ -45,7 +48,7 @@ function BackButton({
         "
       />
 
-      <span>{children}</span>
+      <span>{label}</span>
     </>
   )
 

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Compass,
   Heart,
@@ -11,27 +12,29 @@ import { mainNavigationItems } from './navigation'
 
 const mobileNavigation = {
   '/': {
-    label: 'Accueil',
+    labelKey: 'navigation.home',
     icon: House,
   },
   '/discover': {
-    label: 'Découvrir',
+    labelKey: 'navigation.discover',
     icon: Compass,
   },
   '/library': {
-    label: 'Bibliothèque',
+    labelKey: 'navigation.library',
     icon: Library,
   },
   '/collections': {
-    label: 'Collections',
+    labelKey: 'navigation.collections',
     icon: Heart,
   },
 }
 
 function MobileNav() {
+  const { t } = useTranslation()
+
   return (
     <nav
-      aria-label="Navigation mobile principale"
+      aria-label={t('navigation.mobile')}
       className="
         fixed bottom-0 left-0 z-20
         w-dvw
@@ -56,13 +59,14 @@ function MobileNav() {
         {mainNavigationItems.map((item) => {
           const mobileItem = mobileNavigation[item.to]
           const Icon = mobileItem?.icon
+          const label = t(mobileItem?.labelKey ?? item.labelKey)
 
           return (
             <NavLink
               end={item.to === '/'}
               key={item.to}
               to={item.to}
-              aria-label={item.label}
+              aria-label={label}
               className={({ isActive }) =>
                 [
                   'flex min-w-0 flex-1 flex-col',
@@ -95,7 +99,7 @@ function MobileNav() {
                   leading-none
                 "
               >
-                {mobileItem?.label ?? item.label}
+                {label}
               </span>
             </NavLink>
           )
