@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { translateText } from '../services/translationService.js'
 import { detectDescriptionLanguage } from '../utils/descriptionLanguage.js'
@@ -21,6 +22,7 @@ const TARGET_LANGUAGE = 'fr'
  * @returns {Object} Description text, action labels, and handlers.
  */
 export function useBookDescriptionTranslation(book) {
+  const { t } = useTranslation()
   const originalDescription = String(book?.description || '').trim()
   const sourceLanguage = useMemo(
     () =>
@@ -85,6 +87,8 @@ export function useBookDescriptionTranslation(book) {
     isCurrentDescription && translationState.isTranslating
   const translationError = isCurrentDescription
     ? translationState.translationError
+      ? t(translationState.translationError)
+      : ''
     : ''
   async function translateDescription() {
     if (!isTranslationAvailable || isTranslating) {
@@ -139,8 +143,7 @@ export function useBookDescriptionTranslation(book) {
         translatedDescription: '',
         isShowingTranslation: false,
         isTranslating: false,
-        translationError:
-          'Impossible de traduire ce résumé pour le moment.',
+        translationError: 'bookPage.description.translationError',
       })
     } finally {
       if (activeCacheKeyRef.current === cacheKey) {
@@ -172,10 +175,10 @@ export function useBookDescriptionTranslation(book) {
       : originalDescription
 
   const translationActionLabel = isShowingTranslation
-    ? 'Voir l’original'
+    ? t('bookPage.description.showOriginal')
     : translatedDescription
-      ? 'Voir la traduction'
-      : 'Traduire en français'
+      ? t('bookPage.description.showTranslation')
+      : t('bookPage.description.translateToFrench')
 
   return {
     displayedDescription,

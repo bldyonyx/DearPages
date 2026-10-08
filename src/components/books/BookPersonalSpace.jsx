@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BookMarked, Star } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import BookCollectionsModal from '../collections/modals/BookCollectionsModal.jsx'
 import { getUserCollections } from '../../services/collectionsService.js'
@@ -23,6 +24,8 @@ function BookPersonalSpace({
   libraryBook,
   onLibraryBookChange,
 }) {
+  const { t } = useTranslation()
+
   const [note, setNote] = useState(libraryBook?.note || '')
   const [review, setReview] = useState(libraryBook?.review || '')
   const [rating, setRating] = useState(libraryBook?.rating || 0)
@@ -97,10 +100,10 @@ function BookPersonalSpace({
         updatedAt: Date.now(),
       }))
 
-      setMessage('Note enregistrée ♡')
+      setMessage(t('bookPage.personal.noteSaved'))
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError('Impossible d’enregistrer ta note.')
+      setError(t('bookPage.personal.noteSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -120,10 +123,10 @@ function BookPersonalSpace({
         updatedAt: Date.now(),
       }))
 
-      setMessage('Avis enregistré ♡')
+      setMessage(t('bookPage.personal.reviewSaved'))
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError('Impossible d’enregistrer ton avis.')
+      setError(t('bookPage.personal.reviewSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -146,7 +149,7 @@ function BookPersonalSpace({
       }))
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError('Impossible d’enregistrer ta note.')
+      setError(t('bookPage.personal.noteSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -172,14 +175,12 @@ function BookPersonalSpace({
 
       setMessage(
         finishedAt
-          ? 'Date de lecture enregistrée ♡'
-          : 'Date de lecture retirée.'
+          ? t('bookPage.personal.readingDateSaved')
+          : t('bookPage.personal.readingDateRemoved')
       )
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError(
-        'Impossible d’enregistrer la date de lecture.'
-      )
+      setError(t('bookPage.personal.readingDateError'))
 
       throw firebaseError
     } finally {
@@ -207,14 +208,12 @@ function BookPersonalSpace({
 
       setMessage(
         abandonedAt
-          ? 'Date d’abandon enregistrée ♡'
-          : 'Date d’abandon retirée.'
+          ? t('bookPage.personal.abandonedDateSaved')
+          : t('bookPage.personal.abandonedDateRemoved')
       )
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError(
-        'Impossible d’enregistrer la date d’abandon.'
-      )
+      setError(t('bookPage.personal.abandonedDateError'))
 
       throw firebaseError
     } finally {
@@ -255,7 +254,7 @@ function BookPersonalSpace({
             ${bookLarge.handwritten}
           `}
         >
-          entre toi et les pages ♡
+          {t('bookPage.personal.eyebrow')}
         </p>
 
         <h2
@@ -264,7 +263,7 @@ function BookPersonalSpace({
             ${bookLarge.sectionTitle}
           `}
         >
-          Mon espace
+          {t('bookPage.personal.title')}
         </h2>
       </div>
 
@@ -298,7 +297,7 @@ function BookPersonalSpace({
                 ${bookLarge.personalText}
               `}
             >
-              Collections
+              {t('bookPage.personal.collections')}
             </p>
 
             <p
@@ -308,10 +307,10 @@ function BookPersonalSpace({
               `}
             >
               {collectionCount > 0
-                ? `${collectionCount} collection${
-                    collectionCount > 1 ? 's' : ''
-                  } pour ce livre`
-                : 'Range ce livre dans une ou plusieurs collections.'}
+                ? t('bookPage.personal.collectionCount', {
+                    count: collectionCount,
+                  })
+                : t('bookPage.personal.collectionsEmpty')}
             </p>
           </div>
 
@@ -347,7 +346,7 @@ function BookPersonalSpace({
               `}
             />
 
-            Gérer les collections
+            {t('bookPage.personal.manageCollections')}
           </button>
         </div>
 
@@ -361,7 +360,7 @@ function BookPersonalSpace({
                 ${bookLarge.personalSubheading}
               `}
             >
-              Mes notes
+              {t('bookPage.personal.notesTitle')}
             </h3>
 
             <BookNotesEditor
@@ -370,8 +369,8 @@ function BookPersonalSpace({
               disabled={isSaving}
               placeholder={
                 status === BOOK_STATUSES.TO_READ
-                  ? 'Pourquoi veux-tu lire ce livre ?'
-                  : 'Note tes pensées pendant ta lecture...'
+                  ? t('bookPage.personal.noteToReadPlaceholder')
+                  : t('bookPage.personal.noteReadingPlaceholder')
               }
             />
 
@@ -431,8 +430,8 @@ function BookPersonalSpace({
                 `}
               >
                 {isSaving
-                  ? 'Enregistrement...'
-                  : 'Enregistrer'}
+                  ? t('common.saving')
+                  : t('common.save')}
               </button>
             </div>
           </div>
@@ -446,7 +445,7 @@ function BookPersonalSpace({
                 ${bookLarge.personalSubheading}
               `}
             >
-              Ma note
+              {t('bookPage.personal.ratingTitle')}
             </h3>
 
             <div className="mt-3 flex flex-wrap gap-1">
@@ -459,9 +458,10 @@ function BookPersonalSpace({
                     type="button"
                     onClick={() => handleRatingChange(star)}
                     disabled={isSaving}
-                    aria-label={`${star} étoile${
-                      star > 1 ? 's' : ''
-                    }`}
+                    aria-label={t(
+                      'bookPage.personal.starLabel',
+                      { count: star }
+                    )}
                     className={`
                       transition
                       hover:-translate-y-0.5
@@ -492,7 +492,7 @@ function BookPersonalSpace({
 
         {showsFinishedDate && (
           <BookFinalStatusDate
-            title="Lecture terminée"
+            title={t('bookPage.personal.finishedTitle')}
             value={libraryBook?.finishedAt}
             disabled={isSaving}
             isSaving={isSaving}
@@ -502,7 +502,7 @@ function BookPersonalSpace({
 
         {showsAbandonedDate && (
           <BookFinalStatusDate
-            title="Lecture abandonnée"
+            title={t('bookPage.personal.abandonedTitle')}
             value={libraryBook?.abandonedAt}
             disabled={isSaving}
             isSaving={isSaving}
@@ -526,7 +526,7 @@ function BookPersonalSpace({
                 ${bookLarge.personalSubheading}
               `}
             >
-              Mon avis
+              {t('bookPage.personal.reviewTitle')}
             </h3>
 
             <BookNotesEditor
@@ -535,8 +535,8 @@ function BookPersonalSpace({
               disabled={isSaving}
               placeholder={
                 status === BOOK_STATUSES.ABANDONED
-                  ? 'Pourquoi as-tu arrêté ce livre ?'
-                  : 'Qu’est-ce que tu en as pensé ?'
+                  ? t('bookPage.personal.reviewAbandonedPlaceholder')
+                  : t('bookPage.personal.reviewFinishedPlaceholder')
               }
             />
 
@@ -596,8 +596,8 @@ function BookPersonalSpace({
                 `}
               >
                 {isSaving
-                  ? 'Enregistrement...'
-                  : 'Enregistrer'}
+                  ? t('common.saving')
+                  : t('common.save')}
               </button>
             </div>
           </div>

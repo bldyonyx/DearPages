@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const TEXT_SIZES = {
   small: {
-    label: 'Petit',
+    labelKey: 'bookPage.editor.sizes.small',
     value: '2',
   },
   normal: {
-    label: 'Normal',
+    labelKey: 'bookPage.editor.sizes.normal',
     value: '3',
   },
   large: {
-    label: 'Grand',
+    labelKey: 'bookPage.editor.sizes.large',
     value: '5',
   },
 }
@@ -19,9 +20,12 @@ const TEXT_SIZES = {
 function BookNotesEditor({
   value = '',
   onChange,
-  placeholder = 'Écris quelque chose sur ce livre...',
+  placeholder = '',
   disabled = false,
 }) {
+  const { t } = useTranslation()
+  const editorPlaceholder =
+    placeholder || t('bookPage.editor.defaultPlaceholder')
   const editorRef = useRef(null)
   const sizeMenuRef = useRef(null)
 
@@ -148,7 +152,7 @@ function BookNotesEditor({
           type="button"
           onClick={() => applyCommand('bold')}
           disabled={disabled}
-          aria-label="Gras"
+          aria-label={t('bookPage.editor.bold')}
           aria-pressed={isBold}
           className={`
             flex size-9 items-center justify-center
@@ -169,7 +173,7 @@ function BookNotesEditor({
           type="button"
           onClick={() => applyCommand('italic')}
           disabled={disabled}
-          aria-label="Italique"
+          aria-label={t('bookPage.editor.italic')}
           aria-pressed={isItalic}
           className={`
             flex size-9 items-center justify-center
@@ -193,7 +197,7 @@ function BookNotesEditor({
           <button
             type="button"
             disabled={disabled}
-            aria-label="Taille du texte"
+            aria-label={t('bookPage.editor.textSize')}
             aria-haspopup="listbox"
             aria-expanded={isSizeMenuOpen}
             onClick={() =>
@@ -215,7 +219,7 @@ function BookNotesEditor({
               }
             `}
           >
-            {TEXT_SIZES[selectedSize].label}
+            {t(TEXT_SIZES[selectedSize].labelKey)}
 
             <ChevronDown
               size={14}
@@ -234,7 +238,7 @@ function BookNotesEditor({
           {isSizeMenuOpen && !disabled && (
             <div
               role="listbox"
-              aria-label="Taille du texte"
+              aria-label={t('bookPage.editor.textSize')}
               className="
                 dp-menu-enter
                 absolute right-0 top-full z-30
@@ -276,7 +280,7 @@ function BookNotesEditor({
                         }
                       `}
                     >
-                      {option.label}
+                      {t(option.labelKey)}
 
                       {isSelected && (
                         <Check
@@ -304,7 +308,7 @@ function BookNotesEditor({
               leading-7 text-walnut/45
             "
           >
-            {placeholder}
+            {editorPlaceholder}
           </span>
         )}
 

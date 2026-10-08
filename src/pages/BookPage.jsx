@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   useLocation,
   useNavigate,
@@ -18,13 +19,15 @@ import { BOOK_STATUSES } from '../services/libraryService.js'
 import { hasCompleteInitialBookDetails } from '../utils/bookPageUtils.js'
 
 const STATUS_OPTIONS = [
-  { value: BOOK_STATUSES.TO_READ, label: 'À lire' },
-  { value: BOOK_STATUSES.READING, label: 'En cours' },
-  { value: BOOK_STATUSES.FINISHED, label: 'Terminé' },
-  { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
+  { value: BOOK_STATUSES.TO_READ, labelKey: 'status.to-read' },
+  { value: BOOK_STATUSES.READING, labelKey: 'status.reading' },
+  { value: BOOK_STATUSES.FINISHED, labelKey: 'status.finished' },
+  { value: BOOK_STATUSES.ABANDONED, labelKey: 'status.abandoned' },
 ]
 
 function BookDetailsLoadingState({ shouldAnimate = true }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -41,7 +44,7 @@ function BookDetailsLoadingState({ shouldAnimate = true }) {
       `}
       role="status"
       aria-live="polite"
-      aria-label="Chargement des détails du livre"
+      aria-label={t('bookPage.loadingDetailsAria')}
     >
       <div
         className="
@@ -51,7 +54,7 @@ function BookDetailsLoadingState({ shouldAnimate = true }) {
         "
       >
         <p className="font-handwritten text-xl text-walnut">
-          Ouverture du livre...
+          {t('bookPage.openingBook')}
         </p>
       </div>
     </section>
@@ -59,6 +62,7 @@ function BookDetailsLoadingState({ shouldAnimate = true }) {
 }
 
 function BookPage() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -108,7 +112,7 @@ function BookPage() {
     return (
       <main className="px-5 py-6 sm:px-7 lg:px-9">
         <p role="alert" className="font-ui text-sm text-red-700">
-          {error || 'Livre introuvable.'}
+          {error || t('bookPage.notFound')}
         </p>
       </main>
     )

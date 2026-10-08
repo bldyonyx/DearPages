@@ -1,4 +1,5 @@
 import { Trash2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function RemoveBookModal({
   isOpen,
@@ -6,6 +7,8 @@ function RemoveBookModal({
   onCancel,
   onConfirm,
 }) {
+  const { t } = useTranslation()
+
   if (!isOpen) {
     return null
   }
@@ -45,7 +48,7 @@ function RemoveBookModal({
           type="button"
           onClick={onCancel}
           disabled={isRemoving}
-          aria-label="Fermer"
+          aria-label={t('bookPage.removeModal.close')}
           className="
             absolute right-5 top-5
             flex h-9 w-9
@@ -75,7 +78,7 @@ function RemoveBookModal({
         </div>
 
         <p className="mt-5 font-handwritten text-lg text-olive">
-          juste pour être sûre ♡
+          {t('bookPage.removeModal.eyebrow')}
         </p>
 
         <h2
@@ -88,7 +91,7 @@ function RemoveBookModal({
             sm:text-3xl
           "
         >
-          Retirer ce livre ?
+          {t('bookPage.removeModal.title')}
         </h2>
 
         <p
@@ -99,9 +102,7 @@ function RemoveBookModal({
             leading-6 text-walnut
           "
         >
-          Ce livre sera retiré de ta bibliothèque.
-          Tes notes, ton avis et ta note étoilée seront
-          également supprimées.
+          {t('bookPage.removeModal.body')}
         </p>
 
         <div
@@ -131,7 +132,7 @@ function RemoveBookModal({
               sm:w-auto
             "
           >
-            Annuler
+            {t('common.cancel')}
           </button>
 
           <button
@@ -155,7 +156,9 @@ function RemoveBookModal({
           >
             <Trash2 size={16} strokeWidth={1.8} />
 
-            {isRemoving ? 'Suppression...' : 'Retirer'}
+            {isRemoving
+              ? t('bookPage.removeModal.removing')
+              : t('bookPage.removeModal.remove')}
           </button>
         </div>
       </div>

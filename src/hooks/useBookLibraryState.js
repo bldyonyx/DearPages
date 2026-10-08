@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   addBookToLibrary,
@@ -16,6 +17,7 @@ export function useBookLibraryState({
   routeState,
   userId,
 }) {
+  const { t } = useTranslation()
   const optimisticLibraryBook = useMemo(
     () => getRouteStateLibraryBook(routeState, bookId),
     [bookId, routeState]
@@ -93,8 +95,7 @@ export function useBookLibraryState({
           setLibraryErrorState({
             bookId,
             routeKey,
-            message:
-              'Impossible de charger ta bibliothèque pour ce livre.',
+            message: t('bookPage.library.loadError'),
           })
         }
       } finally {
@@ -113,7 +114,7 @@ export function useBookLibraryState({
     return () => {
       isCancelled = true
     }
-  }, [bookId, routeKey, routeState, userId])
+  }, [bookId, routeKey, routeState, t, userId])
 
   function setLibraryError(message) {
     setLibraryErrorState({
@@ -167,7 +168,7 @@ export function useBookLibraryState({
       console.error(firebaseError)
 
       setLibraryError(
-        'Impossible d’ajouter ce livre à ta bibliothèque.'
+        t('bookPage.library.addError')
       )
     } finally {
       setIsSaving(false)
@@ -210,7 +211,7 @@ export function useBookLibraryState({
       console.error(firebaseError)
 
       setLibraryError(
-        'Impossible de modifier le statut de ce livre.'
+        t('bookPage.library.statusError')
       )
     } finally {
       setIsSaving(false)
@@ -247,7 +248,7 @@ export function useBookLibraryState({
       console.error(firebaseError)
 
       setLibraryError(
-        'Impossible de retirer ce livre de ta bibliothèque.'
+        t('bookPage.library.removeError')
       )
 
       setRemoveModalBookId(null)

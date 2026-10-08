@@ -1,7 +1,11 @@
+import { useTranslation } from 'react-i18next'
+
 import { useBookDescriptionTranslation } from '../../hooks/useBookDescriptionTranslation.js'
 import { bookLarge } from './bookResponsive.js'
 
 function DescriptionLoadingState() {
+  const { t } = useTranslation()
+
   return (
     <div
       className="
@@ -10,7 +14,7 @@ function DescriptionLoadingState() {
       "
       role="status"
       aria-live="polite"
-      aria-label="Chargement du résumé"
+      aria-label={t('bookPage.description.loadingAria')}
     >
       <div className="h-3.5 w-full rounded-full bg-walnut/10" />
       <div className="mt-3 h-3.5 w-[94%] rounded-full bg-walnut/10" />
@@ -18,7 +22,7 @@ function DescriptionLoadingState() {
       <div className="mt-3 h-3.5 w-[76%] rounded-full bg-walnut/10" />
 
       <span className="sr-only">
-        Chargement du résumé...
+        {t('bookPage.description.loading')}
       </span>
     </div>
   )
@@ -28,6 +32,7 @@ function BookDescriptionSection({
   book,
   isBookLoading = false,
 }) {
+  const { t } = useTranslation()
   const descriptionTranslation =
     useBookDescriptionTranslation(book)
 
@@ -50,7 +55,7 @@ function BookDescriptionSection({
           ${bookLarge.handwritten}
         `}
       >
-        quelques mots sur ce livre ♡
+        {t('bookPage.description.eyebrow')}
       </p>
 
       <div
@@ -65,7 +70,7 @@ function BookDescriptionSection({
             ${bookLarge.sectionTitle}
           `}
         >
-          À propos
+          {t('bookPage.description.title')}
         </h2>
 
         {!isDescriptionLoading &&
@@ -90,7 +95,7 @@ function BookDescriptionSection({
               `}
             >
               {descriptionTranslation.isTranslating
-                ? 'Traduction...'
+                ? t('bookPage.description.translating')
                 : descriptionTranslation.translationActionLabel}
             </button>
           )}
@@ -120,7 +125,7 @@ function BookDescriptionSection({
             ${bookLarge.personalText}
           `}
         >
-          Résumé indisponible.
+          {t('bookPage.description.unavailable')}
         </p>
       )}
 
