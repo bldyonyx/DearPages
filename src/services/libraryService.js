@@ -6,6 +6,7 @@ import {
 } from 'firebase/database'
 
 import { database } from './firebase.js'
+import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 
 /**
  * Available reading statuses for books stored in Dear Pages.
@@ -342,7 +343,7 @@ export async function updateBookNote(
   )
 
   await update(bookRef, {
-    note,
+    note: sanitizeNoteHtml(note),
     updatedAt: Date.now(),
   })
 }
@@ -374,7 +375,7 @@ export async function updateBookReview(
   )
 
   await update(bookRef, {
-    review,
+    review: sanitizeNoteHtml(review),
     updatedAt: Date.now(),
   })
 }

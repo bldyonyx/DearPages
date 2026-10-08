@@ -17,6 +17,8 @@ import {
   BOOK_STATUSES,
   createLibraryBook,
   removeBookFromLibrary,
+  updateBookNote,
+  updateBookReview,
 } from '../services/libraryService.js'
 
 vi.mock('firebase/database', () => ({
@@ -308,5 +310,70 @@ describe('removeBookFromLibrary', () => {
 
     expect(get).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
+  })
+})
+
+describe('notes and reviews persistence', () => {
+  beforeEach(() => {
+    vi.spyOn(Date, 'now').mockReturnValue(1234567890)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.clearAllMocks()
+  })
+
+  it('persists sanitized note HTML without changing other fields', async () => {
+    await updateBookNote(
+      'user-1',
+      'book-1',
+      '<p onclick="alert(1)">Note <strong>text</strong><img src=x onerror=alert(1)></p>'
+    )
+
+    expect(ref).toHaveBeenCalledWith(
+      expect.any(Object),
+      'users/user-1/library/book-1'
+    )
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'users/user-1/library/book-1',
+      }),
+      {
+        note: '<p>Note <strong>text</strong></p>',
+        updatedAt: 1234567890,
+      }
+    )
+  })
+
+  it('persists sanitized review HTML independently from notes', async () => {
+    await updateBookReview(
+      'user-1',
+      'book-1',
+      '<div><font size="5">Great</font><font size="7"> huge</font><iframe src=x></iframe></div>'
+    )
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'users/user-1/library/book-1',
+      }),
+      {
+        review:
+          '<div><font size="5">Great</font><font> huge</font></div>',
+        updatedAt: 1234567890,
+      }
+    )
+    expect(update.mock.calls[0][1]).not.toHaveProperty('note')
+  })
+
+  it('preserves supported formatted content when saving', async () => {
+    const formattedHtml =
+      '<p><strong>Bold</strong> and <em>italic</em></p><div><font size="2">small</font><br><font size="3">normal</font><font size="5">large</font></div>'
+
+    await updateBookNote('user-1', 'book-1', formattedHtml)
+
+    expect(update.mock.calls[0][1]).toEqual({
+      note: formattedHtml,
+      updatedAt: 1234567890,
+    })
   })
 })

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { sanitizeNoteHtml } from '../../utils/noteHtmlSanitizer.js'
 import FloatingMenu from '../ui/FloatingMenu.jsx'
 
 const TEXT_SIZES = {
@@ -41,12 +42,13 @@ function BookNotesEditor({
 
   useEffect(() => {
     const editor = editorRef.current
+    const sanitizedValue = sanitizeNoteHtml(value)
 
-    if (!editor || editor.innerHTML === value) {
+    if (!editor || editor.innerHTML === sanitizedValue) {
       return
     }
 
-    editor.innerHTML = value
+    editor.innerHTML = sanitizedValue
   }, [value])
 
   useEffect(() => {
@@ -106,7 +108,9 @@ function BookNotesEditor({
     )
 
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML)
+      onChange(
+        sanitizeNoteHtml(editorRef.current.innerHTML)
+      )
     }
 
     updateActiveFormats()
@@ -127,7 +131,9 @@ function BookNotesEditor({
       return
     }
 
-    onChange(editorRef.current.innerHTML)
+    onChange(
+      sanitizeNoteHtml(editorRef.current.innerHTML)
+    )
     updateActiveFormats()
   }
 
