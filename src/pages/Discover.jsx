@@ -134,8 +134,8 @@ function Discover() {
       <section
         className={
           isSearchMode
-            ? `dp-section-enter relative z-10 mt-6 lg:z-auto ${discoverLarge.sectionGap}`
-            : `dp-section-enter relative z-10 mt-8 lg:z-auto ${discoverLarge.firstSectionGap}`
+            ? `dp-section-enter relative z-10 mt-6 lg:z-20 ${discoverLarge.sectionGap}`
+            : `dp-section-enter relative z-10 mt-8 lg:z-20 ${discoverLarge.firstSectionGap}`
         }
       >
         <DiscoverSearch
