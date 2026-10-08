@@ -109,7 +109,7 @@ function DashboardCover({
       source={book.source}
       fallback="title"
       className={`
-        aspect-2/3 w-32 overflow-hidden rounded-xl bg-parchment shadow-md
+        aspect-2/3 w-32 overflow-hidden rounded-xl shadow-md
         transition-[transform,box-shadow,opacity] ease-out
         md:w-36 lg:w-40
         [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
@@ -117,7 +117,7 @@ function DashboardCover({
         ${prefersReducedMotion ? 'duration-0' : 'duration-500'}
         ${isSelected ? 'scale-105 shadow-lg' : ''}
       `}
-      imageClassName="h-full w-full object-cover"
+      imageClassName="h-full w-full rounded-[inherit] object-cover"
     />
   )
 }
