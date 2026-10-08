@@ -291,6 +291,122 @@ export async function removeBookFromCollection(
   })
 }
 
+function createMembershipDiff(originalIds, nextIds) {
+  const originalIdSet = new Set(originalIds || [])
+  const nextIdSet = new Set(nextIds || [])
+
+  return {
+    idsToAdd: [...nextIdSet].filter(
+      (id) => !originalIdSet.has(id)
+    ),
+    idsToRemove: [...originalIdSet].filter(
+      (id) => !nextIdSet.has(id)
+    ),
+  }
+}
+
+/**
+ * Updates which books belong to one collection in a single atomic write.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} collectionId - Collection ID.
+ * @param {string[]} originalBookIds - Book IDs selected before editing.
+ * @param {string[]} nextBookIds - Book IDs selected after editing.
+ * @returns {Promise<boolean>} Whether a database write was performed.
+ */
+export async function updateCollectionBookMembership(
+  userId,
+  collectionId,
+  originalBookIds,
+  nextBookIds
+) {
+  if (!userId || !collectionId) {
+    throw new Error('Missing collection information.')
+  }
+
+  const { idsToAdd, idsToRemove } = createMembershipDiff(
+    originalBookIds,
+    nextBookIds
+  )
+
+  if (idsToAdd.length === 0 && idsToRemove.length === 0) {
+    return false
+  }
+
+  const updates = {}
+  const now = Date.now()
+
+  idsToAdd.forEach((bookId) => {
+    updates[`${collectionId}/books/${bookId}`] = true
+  })
+
+  idsToRemove.forEach((bookId) => {
+    updates[`${collectionId}/books/${bookId}`] = null
+  })
+
+  updates[`${collectionId}/updatedAt`] = now
+
+  const collectionsRef = ref(
+    database,
+    `users/${userId}/collections`
+  )
+
+  await update(collectionsRef, updates)
+
+  return true
+}
+
+/**
+ * Updates which collections contain one book in a single atomic write.
+ *
+ * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} bookId - Book ID stored in the user's library.
+ * @param {string[]} originalCollectionIds - Collection IDs selected before editing.
+ * @param {string[]} nextCollectionIds - Collection IDs selected after editing.
+ * @returns {Promise<boolean>} Whether a database write was performed.
+ */
+export async function updateBookCollectionMembership(
+  userId,
+  bookId,
+  originalCollectionIds,
+  nextCollectionIds
+) {
+  if (!userId || !bookId) {
+    throw new Error('Missing collection or book information.')
+  }
+
+  const { idsToAdd, idsToRemove } = createMembershipDiff(
+    originalCollectionIds,
+    nextCollectionIds
+  )
+
+  if (idsToAdd.length === 0 && idsToRemove.length === 0) {
+    return false
+  }
+
+  const updates = {}
+  const now = Date.now()
+
+  idsToAdd.forEach((collectionId) => {
+    updates[`${collectionId}/books/${bookId}`] = true
+    updates[`${collectionId}/updatedAt`] = now
+  })
+
+  idsToRemove.forEach((collectionId) => {
+    updates[`${collectionId}/books/${bookId}`] = null
+    updates[`${collectionId}/updatedAt`] = now
+  })
+
+  const collectionsRef = ref(
+    database,
+    `users/${userId}/collections`
+  )
+
+  await update(collectionsRef, updates)
+
+  return true
+}
+
 /**
  * Removes a book reference from every collection owned by a user.
  *

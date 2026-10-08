@@ -3,9 +3,8 @@ import { Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
-  addBookToCollection,
   getUserCollections,
-  removeBookFromCollection,
+  updateBookCollectionMembership,
 } from '../../../services/collectionsService.js'
 import Button from '../../ui/Button.jsx'
 import LoadingState from '../../ui/LoadingState.jsx'
@@ -125,30 +124,16 @@ function BookCollectionsModal({
       return
     }
 
-    const collectionIdsToAdd = [...selectedIds].filter(
-      (collectionId) => !initialSelectedIds.has(collectionId)
-    )
-
-    const collectionIdsToRemove = [
-      ...initialSelectedIds,
-    ].filter((collectionId) => !selectedIds.has(collectionId))
-
     try {
       setIsSaving(true)
       setError('')
 
-      await Promise.all([
-        ...collectionIdsToAdd.map((collectionId) =>
-          addBookToCollection(userId, collectionId, bookId)
-        ),
-        ...collectionIdsToRemove.map((collectionId) =>
-          removeBookFromCollection(
-            userId,
-            collectionId,
-            bookId
-          )
-        ),
-      ])
+      await updateBookCollectionMembership(
+        userId,
+        bookId,
+        [...initialSelectedIds],
+        [...selectedIds]
+      )
 
       onSaved(selectedCount)
       onClose()
