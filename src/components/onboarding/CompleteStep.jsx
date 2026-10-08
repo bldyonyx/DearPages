@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { AVAILABLE_GENRES } from '../../constants/genres.js'
 
 function CompleteStep({
@@ -8,14 +10,15 @@ function CompleteStep({
   onBack,
   onFinish,
 }) {
+  const { t } = useTranslation()
   const selectedGenreLabels = AVAILABLE_GENRES.filter((genre) =>
     favoriteGenres.includes(genre.subject)
-  ).map((genre) => genre.label)
+  ).map((genre) => t(`genres.${genre.subject}`))
 
   return (
     <div>
       <p className="font-handwritten text-xl text-walnut sm:text-2xl">
-        merci ♡
+        {t('onboarding.complete.eyebrow')}
       </p>
 
       <h1
@@ -24,12 +27,11 @@ function CompleteStep({
           leading-tight text-darkwood sm:text-5xl
         "
       >
-        Tout est prêt
+        {t('onboarding.complete.title')}
       </h1>
 
       <p className="mt-5 max-w-2xl text-sm leading-relaxed text-darkwood/65 sm:text-base">
-        Ton espace pourra bientôt utiliser ces choix pour t'aider à
-        retrouver des lectures qui collent à tes envies.
+        {t('onboarding.complete.description')}
       </p>
 
       <div
@@ -40,12 +42,13 @@ function CompleteStep({
       >
         <div>
           <p className="text-xs font-bold uppercase text-walnut/60">
-            Genres choisis
+            {t('onboarding.complete.genresLabel')}
           </p>
 
           <p className="mt-1 text-sm font-bold text-darkwood">
-            {selectedGenreLabels.length} genre
-            {selectedGenreLabels.length > 1 ? 's' : ''}
+            {t('onboarding.complete.genreCount', {
+              count: selectedGenreLabels.length,
+            })}
           </p>
 
           <p className="mt-1 break-words text-sm leading-relaxed text-darkwood/60">
@@ -55,11 +58,13 @@ function CompleteStep({
 
         <div className="border-t border-walnut/10 pt-3">
           <p className="text-xs font-bold uppercase text-walnut/60">
-            Objectif annuel
+            {t('onboarding.complete.annualGoal')}
           </p>
 
           <p className="mt-1 text-sm font-bold text-darkwood">
-            {annualGoal} livre{annualGoal > 1 ? 's' : ''} cette année
+            {t('onboarding.complete.annualGoalValue', {
+              count: annualGoal,
+            })}
           </p>
         </div>
       </div>
@@ -88,7 +93,7 @@ function CompleteStep({
             focus-visible:ring-olive/35
           "
         >
-          Retour
+          {t('onboarding.back')}
         </button>
 
         <button
@@ -104,7 +109,9 @@ function CompleteStep({
             disabled:cursor-not-allowed disabled:opacity-60
           "
         >
-          {isSaving ? 'Enregistrement...' : 'Entrer dans Dear Pages'}
+          {isSaving
+            ? t('onboarding.complete.saving')
+            : t('onboarding.complete.finish')}
         </button>
       </div>
     </div>

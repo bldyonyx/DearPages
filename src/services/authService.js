@@ -123,24 +123,54 @@ export async function signInWithEmail(email, password) {
  * @param {{ code?: string }} firebaseError
  * @returns {string}
  */
-export function getEmailSignInErrorMessage(firebaseError) {
+export function getEmailSignInErrorMessage(
+  firebaseError,
+  t = null
+) {
+  const translate = (key, fallback) =>
+    typeof t === 'function' ? t(key) : fallback
+
   switch (firebaseError?.code) {
     case 'auth/user-not-found':
-      return 'Aucun compte n’existe avec cette adresse e-mail.'
+      return translate(
+        'auth.login.errors.userNotFound',
+        'Aucun compte n’existe avec cette adresse e-mail.'
+      )
     case 'auth/wrong-password':
-      return 'Mot de passe incorrect.'
+      return translate(
+        'auth.login.errors.wrongPassword',
+        'Mot de passe incorrect.'
+      )
     case 'auth/invalid-email':
-      return 'Adresse e-mail invalide.'
+      return translate(
+        'auth.login.errors.invalidEmail',
+        'Adresse e-mail invalide.'
+      )
     case 'auth/user-disabled':
-      return 'Ce compte a été désactivé.'
+      return translate(
+        'auth.login.errors.userDisabled',
+        'Ce compte a été désactivé.'
+      )
     case 'auth/too-many-requests':
-      return 'Trop de tentatives. Réessaie dans quelques minutes.'
+      return translate(
+        'auth.login.errors.tooManyRequests',
+        'Trop de tentatives. Réessaie dans quelques minutes.'
+      )
     case 'auth/network-request-failed':
-      return 'Connexion impossible. Vérifie ta connexion internet.'
+      return translate(
+        'auth.login.errors.network',
+        'Connexion impossible. Vérifie ta connexion internet.'
+      )
     case 'auth/invalid-credential':
-      return 'E-mail ou mot de passe incorrect.'
+      return translate(
+        'auth.login.errors.invalidCredential',
+        'E-mail ou mot de passe incorrect.'
+      )
     default:
-      return 'Impossible de se connecter pour le moment.'
+      return translate(
+        'auth.login.errors.fallback',
+        'Impossible de se connecter pour le moment.'
+      )
   }
 }
 

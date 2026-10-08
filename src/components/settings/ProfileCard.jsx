@@ -1,10 +1,11 @@
 import { Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import UserAvatar from '../ui/UserAvatar.jsx'
 import { settingsLarge } from './settingsResponsive.js'
 
-function getDisplayName(user) {
-  return user?.displayName?.trim() || user?.email || 'lectrice'
+function getDisplayName(user, fallbackName) {
+  return user?.displayName?.trim() || user?.email || fallbackName
 }
 
 function ProfileCard({
@@ -19,7 +20,11 @@ function ProfileCard({
   onDisplayNameChange,
   onSave,
 }) {
-  const currentDisplayName = getDisplayName(user)
+  const { t } = useTranslation()
+  const currentDisplayName = getDisplayName(
+    user,
+    t('settings.profile.fallbackName')
+  )
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -59,7 +64,7 @@ function ProfileCard({
               ${settingsLarge.handwritten}
             `}
           >
-            ton profil
+            {t('settings.profile.eyebrow')}
           </p>
 
           {isEditing ? (
@@ -74,7 +79,7 @@ function ProfileCard({
                   text-darkwood/55
                 "
               >
-                Nom affiché
+                {t('settings.profile.displayName')}
               </label>
 
               <input
@@ -134,7 +139,7 @@ function ProfileCard({
                     disabled:opacity-50
                   "
                 >
-                  Annuler
+                  {t('common.cancel')}
                 </button>
 
                 <button
@@ -155,8 +160,8 @@ function ProfileCard({
                   "
                 >
                   {isSaving
-                    ? 'Enregistrement...'
-                    : 'Enregistrer ♡'}
+                    ? t('settings.profile.saving')
+                    : t('settings.profile.save')}
                 </button>
               </div>
             </form>
@@ -176,8 +181,8 @@ function ProfileCard({
               <button
                 type="button"
                 onClick={onEdit}
-                aria-label="Modifier le nom affiché"
-                title="Modifier le nom"
+                aria-label={t('settings.profile.editDisplayName')}
+                title={t('settings.profile.editDisplayNameTitle')}
                 className="
                   flex h-8 w-8 shrink-0
                   cursor-pointer items-center

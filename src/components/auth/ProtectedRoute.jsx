@@ -3,11 +3,13 @@ import {
   Outlet,
   useLocation,
 } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../../context/AuthContext.jsx'
 import LoadingState from '../ui/LoadingState.jsx'
 
 function ProtectedRoute() {
+  const { t } = useTranslation()
   const location = useLocation()
   const {
     user,
@@ -28,7 +30,7 @@ function ProtectedRoute() {
   if (isAuthLoading || isWaitingForPreferences) {
     return (
       <LoadingState
-        message="Chargement..."
+        message={t('common.loading')}
         fullscreen
       />
     )

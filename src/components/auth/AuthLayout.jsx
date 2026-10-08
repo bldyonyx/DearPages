@@ -1,4 +1,14 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+
+function LineBreakText({ text }) {
+  return text.split('\n').map((line, index, lines) => (
+    <span key={line}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </span>
+  ))
+}
 
 function AuthLayout({
   children,
@@ -8,6 +18,8 @@ function AuthLayout({
   footerLinkText,
   footerLinkTo,
 }) {
+  const { t } = useTranslation()
+
   return (
     <main
       className="
@@ -78,11 +90,7 @@ function AuthLayout({
                 text-xl leading-relaxed text-parchment
               "
             >
-              choisis tes histoires
-              <br />
-              suis ton rythme
-              <br />
-              lis à ta façon ♡
+              <LineBreakText text={t('auth.layout.tagline')} />
             </p>
           </div>
 
@@ -92,9 +100,7 @@ function AuthLayout({
               leading-relaxed text-parchment
             "
           >
-            un nouveau chapitre
-            <br />
-            commence ici ♡
+            <LineBreakText text={t('auth.layout.chapter')} />
           </p>
         </aside>
 
@@ -181,9 +187,7 @@ function AuthLayout({
                 text-lg text-olive
               "
             >
-              les mêmes pages,
-              <br />
-              des jours plus doux ♡
+              <LineBreakText text={t('auth.layout.footer')} />
             </p>
           </div>
         </div>

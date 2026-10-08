@@ -1,8 +1,21 @@
+import { useTranslation } from 'react-i18next'
+
+function LineBreakText({ text }) {
+  return text.split('\n').map((line, index, lines) => (
+    <span key={line}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </span>
+  ))
+}
+
 function OnboardingShell({
   children,
   currentStep,
   totalSteps,
 }) {
+  const { t } = useTranslation()
+
   return (
     <main
       className="
@@ -72,11 +85,7 @@ function OnboardingShell({
                 text-xl leading-relaxed text-parchment
               "
             >
-              choisis tes histoires
-              <br />
-              suis ton rythme
-              <br />
-              lis à ta façon ♡
+              <LineBreakText text={t('onboarding.brandTagline')} />
             </p>
           </div>
 
@@ -86,9 +95,7 @@ function OnboardingShell({
               leading-relaxed text-parchment
             "
           >
-            un nouveau chapitre
-            <br />
-            commence ici ♡
+            <LineBreakText text={t('onboarding.chapter')} />
           </p>
         </aside>
 

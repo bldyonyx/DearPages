@@ -479,6 +479,159 @@
   },
   "settings": {
     "title": "Settings",
-    "description": "Adjust what guides Dear Pages without losing the thread of your reading."
+    "description": "Adjust what guides Dear Pages without losing the thread of your reading.",
+    "profile": {
+      "fallbackName": "reader",
+      "eyebrow": "your profile",
+      "displayName": "Display name",
+      "editDisplayName": "Edit display name",
+      "editDisplayNameTitle": "Edit name",
+      "saving": "Saving...",
+      "save": "Save ♡",
+      "nameRequired": "Choose a name to display.",
+      "nameTooLong": "Your name can be up to {{count}} characters.",
+      "success": "Profile updated ♡",
+      "saveError": "We couldn't update your name right now."
+    },
+    "preferences": {
+      "title": "Reading preferences",
+      "description": "Adjust the genres that shape your recommendations and your yearly goal.",
+      "loading": "Loading your preferences...",
+      "genresTitle": "Favorite genres",
+      "selectedGenres_one": "{{count}} genre selected",
+      "selectedGenres_other": "{{count}} genres selected",
+      "annualGoal": "Yearly goal",
+      "customValue": "Custom value",
+      "books": "books",
+      "upToDate": "Everything is up to date.",
+      "changesReady": "Your changes are ready to be saved.",
+      "saveChanges": "Save changes",
+      "keepOneGenre": "Keep at least one favorite genre.",
+      "chooseOneGenre": "Choose at least one favorite genre.",
+      "invalidGoal": "Enter a whole number greater than or equal to 1.",
+      "maxGoal": "Choose a goal of {{count}} books maximum.",
+      "success": "Changes saved ♡",
+      "saveError": "We couldn't save your preferences right now."
+    },
+    "account": {
+      "title": "Account",
+      "loggingOut": "Logging out...",
+      "logout": "Log out",
+      "logoutError": "We couldn't log you out right now.",
+      "deleteTitle": "Delete my account",
+      "deleteDescription": "Permanently delete your account and all your Dear Pages data.",
+      "deleteModalTitle": "Delete your account?",
+      "deleteModalBody": "This action is permanent. Your library, collections, notes, reviews, and preferences will be deleted.",
+      "confirmPassword": "Confirm with your password",
+      "googleConfirmation": "A Google window may open to confirm your identity before deletion.",
+      "deleting": "Deleting...",
+      "deleteForever": "Delete permanently",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "deleteErrors": {
+        "recentLogin": "Sign in again before deleting your account, then come back to Settings.",
+        "wrongPassword": "Incorrect password. Check it before deleting your account.",
+        "popupClosed": "Google confirmation was closed before deletion.",
+        "userMismatch": "The confirmed account does not match the connected Dear Pages account.",
+        "fallback": "We couldn't delete your account right now."
+      }
+    },
+    "about": {
+      "title": "About Dear Pages",
+      "description": "Find the project documentation and source code.",
+      "documentation": "Documentation",
+      "github": "GitHub",
+      "sourceCode": "Project source code",
+      "signature": "Dear Pages · 2026 ♡"
+    }
+  },
+  "auth": {
+    "layout": {
+      "tagline": "choose your stories\nfollow your rhythm\nread your way ♡",
+      "chapter": "a new chapter\nstarts here ♡",
+      "footer": "the same pages,\nsofter days ♡"
+    },
+    "login": {
+      "title": "Welcome back ♡",
+      "subtitle": "It's lovely to see you again.",
+      "footerText": "Don't have an account yet?",
+      "footerLink": "Create an account",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "google": "Continue with Google",
+      "googleSubmitting": "Logging in with Google...",
+      "googleError": "We couldn't continue with Google right now.",
+      "or": "or",
+      "errors": {
+        "userNotFound": "No account exists with this email address.",
+        "wrongPassword": "Incorrect password.",
+        "invalidEmail": "Invalid email address.",
+        "userDisabled": "This account has been disabled.",
+        "tooManyRequests": "Too many attempts. Try again in a few minutes.",
+        "network": "Unable to connect. Check your internet connection.",
+        "invalidCredential": "Email or password is incorrect.",
+        "fallback": "We couldn't log you in right now."
+      }
+    },
+    "signup": {
+      "title": "Create your account ♡",
+      "subtitle": "A new chapter starts here.",
+      "footerText": "Already have an account?",
+      "footerLink": "Log in",
+      "name": "Your name",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Create my account",
+      "submitting": "Creating account...",
+      "google": "Continue with Google",
+      "googleSubmitting": "Creating with Google...",
+      "createError": "We couldn't create your account right now.",
+      "googleError": "We couldn't continue with Google right now."
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "onboarding": {
+    "brandTagline": "choose your stories\nfollow your rhythm\nread your way ♡",
+    "chapter": "a new chapter\nstarts here ♡",
+    "welcome": {
+      "eyebrow": "a new chapter begins",
+      "title": "Welcome to Dear Pages{{name}} ♡",
+      "description": "We'll personalize your reading space with a few simple preferences, so your next discoveries feel more like you.",
+      "start": "Start"
+    },
+    "genres": {
+      "eyebrow": "what you're craving now",
+      "title": "What do you love to read?",
+      "description": "Choose a few genres. They will help personalize your recommendations later.",
+      "validation": "Choose at least one genre to continue."
+    },
+    "goal": {
+      "eyebrow": "your reading rhythm",
+      "title": "How many books would you like to read this year?",
+      "description": "Choose a comfortable goal. You can adjust it later from Settings.",
+      "customValue": "Custom value",
+      "invalid": "Enter a whole number greater than or equal to 1.",
+      "max": "Choose a goal of {{count}} books maximum."
+    },
+    "complete": {
+      "eyebrow": "thank you ♡",
+      "title": "Everything is ready",
+      "description": "Your space will soon use these choices to help you find reads that fit what you're craving.",
+      "genresLabel": "Chosen genres",
+      "genreCount_one": "{{count}} genre",
+      "genreCount_other": "{{count}} genres",
+      "annualGoal": "Yearly goal",
+      "annualGoalValue_one": "{{count}} book this year",
+      "annualGoalValue_other": "{{count}} books this year",
+      "finish": "Enter Dear Pages",
+      "saving": "Saving..."
+    },
+    "back": "Back",
+    "continue": "Continue",
+    "sessionError": "We couldn't find your session. Sign in again, then try once more.",
+    "saveError": "We couldn't save your preferences right now."
   }
 }

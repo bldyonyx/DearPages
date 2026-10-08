@@ -3,9 +3,12 @@ import {
   Code2,
   ExternalLink,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { settingsLarge } from './settingsResponsive.js'
 
 function AboutCard() {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -21,7 +24,7 @@ function AboutCard() {
             ${settingsLarge.cardTitle}
           `}
         >
-          À propos de Dear Pages
+          {t('settings.about.title')}
         </h2>
 
         <p
@@ -30,7 +33,7 @@ function AboutCard() {
             ${settingsLarge.description}
           `}
         >
-          Retrouve la documentation du projet et son code source.
+          {t('settings.about.description')}
         </p>
       </div>
 
@@ -64,7 +67,7 @@ function AboutCard() {
                   ${settingsLarge.description}
                 `}
               >
-                Documentation
+                {t('settings.about.documentation')}
               </span>
 
               <span
@@ -125,7 +128,7 @@ function AboutCard() {
                   ${settingsLarge.smallText}
                 `}
               >
-                Code source du projet
+                {t('settings.about.sourceCode')}
               </span>
             </span>
           </span>
@@ -146,7 +149,7 @@ function AboutCard() {
           ${settingsLarge.handwritten}
         `}
       >
-        Dear Pages · 2026 ♡
+        {t('settings.about.signature')}
       </p>
     </section>
   )

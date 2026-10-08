@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { AVAILABLE_GENRES } from '../constants/genres.js'
@@ -59,30 +60,31 @@ function areGenresEqual(firstGenres, secondGenres) {
   )
 }
 
-function getDeleteAccountErrorMessage(firebaseError) {
+function getDeleteAccountErrorMessage(firebaseError, t) {
   if (firebaseError?.code === 'auth/requires-recent-login') {
-    return 'Reconnecte-toi avant de supprimer ton compte, puis reviens dans Paramètres.'
+    return t('settings.account.deleteErrors.recentLogin')
   }
 
   if (
     firebaseError?.code === 'auth/wrong-password' ||
     firebaseError?.code === 'auth/invalid-credential'
   ) {
-    return 'Mot de passe incorrect. Vérifie-le avant de supprimer ton compte.'
+    return t('settings.account.deleteErrors.wrongPassword')
   }
 
   if (firebaseError?.code === 'auth/popup-closed-by-user') {
-    return 'La confirmation Google a été fermée avant la suppression.'
+    return t('settings.account.deleteErrors.popupClosed')
   }
 
   if (firebaseError?.code === 'auth/user-mismatch') {
-    return 'Le compte confirmé ne correspond pas au compte Dear Pages connecté.'
+    return t('settings.account.deleteErrors.userMismatch')
   }
 
-  return 'Impossible de supprimer ton compte pour le moment.'
+  return t('settings.account.deleteErrors.fallback')
 }
 
 function useSettings() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const {
@@ -176,7 +178,7 @@ function useSettings() {
       selectedGenres.includes(subject) &&
       selectedGenres.length === 1
     ) {
-      setSaveError('Garde au moins un genre préféré.')
+      setSaveError(t('settings.preferences.keepOneGenre'))
       return
     }
 
@@ -206,7 +208,7 @@ function useSettings() {
 
   function validatePreferences() {
     if (selectedGenres.length === 0) {
-      setSaveError('Choisis au moins un genre préféré.')
+      setSaveError(t('settings.preferences.chooseOneGenre'))
       return false
     }
 
@@ -215,14 +217,16 @@ function useSettings() {
       normalizedAnnualGoal < 1
     ) {
       setGoalError(
-        'Indique un nombre entier supérieur ou égal à 1.'
+        t('settings.preferences.invalidGoal')
       )
       return false
     }
 
     if (normalizedAnnualGoal > MAX_ANNUAL_GOAL) {
       setGoalError(
-        `Choisis un objectif de ${MAX_ANNUAL_GOAL} livres maximum.`
+        t('settings.preferences.maxGoal', {
+          count: MAX_ANNUAL_GOAL,
+        })
       )
       return false
     }
@@ -261,11 +265,11 @@ function useSettings() {
       updatePreferences(nextPreferences)
       setOriginalGenres(selectedGenres)
       setOriginalAnnualGoal(normalizedAnnualGoal)
-      setSuccessMessage('Modifications enregistrées ♡')
+      setSuccessMessage(t('settings.preferences.success'))
     } catch (firebaseError) {
       console.error(firebaseError)
       setSaveError(
-        "Impossible d'enregistrer tes préférences pour le moment."
+        t('settings.preferences.saveError')
       )
     } finally {
       setIsSaving(false)
@@ -297,13 +301,15 @@ function useSettings() {
     const trimmedDisplayName = displayName.trim()
 
     if (!trimmedDisplayName) {
-      setProfileError('Choisis un nom à afficher.')
+      setProfileError(t('settings.profile.nameRequired'))
       return
     }
 
     if (trimmedDisplayName.length > MAX_DISPLAY_NAME_LENGTH) {
       setProfileError(
-        `Ton nom peut contenir ${MAX_DISPLAY_NAME_LENGTH} caractères maximum.`
+        t('settings.profile.nameTooLong', {
+          count: MAX_DISPLAY_NAME_LENGTH,
+        })
       )
       return
     }
@@ -326,11 +332,11 @@ function useSettings() {
       setDisplayName(savedDisplayName)
       refreshUser()
       setIsEditingProfile(false)
-      setProfileSuccessMessage('Profil mis à jour ♡')
+      setProfileSuccessMessage(t('settings.profile.success'))
     } catch (firebaseError) {
       console.error(firebaseError)
       setProfileError(
-        "Impossible de modifier ton nom pour le moment."
+        t('settings.profile.saveError')
       )
     } finally {
       setIsSavingProfile(false)
@@ -347,7 +353,7 @@ function useSettings() {
     } catch (firebaseError) {
       console.error(firebaseError)
       setLogoutError(
-        'Impossible de te déconnecter pour le moment.'
+        t('settings.account.logoutError')
       )
       setIsLoggingOut(false)
     }
@@ -366,7 +372,7 @@ function useSettings() {
     } catch (firebaseError) {
       console.error(firebaseError)
       setDeleteError(
-        getDeleteAccountErrorMessage(firebaseError)
+        getDeleteAccountErrorMessage(firebaseError, t)
       )
       setIsDeletingAccount(false)
     }

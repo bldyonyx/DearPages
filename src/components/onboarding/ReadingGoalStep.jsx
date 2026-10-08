@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 const QUICK_GOALS = [12, 24, 36, 50]
 
 function ReadingGoalStep({
@@ -7,11 +9,13 @@ function ReadingGoalStep({
   onGoalChange,
   onNext,
 }) {
+  const { t } = useTranslation()
+
   return (
     <div>
       <div>
         <p className="font-handwritten text-xl text-walnut sm:text-2xl">
-          ton rythme de lecture
+          {t('onboarding.goal.eyebrow')}
         </p>
 
         <h1
@@ -20,12 +24,11 @@ function ReadingGoalStep({
             font-bold leading-tight text-darkwood sm:text-5xl
           "
         >
-          Combien de livres aimerais-tu lire cette année ?
+          {t('onboarding.goal.title')}
         </h1>
 
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-darkwood/65 sm:text-base">
-          Choisis un objectif confortable. Tu pourras l'ajuster plus
-          tard depuis les paramètres.
+          {t('onboarding.goal.description')}
         </p>
       </div>
 
@@ -57,7 +60,7 @@ function ReadingGoalStep({
 
       <label className="mt-8 block max-w-xs">
         <span className="text-sm font-bold text-darkwood">
-          Valeur personnalisée
+          {t('onboarding.goal.customValue')}
         </span>
 
         <input
@@ -105,7 +108,7 @@ function ReadingGoalStep({
             focus-visible:ring-olive/35
           "
         >
-          Retour
+          {t('onboarding.back')}
         </button>
 
         <button
@@ -119,7 +122,7 @@ function ReadingGoalStep({
             focus-visible:ring-olive/35
           "
         >
-          Continuer
+          {t('onboarding.continue')}
         </button>
       </div>
     </div>

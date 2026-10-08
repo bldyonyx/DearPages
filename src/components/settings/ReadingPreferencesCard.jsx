@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { AVAILABLE_GENRES } from '../../constants/genres.js'
 import SettingsSaveBar from './SettingsSaveBar.jsx'
 import { settingsLarge } from './settingsResponsive.js'
@@ -18,6 +20,8 @@ function ReadingPreferencesCard({
   selectedGenres,
   successMessage,
 }) {
+  const { t } = useTranslation()
+
   return (
     <section
       aria-busy={isLoading || isSaving}
@@ -35,7 +39,7 @@ function ReadingPreferencesCard({
             ${settingsLarge.cardTitle}
           `}
         >
-          Préférences de lecture
+          {t('settings.preferences.title')}
         </h2>
 
         <p
@@ -45,8 +49,7 @@ function ReadingPreferencesCard({
             ${settingsLarge.description}
           `}
         >
-          Ajuste les genres qui nourrissent tes recommandations et
-          ton objectif annuel.
+          {t('settings.preferences.description')}
         </p>
       </div>
 
@@ -59,7 +62,7 @@ function ReadingPreferencesCard({
             ${settingsLarge.description}
           `}
         >
-          Chargement de tes préférences...
+          {t('settings.preferences.loading')}
         </p>
       ) : (
         <div className="mt-7 grid gap-7">
@@ -76,7 +79,7 @@ function ReadingPreferencesCard({
                   ${settingsLarge.description}
                 `}
               >
-                Genres préférés
+                {t('settings.preferences.genresTitle')}
               </h3>
 
               <div className="mt-4 flex flex-wrap gap-2.5 sm:gap-3">
@@ -101,7 +104,7 @@ function ReadingPreferencesCard({
                           : 'border-walnut/20 bg-mintcream text-darkwood/70 hover:border-olive/50 hover:text-darkwood',
                       ].join(' ')}
                     >
-                      {genre.label}
+                      {t(`genres.${genre.subject}`)}
                     </button>
                   )
                 })}
@@ -113,9 +116,9 @@ function ReadingPreferencesCard({
                   ${settingsLarge.smallText}
                 `}
               >
-                {selectedGenres.length} genre
-                {selectedGenres.length > 1 ? 's' : ''} sélectionné
-                {selectedGenres.length > 1 ? 's' : ''}
+                {t('settings.preferences.selectedGenres', {
+                  count: selectedGenres.length,
+                })}
               </p>
             </div>
 
@@ -126,7 +129,7 @@ function ReadingPreferencesCard({
                   ${settingsLarge.description}
                 `}
               >
-                Objectif annuel
+                {t('settings.preferences.annualGoal')}
               </h3>
 
               <div className="mt-4 flex flex-wrap gap-3">
@@ -166,7 +169,7 @@ function ReadingPreferencesCard({
                     ${settingsLarge.description}
                   `}
                 >
-                  Valeur personnalisée
+                  {t('settings.preferences.customValue')}
                 </span>
 
                 <span
@@ -208,7 +211,7 @@ function ReadingPreferencesCard({
                       ${settingsLarge.smallText}
                     `}
                   >
-                    livres
+                    {t('settings.preferences.books')}
                   </span>
                 </span>
               </label>

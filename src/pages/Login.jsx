@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
   Eye,
@@ -17,6 +18,7 @@ import {
 } from '../services/authService.js'
 
 function Login() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const {
     beginAuthBootstrap,
@@ -41,7 +43,7 @@ function Login() {
       await signInWithEmail(email.trim(), password)
       navigate('/')
     } catch (firebaseError) {
-      setError(getEmailSignInErrorMessage(firebaseError))
+      setError(getEmailSignInErrorMessage(firebaseError, t))
     } finally {
       setLoadingAction(null)
     }
@@ -62,9 +64,7 @@ function Login() {
       navigate('/')
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError(
-        'Impossible de continuer avec Google pour le moment.',
-      )
+      setError(t('auth.login.googleError'))
     } finally {
       endAuthBootstrap()
       setLoadingAction(null)
@@ -73,10 +73,10 @@ function Login() {
 
   return (
     <AuthLayout
-      title="Bon retour ♡"
-      subtitle="Ça fait plaisir de te revoir."
-      footerText="Tu n'as pas encore de compte ?"
-      footerLinkText="Créer un compte"
+      title={t('auth.login.title')}
+      subtitle={t('auth.login.subtitle')}
+      footerText={t('auth.login.footerText')}
+      footerLinkText={t('auth.login.footerLink')}
       footerLinkTo="/signup"
     >
       <form
@@ -97,7 +97,7 @@ function Login() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Adresse e-mail"
+            placeholder={t('auth.login.email')}
             autoComplete="email"
             required
             className="
@@ -127,7 +127,7 @@ function Login() {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Mot de passe"
+            placeholder={t('auth.login.password')}
             autoComplete="current-password"
             required
             className="
@@ -149,8 +149,8 @@ function Login() {
             }
             aria-label={
               showPassword
-                ? 'Masquer le mot de passe'
-                : 'Afficher le mot de passe'
+                ? t('auth.hidePassword')
+                : t('auth.showPassword')
             }
             className="
               absolute right-4 top-1/2
@@ -185,8 +185,8 @@ function Login() {
           "
         >
           {loadingAction === 'email'
-            ? 'Connexion...'
-            : 'Se connecter'}
+            ? t('auth.login.submitting')
+            : t('auth.login.submit')}
         </button>
       </form>
 
@@ -194,7 +194,7 @@ function Login() {
         <div className="h-px flex-1 bg-walnut/20" />
 
         <span className="font-heading text-lg text-walnut">
-          ou
+          {t('auth.login.or')}
         </span>
 
         <div className="h-px flex-1 bg-walnut/20" />
@@ -216,8 +216,8 @@ function Login() {
       >
         <GoogleIcon />
         {loadingAction === 'google'
-          ? 'Connexion avec Google...'
-          : 'Continuer avec Google'}
+          ? t('auth.login.googleSubmitting')
+          : t('auth.login.google')}
       </button>
     </AuthLayout>
   )

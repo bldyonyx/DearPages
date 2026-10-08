@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
   Eye,
@@ -17,6 +18,7 @@ import {
 } from '../services/authService.js'
 
 function SignUp() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const {
     beginAuthBootstrap,
@@ -58,9 +60,7 @@ function SignUp() {
       updatePreferences(result.preferences)
       navigateAfterAuthentication(result.preferences)
     } catch {
-      setError(
-        'Impossible de créer ton compte pour le moment.',
-      )
+      setError(t('auth.signup.createError'))
     } finally {
       endAuthBootstrap()
       setLoadingAction(null)
@@ -82,9 +82,7 @@ function SignUp() {
       navigateAfterAuthentication(result.preferences)
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError(
-        'Impossible de continuer avec Google pour le moment.',
-      )
+      setError(t('auth.signup.googleError'))
     } finally {
       endAuthBootstrap()
       setLoadingAction(null)
@@ -93,10 +91,10 @@ function SignUp() {
 
   return (
     <AuthLayout
-      title="Crée ton compte ♡"
-      subtitle="Un nouveau chapitre commence ici."
-      footerText="Tu as déjà un compte ?"
-      footerLinkText="Se connecter"
+      title={t('auth.signup.title')}
+      subtitle={t('auth.signup.subtitle')}
+      footerText={t('auth.signup.footerText')}
+      footerLinkText={t('auth.signup.footerLink')}
       footerLinkTo="/login"
     >
       <form
@@ -119,7 +117,7 @@ function SignUp() {
             onChange={(event) =>
               setDisplayName(event.target.value)
             }
-            placeholder="Ton nom"
+            placeholder={t('auth.signup.name')}
             autoComplete="name"
             required
             className="
@@ -149,7 +147,7 @@ function SignUp() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Adresse e-mail"
+            placeholder={t('auth.signup.email')}
             autoComplete="email"
             required
             className="
@@ -181,7 +179,7 @@ function SignUp() {
             onChange={(event) =>
               setPassword(event.target.value)
             }
-            placeholder="Mot de passe"
+            placeholder={t('auth.signup.password')}
             autoComplete="new-password"
             minLength={6}
             required
@@ -204,8 +202,8 @@ function SignUp() {
             }
             aria-label={
               showPassword
-                ? 'Masquer le mot de passe'
-                : 'Afficher le mot de passe'
+                ? t('auth.hidePassword')
+                : t('auth.showPassword')
             }
             className="
               absolute right-4 top-1/2
@@ -240,8 +238,8 @@ function SignUp() {
           "
         >
           {loadingAction === 'email'
-            ? 'Création du compte...'
-            : 'Créer mon compte'}
+            ? t('auth.signup.submitting')
+            : t('auth.signup.submit')}
         </button>
       </form>
 
@@ -272,8 +270,8 @@ function SignUp() {
         <GoogleIcon />
 
         {loadingAction === 'google'
-          ? 'Création avec Google...'
-          : 'Continuer avec Google'}
+          ? t('auth.signup.googleSubmitting')
+          : t('auth.signup.google')}
       </button>
     </AuthLayout>
   )

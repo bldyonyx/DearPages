@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { settingsLarge } from './settingsResponsive.js'
 
 function SettingsSaveBar({
@@ -8,11 +10,11 @@ function SettingsSaveBar({
   onSave,
   successMessage,
 }) {
-  let statusMessage = 'Tout est à jour.'
+  const { t } = useTranslation()
+  let statusMessage = t('settings.preferences.upToDate')
 
   if (hasChanges) {
-    statusMessage =
-      'Des modifications sont prêtes à être enregistrées.'
+    statusMessage = t('settings.preferences.changesReady')
   }
 
   if (successMessage) {
@@ -24,7 +26,7 @@ function SettingsSaveBar({
   }
 
   if (isSaving) {
-    statusMessage = 'Enregistrement...'
+    statusMessage = t('common.saving')
   }
 
   const isStatusError = Boolean(error)
@@ -75,7 +77,9 @@ function SettingsSaveBar({
           [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+        {isSaving
+          ? t('common.saving')
+          : t('settings.preferences.saveChanges')}
       </button>
     </div>
   )
