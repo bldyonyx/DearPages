@@ -19,6 +19,8 @@
     "settings": "Paramètres",
     "back": "Retour",
     "backToTop": "Retour en haut",
+    "fallbackReader": "lectrice",
+    "profilePhoto": "Photo de profil de {{name}}",
     "unknownAuthor": "Auteur inconnu",
     "viewBook": "Voir {{title}}"
   },
@@ -473,6 +475,12 @@
     "settings": "Paramètres",
     "homeAria": "Dear Pages — Accueil",
     "openProfileSettings": "Ouvrir les paramètres du profil"
+  },
+  "sidebar": {
+    "note": {
+      "quote": "La lecture\nagrandit l’âme.",
+      "author": "— Voltaire"
+    }
   },
   "loading": {
     "fullscreenMessage": "quelques pages se préparent ♡"

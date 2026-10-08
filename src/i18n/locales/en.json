@@ -19,6 +19,8 @@
     "settings": "Settings",
     "back": "Back",
     "backToTop": "Back to top",
+    "fallbackReader": "reader",
+    "profilePhoto": "Profile photo of {{name}}",
     "unknownAuthor": "Unknown author",
     "viewBook": "View {{title}}"
   },
@@ -473,6 +475,12 @@
     "settings": "Settings",
     "homeAria": "Dear Pages — Home",
     "openProfileSettings": "Open profile settings"
+  },
+  "sidebar": {
+    "note": {
+      "quote": "Reading\nopens the soul.",
+      "author": "— Voltaire"
+    }
   },
   "loading": {
     "fullscreenMessage": "a few pages are getting ready ♡"
