@@ -1,11 +1,9 @@
 import { Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder.js'
 import { libraryLarge } from './libraryResponsive.js'
 import Input from '../ui/Input.jsx'
-
-const LIBRARY_SEARCH_PLACEHOLDER =
-  'Rechercher dans ma bibliothèque...'
 
 function LibrarySearchField({
   id,
@@ -14,8 +12,11 @@ function LibrarySearchField({
   onClearSearch,
   autoFocus = false,
 }) {
+  const { t } = useTranslation()
   const { containerRef, placeholder } =
-    useResponsivePlaceholder(LIBRARY_SEARCH_PLACEHOLDER)
+    useResponsivePlaceholder(t('libraryPage.searchPlaceholder'), {
+      shortPlaceholder: t('common.searchShort'),
+    })
 
   return (
     <div ref={containerRef} className="relative">
@@ -41,7 +42,7 @@ function LibrarySearchField({
           onSearchChange(event.target.value)
         }
         placeholder={placeholder}
-        aria-label="Rechercher dans ma bibliothèque"
+        aria-label={t('libraryPage.searchAria')}
         autoFocus={autoFocus}
         className={`
           w-full rounded-full!
@@ -54,7 +55,7 @@ function LibrarySearchField({
         <button
           type="button"
           onClick={onClearSearch}
-          aria-label="Effacer la recherche"
+          aria-label={t('common.clearSearch')}
           className="
             absolute right-4 top-1/2 z-10
             flex h-7 w-7

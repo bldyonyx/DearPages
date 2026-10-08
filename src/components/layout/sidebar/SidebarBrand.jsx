@@ -1,7 +1,10 @@
 import { BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 
 function SidebarBrand() {
+  const { t } = useTranslation()
+
   return (
     <div
       className="
@@ -15,7 +18,7 @@ function SidebarBrand() {
     >
       <NavLink
         to="/"
-        aria-label="Dear Pages — Accueil"
+        aria-label={t('navigation.homeAria')}
         className="
           flex items-center gap-3 text-cream
           lg:gap-3.5

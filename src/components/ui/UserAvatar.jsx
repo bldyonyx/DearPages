@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import flower from '../../assets/images/flower.png'
 
-function getDisplayName(user) {
-  return user?.displayName?.trim() || user?.email || 'lectrice'
+function getDisplayName(user, fallbackName) {
+  return user?.displayName?.trim() || user?.email || fallbackName
 }
 
 function getAvatarInitial(displayName) {
@@ -16,7 +17,11 @@ function UserAvatar({
   avatarClassName = '',
   initialClassName = '',
 }) {
-  const displayName = getDisplayName(user)
+  const { t } = useTranslation()
+  const displayName = getDisplayName(
+    user,
+    t('common.fallbackReader')
+  )
   const avatarInitial = getAvatarInitial(displayName)
   const photoURL = user?.photoURL?.trim() || ''
   const [failedPhotoURL, setFailedPhotoURL] = useState('')
@@ -47,7 +52,9 @@ function UserAvatar({
       {showPhoto ? (
         <img
           src={photoURL}
-          alt={`Photo de profil de ${displayName}`}
+          alt={t('common.profilePhoto', {
+            name: displayName,
+          })}
           referrerPolicy="no-referrer"
           onError={() => setFailedPhotoURL(photoURL)}
           className={`

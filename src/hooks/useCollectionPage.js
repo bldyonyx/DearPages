@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 
 import { useAuth } from '../context/AuthContext.jsx'
@@ -21,6 +22,7 @@ function getBookId(book) {
 }
 
 function useCollectionPage() {
+  const { t } = useTranslation()
   const { id: collectionId } = useParams()
   const { user } = useAuth()
   const userId = user?.uid
@@ -80,12 +82,12 @@ function useCollectionPage() {
       )
 
       setError(
-        'Impossible de charger cette collection pour le moment.',
+        t('collectionPage.loadError'),
       )
     } finally {
       setIsLoading(false)
     }
-  }, [collectionId, userId])
+  }, [collectionId, userId, t])
 
   useEffect(() => {
     let isActive = true
@@ -117,7 +119,7 @@ function useCollectionPage() {
 
         if (isActive) {
           setError(
-            'Impossible de charger cette collection pour le moment.',
+            t('collectionPage.loadError'),
           )
         }
       } finally {
@@ -132,7 +134,7 @@ function useCollectionPage() {
     return () => {
       isActive = false
     }
-  }, [collectionId, userId])
+  }, [collectionId, userId, t])
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -245,7 +247,7 @@ function useCollectionPage() {
       )
 
       setError(
-        'Impossible de modifier cette collection pour le moment.',
+        t('collectionPage.updateError'),
       )
     } finally {
       setIsSavingCollection(false)
@@ -293,7 +295,7 @@ function useCollectionPage() {
       )
 
       setError(
-        'Impossible de retirer ce livre de la collection pour le moment.',
+        t('collectionPage.removeError'),
       )
 
       return false
@@ -387,7 +389,7 @@ function useCollectionPage() {
       )
 
       setClearCollectionError(
-        'Impossible de vider cette collection pour le moment.',
+        t('collectionPage.clearError'),
       )
     } finally {
       setIsClearingCollection(false)

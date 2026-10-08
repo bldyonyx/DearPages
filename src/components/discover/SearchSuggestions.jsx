@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import BookCover from '../books/BookCover.jsx'
 import { discoverLarge } from './discoverResponsive'
 
 function SearchSuggestions({ suggestions, isLoading }) {
+  const { t } = useTranslation()
+
   if (isLoading) {
     return (
       <div
@@ -23,7 +26,7 @@ function SearchSuggestions({ suggestions, isLoading }) {
             ${discoverLarge.description}
           `}
         >
-          Recherche...
+          {t('discoverPage.search.loading')}
         </p>
       </div>
     )

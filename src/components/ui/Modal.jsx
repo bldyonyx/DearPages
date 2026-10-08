@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import Portal from './Portal.jsx'
 
@@ -8,6 +9,7 @@ function Modal({
   title,
   children,
 }) {
+  const { t } = useTranslation()
   const titleId = useId()
 
   if (!isOpen) {
@@ -54,7 +56,7 @@ function Modal({
               focus-visible:ring-2
               focus-visible:ring-olive/35
             "
-            aria-label="Fermer"
+            aria-label={t('common.close')}
           >
             ×
           </button>

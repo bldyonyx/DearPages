@@ -1,4 +1,5 @@
 import { BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const authBackground = {
   backgroundImage: `
@@ -16,9 +17,12 @@ const authBackground = {
 }
 
 function LoadingState({
-  message = 'Chargement...',
+  message,
   fullscreen = false,
 }) {
+  const { t } = useTranslation()
+  const loadingMessage = message ?? t('common.loading')
+
   const content = (
     <div
       role="status"
@@ -64,7 +68,7 @@ function LoadingState({
           tracking-wide text-darkwood
         "
       >
-        Dear Pages
+          {t('common.appName')}
       </p>
 
       {fullscreen ? (
@@ -74,11 +78,11 @@ function LoadingState({
             text-xl text-walnut
           "
         >
-          quelques pages se préparent ♡
+          {t('loading.fullscreenMessage')}
         </p>
       ) : (
         <p className="mt-2 font-ui text-sm text-darkwood/55">
-          {message}
+          {loadingMessage}
         </p>
       )}
 
@@ -113,7 +117,7 @@ function LoadingState({
         />
       </div>
 
-      <span className="sr-only">{message}</span>
+      <span className="sr-only">{loadingMessage}</span>
     </div>
   )
 

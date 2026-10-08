@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import stripesBrown from '../../../assets/textures/stripes-brown.jpg'
 import { desktopNavigationItems } from '../navigation'
 
@@ -6,6 +8,7 @@ import SidebarNavItem from './SidebarNavItem'
 import SidebarNote from './SidebarNote'
 
 function Sidebar() {
+  const { t } = useTranslation()
   const mainNavigationItems = desktopNavigationItems.filter(
     (item) => item.to !== '/settings',
   )
@@ -51,7 +54,7 @@ function Sidebar() {
       <SidebarBrand />
 
       <nav
-        aria-label="Navigation principale"
+        aria-label={t('navigation.main')}
         className="
           flex flex-col
           font-ui
@@ -80,7 +83,7 @@ function Sidebar() {
 
         {settingsItem && (
           <nav
-            aria-label="Paramètres"
+            aria-label={t('navigation.settings')}
             className="shrink-0 font-ui"
           >
             <SidebarNavItem item={settingsItem} />

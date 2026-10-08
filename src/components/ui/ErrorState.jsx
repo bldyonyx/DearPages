@@ -1,14 +1,19 @@
+import { useTranslation } from 'react-i18next'
+
 function ErrorState({
-  message = 'Une erreur est survenue.',
+  message,
   onRetry,
 }) {
+  const { t } = useTranslation()
+  const errorMessage = message ?? t('common.error')
+
   return (
     <div
       role="alert"
       className="flex flex-col items-center justify-center gap-3 py-10 text-center"
     >
       <p className="font-ui text-sm text-darkwood/70">
-        {message}
+        {errorMessage}
       </p>
 
       {onRetry && (
@@ -17,7 +22,7 @@ function ErrorState({
           onClick={onRetry}
           className="cursor-pointer font-ui text-sm font-bold text-darkwood underline underline-offset-4"
         >
-          Réessayer
+          {t('common.retry')}
         </button>
       )}
     </div>

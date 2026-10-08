@@ -1,0 +1,646 @@
+{
+  "common": {
+    "appName": "Dear Pages",
+    "cancel": "Cancel",
+    "changeStatus": "Change status",
+    "clearSearch": "Clear search",
+    "close": "Close",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "description": "Description",
+    "error": "Something went wrong.",
+    "loading": "Loading...",
+    "name": "Name",
+    "retry": "Try again",
+    "save": "Save",
+    "saving": "Saving...",
+    "searchBook": "Search for a book",
+    "searchShort": "Search…",
+    "settings": "Settings",
+    "back": "Back",
+    "backToTop": "Back to top",
+    "fallbackReader": "reader",
+    "profilePhoto": "Profile photo of {{name}}",
+    "unknownAuthor": "Unknown author",
+    "viewBook": "View {{title}}"
+  },
+  "months": {
+    "0": "January",
+    "1": "February",
+    "2": "March",
+    "3": "April",
+    "4": "May",
+    "5": "June",
+    "6": "July",
+    "7": "August",
+    "8": "September",
+    "9": "October",
+    "10": "November",
+    "11": "December"
+  },
+  "status": {
+    "to-read": "To read",
+    "reading": "Reading",
+    "finished": "Finished",
+    "abandoned": "Abandoned"
+  },
+  "genres": {
+    "fantasy": "Fantasy",
+    "romance": "Romance",
+    "mystery": "Mystery",
+    "thriller": "Thriller",
+    "crime": "Crime",
+    "horror": "Horror",
+    "science fiction": "Science fiction",
+    "adventure": "Adventure",
+    "young adult": "Young Adult",
+    "classics": "Classics",
+    "history": "History",
+    "biography": "Biographies",
+    "poetry": "Poetry",
+    "comics": "Comics & manga",
+    "self help": "Self-help",
+    "philosophy": "Philosophy",
+    "undefined": "Not set"
+  },
+  "dashboard": {
+    "loading": "Loading your dashboard...",
+    "loadError": "We couldn't load your dashboard right now.",
+    "header": {
+      "greeting": "Hello, {{name}}",
+      "fallbackName": "reader",
+      "subtitle": "Here is a glimpse of your reading.",
+      "searchPlaceholder": "Search for a book...",
+      "closeSearch": "Close search"
+    },
+    "currentlyReading": {
+      "title": "Currently reading",
+      "emptySubtitle": "No books in progress yet.",
+      "subtitle": "The books you're reading right now.",
+      "emptyMessage": "Maybe your next read is already waiting for you ♡",
+      "findNext": "Find my next read",
+      "unknownAuthor": "Unknown author",
+      "viewDetails": "View details",
+      "updating": "Updating...",
+      "statusError": "We couldn't update this status right now.",
+      "showBook": "Show {{title}}",
+      "selectBook": "Select {{title}}",
+      "count_one": "{{count}} current read",
+      "count_other": "{{count}} current reads",
+      "previous": "Previous read",
+      "next": "Next read"
+    },
+    "readingGoal": {
+      "aria": "View finished books",
+      "title": "Reading goal",
+      "subtitle": "Your progress this year.",
+      "completed_one": "{{count}} book finished this year",
+      "completed_other": "{{count}} books finished this year"
+    },
+    "recentlyAdded": {
+      "title": "Recently added",
+      "subtitle": "The latest books added to your library.",
+      "viewAll": "View all",
+      "empty": "No books added yet."
+    },
+    "stats": {
+      "title": "Your reading",
+      "subtitle": "A small glimpse of your library.",
+      "allLibraryAria": "View my whole library",
+      "currentlyReadingAria": "View my current reads",
+      "books": "books",
+      "inLibrary": "in your library",
+      "inProgress": "in progress",
+      "currently": "right now",
+      "favoriteGenre": "favorite genre"
+    },
+    "companion": {
+      "imageAlt": "Small sleeping tortoiseshell cat",
+      "note": "One more chapter,\nthen just one last one...\n♡"
+    }
+  },
+  "discoverPage": {
+    "title": "Discover",
+    "subtitle": "Find your next read.",
+    "loading": "Preparing your discoveries...",
+    "partialError": "Some selections are temporarily unavailable.",
+    "search": {
+      "placeholder": "Search by title or author...",
+      "loading": "Searching...",
+      "resultsLoading": "Searching...",
+      "back": "Back to discoveries",
+      "resultsTitle": "Results for “{{query}}”",
+      "resultsCount_one": "{{count}} book found",
+      "resultsCount_other": "{{count}} books found",
+      "emptyTitle": "No books found",
+      "emptySubtitle": "Try another title, author, or keyword.",
+      "error": "We couldn't fetch books right now."
+    },
+    "forYou": {
+      "eyebrow": "your reading mood ♡",
+      "title": "Maybe for you",
+      "subtitle": "A few books you might like.",
+      "editTaste": "Edit my tastes",
+      "viewAll": "See all suggestions",
+      "pageTitle": "Suggestions for you ♡",
+      "pageSubtitle": "Recommendations inspired by your favorite genres, so you can quickly find a read that fits what you’re craving.",
+      "genreEyebrow": "because you like ♡",
+      "refreshAria": "Refresh {{label}} suggestions",
+      "loading": "Preparing suggestions...",
+      "selectionUnavailable": "This selection is temporarily unavailable.",
+      "refreshError": "We couldn't refresh suggestions right now."
+    },
+    "shelves": {
+      "trendingTitle": "Trending now",
+      "trendingDescription": "Books getting attention right now.",
+      "trendingInfo": "Based on recent activity from the Open Library community.",
+      "mustReadTitle": "Timeless picks",
+      "mustReadDescription": "Timeless stories to discover.",
+      "about": "About {{title}}",
+      "refresh": "Refresh {{title}}",
+      "noNewTrending": "No new trending picks are available right now.",
+      "trendingRefreshError": "We couldn't refresh trending picks right now.",
+      "noNewMustRead": "No new timeless pick is available right now.",
+      "mustReadRefreshError": "We couldn't refresh timeless picks right now."
+    }
+  },
+  "libraryPage": {
+    "title": "My library",
+    "subtitle": "all your books, gathered in one place ♡",
+    "loading": "Loading your library...",
+    "loadError": "We couldn't load your library right now.",
+    "searchPlaceholder": "Search my library...",
+    "searchAria": "Search my library",
+    "closeSearch": "Close search",
+    "filters": {
+      "all": "All",
+      "to-read": "To read",
+      "reading": "Reading",
+      "finished": "Finished",
+      "abandoned": "Abandoned"
+    },
+    "bookCount_one": "{{count}} book",
+    "bookCount_other": "{{count}} books",
+    "empty": {
+      "title": "Your library is still empty",
+      "description": "Discover books and add the ones you want to keep close.",
+      "cta": "Discover books"
+    },
+    "panel": {
+      "emptyTitle": "No books found",
+      "emptySearch": "Try another search or another filter.",
+      "emptyFilter": "No books in this category."
+    },
+    "unknownDate": "Unknown date"
+  },
+  "collectionsPage": {
+    "title": "My collections",
+    "subtitle": "Little stacks of books arranged your way.",
+    "newCollection": "New collection",
+    "loading": "Loading your collections...",
+    "loadError": "We couldn't load your collections right now.",
+    "createError": "We couldn't create this collection right now.",
+    "deleteError": "We couldn't delete this collection right now.",
+    "updateError": "We couldn't update this collection right now.",
+    "pinError": "We couldn't update this collection right now.",
+    "empty": {
+      "title": "No collections yet",
+      "description": "Create a first collection to gather your moods, favorites, or future reads.",
+      "cta": "Create my first collection →"
+    },
+    "card": {
+      "open": "Open collection {{name}}",
+      "bookCount_one": "{{count}} book",
+      "bookCount_other": "{{count}} books",
+      "pinned": "Pinned",
+      "emptyPreview": "no books yet",
+      "actions": "Actions for {{name}}",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "edit": "Edit",
+      "delete": "Delete",
+      "coverFallback": "Book without a cover"
+    },
+    "form": {
+      "nameRequired": "Give your collection a name.",
+      "newTitle": "New collection",
+      "editTitle": "Edit collection",
+      "namePlaceholder": "Autumn reads",
+      "icon": "Icon",
+      "descriptionPlaceholder": "A gentle note to find this stack again later...",
+      "creating": "Creating...",
+      "createSubmit": "Create collection"
+    },
+    "deleteModal": {
+      "title": "Delete collection",
+      "body": "You’re about to delete the collection {{name}}. The books inside it will stay in My library."
+    }
+  },
+  "collectionPage": {
+    "loading": "Loading collection...",
+    "loadError": "We couldn't load this collection right now.",
+    "notFoundTitle": "Collection not found",
+    "notFoundDescription": "It may have been deleted or moved.",
+    "backToCollections": "Back to collections",
+    "bookCount_one": "{{count}} book",
+    "bookCount_other": "{{count}} books",
+    "addBooks": "Add books",
+    "actions": "Collection actions",
+    "edit": "Edit collection",
+    "clear": "Clear collection",
+    "updateError": "We couldn't update this collection right now.",
+    "removeError": "We couldn't remove this book from the collection right now.",
+    "clearError": "We couldn't clear this collection right now.",
+    "empty": {
+      "title": "This collection is still empty",
+      "description": "Add a few books to start filling this collection."
+    },
+    "bookCard": {
+      "remove": "Remove from collection"
+    },
+    "booksModal": {
+      "title": "Add books",
+      "searchPlaceholder": "Search for a book or author...",
+      "emptyLibraryTitle": "Your library is empty",
+      "emptyLibraryDescription": "Add books to My library first so you can place them in a collection.",
+      "saveError": "We couldn't update the books in this collection right now.",
+      "emptySearch": "No books found."
+    },
+    "removeModal": {
+      "fallbackTitle": "This book",
+      "title": "Remove from collection?",
+      "body": "“{{title}}” will be removed from this collection. It will stay in My library.",
+      "removing": "Removing...",
+      "remove": "Remove"
+    },
+    "clearModal": {
+      "title": "Clear this collection?",
+      "message_one": "The book will be removed from this collection.",
+      "message_other": "The {{count}} books will be removed from this collection.",
+      "suffix": "They will stay in My library.",
+      "clearing": "Clearing...",
+      "clear": "Clear collection"
+    },
+    "bookCollectionsModal": {
+      "title": "Add to a collection ♡",
+      "loading": "Loading collections...",
+      "loadError": "We couldn't load your collections right now.",
+      "saveError": "We couldn't update collections right now.",
+      "emptyTitle": "No collections yet",
+      "emptyDescription": "Create a collection from the Collections page so you can place this book there."
+    }
+  },
+  "collectionIcons": {
+    "library": "Library",
+    "book": "Books",
+    "book-marked": "Selection",
+    "bookmark": "To keep",
+    "heart": "Favorite",
+    "book-heart": "Loved books",
+    "star": "Favorites",
+    "sparkles": "Little gems",
+    "crown": "Royalty",
+    "gem": "Treasures",
+    "thumbs-down": "Disappointments",
+    "heart-crack": "Broken hearts",
+    "alert": "To avoid",
+    "skull": "Disasters",
+    "moon": "Evening reads",
+    "sun": "Bright reads",
+    "flower": "Cozy",
+    "clover": "Lucky charm",
+    "coffee": "Relaxing",
+    "cake": "Sweetness",
+    "rainbow": "Feel good",
+    "wand": "Fantasy",
+    "castle": "Imaginary worlds",
+    "ghost": "Spooky",
+    "flame": "Intense",
+    "zap": "Addictive",
+    "feather": "Literature",
+    "glasses": "Classics",
+    "lightbulb": "Thought-provoking",
+    "music": "Music",
+    "paw": "Animals",
+    "trees": "Nature",
+    "shell": "Escape",
+    "plane": "Travel",
+    "telescope": "Exploration",
+    "rocket": "Science fiction"
+  },
+  "bookPage": {
+    "loadingDetailsAria": "Loading book details",
+    "openingBook": "Opening the book...",
+    "notFound": "Book not found.",
+    "loadError": "We couldn't load this book.",
+    "coverAlt": "Cover of {{title}}",
+    "coverLoading": "Loading the cover of {{title}}",
+    "coverUnavailableLine1": "Cover",
+    "coverUnavailableLine2": "unavailable",
+    "details": {
+      "loading": "Loading...",
+      "adding": "Adding...",
+      "addToLibrary": "+ Add to my library",
+      "status": "Status",
+      "inLibrary": "In my library ♡",
+      "removeFromLibrary": "Remove from my library",
+      "chooseStatus": "Choose a status"
+    },
+    "categories": {
+      "fiction": "Fiction",
+      "nonfiction": "Non-fiction",
+      "fantasy": "Fantasy",
+      "romance": "Romance",
+      "mystery": "Mystery",
+      "thriller": "Thriller",
+      "suspense": "Suspense",
+      "horror": "Horror",
+      "historical": "Historical",
+      "adventure": "Adventure",
+      "humorous": "Humor",
+      "humor": "Humor",
+      "comedy": "Humor",
+      "biography": "Biography",
+      "autobiography": "Autobiography",
+      "memoir": "Memoir",
+      "poetry": "Poetry",
+      "drama": "Drama",
+      "history": "History",
+      "philosophy": "Philosophy",
+      "psychology": "Psychology",
+      "religion": "Religion",
+      "science": "Science",
+      "technology": "Technology",
+      "art": "Art",
+      "music": "Music",
+      "cooking": "Cooking",
+      "travel": "Travel",
+      "education": "Education",
+      "juvenile": "Children's books",
+      "young adult": "Young Adult",
+      "comics": "Comics",
+      "graphic novels": "Graphic novels",
+      "media tie-in": "Adaptation"
+    },
+    "description": {
+      "loadingAria": "Loading summary",
+      "loading": "Loading summary...",
+      "eyebrow": "a few words about this book ♡",
+      "title": "About",
+      "translating": "Translating...",
+      "unavailable": "Summary unavailable.",
+      "translationError": "We couldn't translate this summary right now.",
+      "showOriginal": "See the original",
+      "showTranslation": "See the translation",
+      "translateToFrench": "Translate into French",
+      "translateToEnglish": "Translate into English"
+    },
+    "personal": {
+      "eyebrow": "between you and the pages ♡",
+      "eyebrowLoading": "between you and the pages",
+      "title": "My space",
+      "loading": "Loading your space...",
+      "locked": "Add this book to your library to keep your thoughts and notes.",
+      "collections": "Collections",
+      "collectionCount_one": "{{count}} collection for this book",
+      "collectionCount_other": "{{count}} collections for this book",
+      "collectionsEmpty": "Place this book in one or more collections.",
+      "manageCollections": "Manage collections",
+      "notesTitle": "My notes",
+      "noteToReadPlaceholder": "Why do you want to read this book?",
+      "noteReadingPlaceholder": "Write your thoughts while you read...",
+      "reviewTitle": "My review",
+      "reviewAbandonedPlaceholder": "Why did you stop reading this book?",
+      "reviewFinishedPlaceholder": "What did you think of it?",
+      "ratingTitle": "My rating",
+      "starLabel_one": "{{count}} star",
+      "starLabel_other": "{{count}} stars",
+      "noteSaved": "Note saved ♡",
+      "reviewSaved": "Review saved ♡",
+      "noteSaveError": "We couldn't save your note.",
+      "reviewSaveError": "We couldn't save your review.",
+      "readingDateSaved": "Reading date saved ♡",
+      "readingDateRemoved": "Reading date removed.",
+      "readingDateError": "We couldn't save the reading date.",
+      "abandonedDateSaved": "Abandon date saved ♡",
+      "abandonedDateRemoved": "Abandon date removed.",
+      "abandonedDateError": "We couldn't save the abandon date.",
+      "finishedTitle": "Finished reading",
+      "abandonedTitle": "Abandoned reading"
+    },
+    "date": {
+      "unknown": "Unknown date",
+      "forgot": "I don't remember",
+      "saving": "Saving the date..."
+    },
+    "editor": {
+      "defaultPlaceholder": "Write something about this book...",
+      "bold": "Bold",
+      "italic": "Italic",
+      "textSize": "Text size",
+      "sizes": {
+        "small": "Small",
+        "normal": "Normal",
+        "large": "Large"
+      }
+    },
+    "removeModal": {
+      "close": "Close",
+      "eyebrow": "just to be sure ♡",
+      "title": "Remove this book?",
+      "body": "This book will be removed from your library. Your notes, review, and star rating will also be deleted.",
+      "removing": "Deleting...",
+      "remove": "Remove"
+    },
+    "library": {
+      "loadError": "We couldn't load your library for this book.",
+      "addError": "We couldn't add this book to your library.",
+      "statusError": "We couldn't update this book's status.",
+      "removeError": "We couldn't remove this book from your library."
+    }
+  },
+  "language": {
+    "applicationLanguage": "Application language",
+    "description": "Choose the language used in the interface.",
+    "fr": "Français",
+    "en": "English"
+  },
+  "navigation": {
+    "main": "Main navigation",
+    "mobile": "Main mobile navigation",
+    "home": "Home",
+    "discover": "Discover",
+    "library": "Library",
+    "myLibrary": "My library",
+    "collections": "Collections",
+    "settings": "Settings",
+    "homeAria": "Dear Pages — Home",
+    "openProfileSettings": "Open profile settings"
+  },
+  "sidebar": {
+    "note": {
+      "quote": "Reading\nopens the soul.",
+      "author": "— Voltaire"
+    }
+  },
+  "loading": {
+    "fullscreenMessage": "a few pages are getting ready ♡"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Adjust what guides Dear Pages without losing the thread of your reading.",
+    "profile": {
+      "fallbackName": "reader",
+      "eyebrow": "your profile",
+      "displayName": "Display name",
+      "editDisplayName": "Edit display name",
+      "editDisplayNameTitle": "Edit name",
+      "saving": "Saving...",
+      "save": "Save ♡",
+      "nameRequired": "Choose a name to display.",
+      "nameTooLong": "Your name can be up to {{count}} characters.",
+      "success": "Profile updated ♡",
+      "saveError": "We couldn't update your name right now."
+    },
+    "preferences": {
+      "title": "Reading preferences",
+      "description": "Adjust the genres that shape your recommendations and your yearly goal.",
+      "loading": "Loading your preferences...",
+      "genresTitle": "Favorite genres",
+      "selectedGenres_one": "{{count}} genre selected",
+      "selectedGenres_other": "{{count}} genres selected",
+      "annualGoal": "Yearly goal",
+      "customValue": "Custom value",
+      "books": "books",
+      "upToDate": "Everything is up to date.",
+      "changesReady": "Your changes are ready to be saved.",
+      "saveChanges": "Save changes",
+      "keepOneGenre": "Keep at least one favorite genre.",
+      "chooseOneGenre": "Choose at least one favorite genre.",
+      "invalidGoal": "Enter a whole number greater than or equal to 1.",
+      "maxGoal": "Choose a goal of {{count}} books maximum.",
+      "success": "Changes saved ♡",
+      "saveError": "We couldn't save your preferences right now."
+    },
+    "account": {
+      "title": "Account",
+      "loggingOut": "Logging out...",
+      "logout": "Log out",
+      "logoutError": "We couldn't log you out right now.",
+      "deleteTitle": "Delete my account",
+      "deleteDescription": "Permanently delete your account and all your Dear Pages data.",
+      "deleteModalTitle": "Delete your account?",
+      "deleteModalBody": "This action is permanent. Your library, collections, notes, reviews, and preferences will be deleted.",
+      "confirmPassword": "Confirm with your password",
+      "googleConfirmation": "A Google window may open to confirm your identity before deletion.",
+      "deleting": "Deleting...",
+      "deleteForever": "Delete permanently",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "deleteErrors": {
+        "recentLogin": "Sign in again before deleting your account, then come back to Settings.",
+        "wrongPassword": "Incorrect password. Check it before deleting your account.",
+        "popupClosed": "Google confirmation was closed before deletion.",
+        "userMismatch": "The confirmed account does not match the connected Dear Pages account.",
+        "fallback": "We couldn't delete your account right now."
+      }
+    },
+    "about": {
+      "title": "About Dear Pages",
+      "description": "Find the project documentation and source code.",
+      "documentation": "Documentation",
+      "github": "GitHub",
+      "sourceCode": "Project source code",
+      "signature": "Dear Pages · 2026 ♡"
+    }
+  },
+  "auth": {
+    "layout": {
+      "tagline": "choose your stories\nfollow your rhythm\nread your way ♡",
+      "chapter": "a new chapter\nstarts here ♡",
+      "footer": "the same pages,\nsofter days ♡"
+    },
+    "login": {
+      "title": "Welcome back ♡",
+      "subtitle": "It's lovely to see you again.",
+      "footerText": "Don't have an account yet?",
+      "footerLink": "Create an account",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "google": "Continue with Google",
+      "googleSubmitting": "Logging in with Google...",
+      "googleError": "We couldn't continue with Google right now.",
+      "or": "or",
+      "errors": {
+        "userNotFound": "No account exists with this email address.",
+        "wrongPassword": "Incorrect password.",
+        "invalidEmail": "Invalid email address.",
+        "userDisabled": "This account has been disabled.",
+        "tooManyRequests": "Too many attempts. Try again in a few minutes.",
+        "network": "Unable to connect. Check your internet connection.",
+        "invalidCredential": "Email or password is incorrect.",
+        "fallback": "We couldn't log you in right now."
+      }
+    },
+    "signup": {
+      "title": "Create your account ♡",
+      "subtitle": "A new chapter starts here.",
+      "footerText": "Already have an account?",
+      "footerLink": "Log in",
+      "name": "Your name",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Create my account",
+      "submitting": "Creating account...",
+      "google": "Continue with Google",
+      "googleSubmitting": "Creating with Google...",
+      "createError": "We couldn't create your account right now.",
+      "googleError": "We couldn't continue with Google right now."
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "onboarding": {
+    "brandTagline": "choose your stories\nfollow your rhythm\nread your way ♡",
+    "chapter": "a new chapter\nstarts here ♡",
+    "welcome": {
+      "eyebrow": "a new chapter begins",
+      "title": "Welcome to Dear Pages{{name}} ♡",
+      "description": "We'll personalize your reading space with a few simple preferences, so your next discoveries feel more like you.",
+      "start": "Start"
+    },
+    "genres": {
+      "eyebrow": "what you're craving now",
+      "title": "What do you love to read?",
+      "description": "Choose a few genres. They will help personalize your recommendations later.",
+      "validation": "Choose at least one genre to continue."
+    },
+    "goal": {
+      "eyebrow": "your reading rhythm",
+      "title": "How many books would you like to read this year?",
+      "description": "Choose a comfortable goal. You can adjust it later from Settings.",
+      "customValue": "Custom value",
+      "invalid": "Enter a whole number greater than or equal to 1.",
+      "max": "Choose a goal of {{count}} books maximum."
+    },
+    "complete": {
+      "eyebrow": "thank you ♡",
+      "title": "Everything is ready",
+      "description": "Your space will soon use these choices to help you find reads that fit what you're craving.",
+      "genresLabel": "Chosen genres",
+      "genreCount_one": "{{count}} genre",
+      "genreCount_other": "{{count}} genres",
+      "annualGoal": "Yearly goal",
+      "annualGoalValue_one": "{{count}} book this year",
+      "annualGoalValue_other": "{{count}} books this year",
+      "finish": "Enter Dear Pages",
+      "saving": "Saving..."
+    },
+    "back": "Back",
+    "continue": "Continue",
+    "sessionError": "We couldn't find your session. Sign in again, then try once more.",
+    "saveError": "We couldn't save your preferences right now."
+  }
+}

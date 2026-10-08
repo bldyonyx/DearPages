@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Compass,
   Heart,
@@ -16,7 +17,9 @@ const navigationIcons = {
 }
 
 function SidebarNavItem({ item }) {
+  const { t } = useTranslation()
   const Icon = navigationIcons[item.to]
+  const label = t(item.labelKey)
 
   const getNavLinkClassName = ({ isActive }) =>
     [
@@ -50,6 +53,7 @@ function SidebarNavItem({ item }) {
     <NavLink
       end={item.to === '/'}
       to={item.to}
+      aria-label={label}
       className={getNavLinkClassName}
     >
       {Icon && (
@@ -67,7 +71,7 @@ function SidebarNavItem({ item }) {
         />
       )}
 
-      <span className="whitespace-nowrap">{item.label}</span>
+      <span className="whitespace-nowrap">{label}</span>
     </NavLink>
   )
 }

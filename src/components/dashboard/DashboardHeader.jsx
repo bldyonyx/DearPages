@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder.js'
@@ -7,29 +8,34 @@ import Input from '../ui/Input'
 import UserAvatar from '../ui/UserAvatar.jsx'
 import { dashboardLarge } from './dashboardResponsive.js'
 
-const DASHBOARD_SEARCH_PLACEHOLDER = 'Rechercher un livre...'
-
-function getDisplayName(user) {
-  return user?.displayName?.trim() || user?.email || 'lectrice'
+function getDisplayName(user, fallbackName) {
+  return user?.displayName?.trim() || user?.email || fallbackName
 }
 
 function DashboardHeader({ user }) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const searchPlaceholder = t('dashboard.header.searchPlaceholder')
   const {
     containerRef: desktopSearchRef,
     placeholder: desktopSearchPlaceholder,
-  } = useResponsivePlaceholder(DASHBOARD_SEARCH_PLACEHOLDER, {
+  } = useResponsivePlaceholder(searchPlaceholder, {
+    shortPlaceholder: t('common.searchShort'),
     minWidth: 280,
   })
   const {
     containerRef: mobileSearchRef,
     placeholder: mobileSearchPlaceholder,
-  } = useResponsivePlaceholder(DASHBOARD_SEARCH_PLACEHOLDER, {
+  } = useResponsivePlaceholder(searchPlaceholder, {
+    shortPlaceholder: t('common.searchShort'),
     minWidth: 280,
   })
   const navigate = useNavigate()
-  const displayName = getDisplayName(user)
+  const displayName = getDisplayName(
+    user,
+    t('dashboard.header.fallbackName')
+  )
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -63,7 +69,7 @@ function DashboardHeader({ user }) {
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-6xl
             "
           >
-            Bonjour, {displayName}
+            {t('dashboard.header.greeting', { name: displayName })}
           </h1>
 
           <p
@@ -75,7 +81,7 @@ function DashboardHeader({ user }) {
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-xl
             "
           >
-            Voici un aperçu de tes lectures.
+            {t('dashboard.header.subtitle')}
           </p>
         </div>
 
@@ -117,7 +123,7 @@ function DashboardHeader({ user }) {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={desktopSearchPlaceholder}
-              aria-label="Rechercher un livre"
+              aria-label={t('common.searchBook')}
               className="
                 w-full rounded-full!
                 py-3 pl-12 pr-12
@@ -136,7 +142,7 @@ function DashboardHeader({ user }) {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                aria-label="Effacer la recherche"
+                aria-label={t('common.clearSearch')}
                 className="
                   absolute right-4 top-1/2 z-10
                   flex h-7 w-7
@@ -172,8 +178,8 @@ function DashboardHeader({ user }) {
             onClick={() => setIsSearchOpen((current) => !current)}
             aria-label={
               isSearchOpen
-                ? 'Fermer la recherche'
-                : 'Rechercher un livre'
+                ? t('dashboard.header.closeSearch')
+                : t('common.searchBook')
             }
             aria-expanded={isSearchOpen}
             className="
@@ -202,7 +208,7 @@ function DashboardHeader({ user }) {
           {/* Profil */}
           <Link
             to="/settings"
-            aria-label="Ouvrir les paramètres du profil"
+            aria-label={t('navigation.openProfileSettings')}
             className="
               shrink-0 cursor-pointer
               transition-transform
@@ -267,7 +273,7 @@ function DashboardHeader({ user }) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={mobileSearchPlaceholder}
-            aria-label="Rechercher un livre"
+            aria-label={t('common.searchBook')}
             autoFocus
             className="w-full rounded-full! py-3 pl-12 pr-12"
           />
@@ -276,7 +282,7 @@ function DashboardHeader({ user }) {
             <button
               type="button"
               onClick={handleClearSearch}
-              aria-label="Effacer la recherche"
+              aria-label={t('common.clearSearch')}
               className="
                 absolute right-4 top-1/2 z-10
                 flex h-7 w-7

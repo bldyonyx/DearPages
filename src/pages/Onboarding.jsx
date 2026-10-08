@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import CompleteStep from '../components/onboarding/CompleteStep.jsx'
@@ -18,6 +19,7 @@ function normalizeAnnualGoal(value) {
 }
 
 function Onboarding() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, updatePreferences } = useAuth()
 
@@ -53,7 +55,7 @@ function Onboarding() {
   function handleGenresNext() {
     if (favoriteGenres.length === 0) {
       setGenreValidationMessage(
-        'Choisis au moins un genre pour continuer.'
+        t('onboarding.genres.validation')
       )
       return
     }
@@ -81,14 +83,16 @@ function Onboarding() {
       normalizedGoal < 1
     ) {
       setGoalValidationMessage(
-        'Indique un nombre entier supérieur ou égal à 1.'
+        t('onboarding.goal.invalid')
       )
       return
     }
 
     if (normalizedGoal > MAX_ANNUAL_GOAL) {
       setGoalValidationMessage(
-        `Choisis un objectif de ${MAX_ANNUAL_GOAL} livres maximum.`
+        t('onboarding.goal.max', {
+          count: MAX_ANNUAL_GOAL,
+        })
       )
       return
     }
@@ -105,7 +109,7 @@ function Onboarding() {
 
     if (!user?.uid) {
       setSaveError(
-        'Impossible de retrouver ta session. Reconnecte-toi puis réessaie.'
+        t('onboarding.sessionError')
       )
       return
     }
@@ -123,7 +127,7 @@ function Onboarding() {
     } catch (firebaseError) {
       console.error(firebaseError)
       setSaveError(
-        "Impossible d'enregistrer tes préférences pour le moment."
+        t('onboarding.saveError')
       )
     } finally {
       setIsSaving(false)

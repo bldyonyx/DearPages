@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import {
   addBookToCollection,
@@ -25,6 +26,7 @@ function BookCollectionsModal({
   onClose,
   onSaved,
 }) {
+  const { t } = useTranslation()
   const [collections, setCollections] = useState([])
   const [initialSelectedIds, setInitialSelectedIds] =
     useState(new Set())
@@ -65,7 +67,7 @@ function BookCollectionsModal({
 
         if (isActive) {
           setError(
-            'Impossible de charger tes collections pour le moment.'
+            t('collectionPage.bookCollectionsModal.loadError')
           )
         }
       } finally {
@@ -80,7 +82,7 @@ function BookCollectionsModal({
     return () => {
       isActive = false
     }
-  }, [bookId, isOpen, userId])
+  }, [bookId, isOpen, t, userId])
 
   const selectedCount = selectedIds.size
 
@@ -157,7 +159,7 @@ function BookCollectionsModal({
       )
 
       setError(
-        'Impossible de modifier les collections pour le moment.'
+        t('collectionPage.bookCollectionsModal.saveError')
       )
     } finally {
       setIsSaving(false)
@@ -168,19 +170,20 @@ function BookCollectionsModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Ajouter à une collection ♡"
+      title={t('collectionPage.bookCollectionsModal.title')}
     >
       {isLoading ? (
-        <LoadingState message="Chargement des collections..." />
+        <LoadingState
+          message={t('collectionPage.bookCollectionsModal.loading')}
+        />
       ) : collections.length === 0 ? (
         <div className="py-6 text-center">
           <p className="font-heading text-xl font-bold text-darkwood">
-            Aucune collection pour le moment
+            {t('collectionPage.bookCollectionsModal.emptyTitle')}
           </p>
 
           <p className="mx-auto mt-2 max-w-xs font-ui text-sm leading-6 text-walnut/70">
-            Crée une collection depuis la page Collections pour y
-            ranger ce livre.
+            {t('collectionPage.bookCollectionsModal.emptyDescription')}
           </p>
 
           <div className="mt-6 flex justify-center">
@@ -190,7 +193,7 @@ function BookCollectionsModal({
               onClick={handleClose}
               disabled={isSaving}
             >
-              Fermer
+              {t('common.close')}
             </Button>
           </div>
         </div>
@@ -276,7 +279,7 @@ function BookCollectionsModal({
               onClick={handleClose}
               disabled={isSaving}
             >
-              Annuler
+              {t('common.cancel')}
             </Button>
 
             <Button
@@ -287,7 +290,7 @@ function BookCollectionsModal({
                 disabled:opacity-60
               "
             >
-              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </form>

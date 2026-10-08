@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { settingsLarge } from './settingsResponsive.js'
 
 function AccountCard({
@@ -8,6 +10,8 @@ function AccountCard({
   onDeleteRequest,
   onLogout,
 }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -26,7 +30,7 @@ function AccountCard({
               ${settingsLarge.cardTitle}
             `}
           >
-            Compte
+            {t('settings.account.title')}
           </h2>
         </div>
 
@@ -47,7 +51,9 @@ function AccountCard({
             [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
           "
         >
-          {isLoggingOut ? 'Déconnexion...' : 'Se déconnecter'}
+          {isLoggingOut
+            ? t('settings.account.loggingOut')
+            : t('settings.account.logout')}
         </button>
       </div>
 
@@ -72,7 +78,7 @@ function AccountCard({
                 ${settingsLarge.description}
               `}
             >
-              Supprimer mon compte
+              {t('settings.account.deleteTitle')}
             </h3>
 
             <p
@@ -81,8 +87,7 @@ function AccountCard({
                 ${settingsLarge.description}
               `}
             >
-              Supprime définitivement ton compte et toutes tes
-              données Dear Pages.
+              {t('settings.account.deleteDescription')}
             </p>
           </div>
 
@@ -104,7 +109,7 @@ function AccountCard({
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
             "
           >
-            Supprimer mon compte
+            {t('settings.account.deleteTitle')}
           </button>
         </div>
 

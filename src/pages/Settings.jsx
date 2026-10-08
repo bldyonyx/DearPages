@@ -1,12 +1,16 @@
+import { useTranslation } from 'react-i18next'
+
 import AboutCard from '../components/settings/AboutCard.jsx'
 import AccountCard from '../components/settings/AccountCard.jsx'
 import AccountDeleteModal from '../components/settings/AccountDeleteModal.jsx'
+import LanguageCard from '../components/settings/LanguageCard.jsx'
 import ProfileCard from '../components/settings/ProfileCard.jsx'
 import ReadingPreferencesCard from '../components/settings/ReadingPreferencesCard.jsx'
 import { settingsLarge } from '../components/settings/settingsResponsive.js'
 import useSettings from '../hooks/useSettings.js'
 
 function Settings() {
+  const { t } = useTranslation()
   const {
     user,
     annualGoal,
@@ -54,7 +58,7 @@ function Settings() {
               ${settingsLarge.pageTitle}
             `}
           >
-            Paramètres
+            {t('settings.title')}
           </h1>
 
           <p
@@ -64,8 +68,7 @@ function Settings() {
               ${settingsLarge.pageDescription}
             `}
           >
-            Ajuste ce qui guide Dear Pages, sans perdre le fil de tes
-            lectures.
+            {t('settings.description')}
           </p>
         </header>
 
@@ -85,6 +88,8 @@ function Settings() {
               onDisplayNameChange={handleDisplayNameChange}
               onSave={handleProfileSave}
             />
+
+            <LanguageCard />
 
             <ReadingPreferencesCard
               annualGoal={annualGoal}

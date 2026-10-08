@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   getSizedGoogleBooksCoverUrl,
@@ -46,6 +47,7 @@ function BookCover({
   fallback = 'placeholder',
   titleClassName = 'font-heading text-lg font-bold leading-snug text-darkwood',
 }) {
+  const { t } = useTranslation()
   const usableCover = getUsableCover(cover)
   const openLibraryResolutionKey = `${isbn || ''}|${
     source || ''
@@ -165,12 +167,12 @@ function BookCover({
             rounded-[inherit]
             bg-sage/15
           "
-          aria-label={`Chargement de la couverture de ${title}`}
+          aria-label={t('bookPage.coverLoading', { title })}
         />
       ) : visibleCover ? (
         <img
           src={displayCover}
-          alt={`Couverture de ${title}`}
+          alt={t('bookPage.coverAlt', { title })}
           width={BOOK_COVER_INTRINSIC_WIDTH}
           height={BOOK_COVER_INTRINSIC_HEIGHT}
           loading={coverLoading}
@@ -202,9 +204,9 @@ function BookCover({
             </span>
 
             <p className="mt-3 font-ui text-[10px] leading-relaxed text-darkwood/40">
-              Couverture
+              {t('bookPage.coverUnavailableLine1')}
               <br />
-              indisponible
+              {t('bookPage.coverUnavailableLine2')}
             </p>
           </div>
         </div>

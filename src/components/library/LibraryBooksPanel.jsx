@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import LibraryBookCard from './LibraryBookCard.jsx'
 import LibraryFilters from './LibraryFilters.jsx'
 import { libraryLarge } from './libraryResponsive.js'
@@ -10,6 +12,8 @@ function LibraryBooksPanel({
   onFilterChange,
   search,
 }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -72,7 +76,7 @@ function LibraryBooksPanel({
                 ${libraryLarge.emptyTitle}
               `}
             >
-              Aucun livre trouvé
+              {t('libraryPage.panel.emptyTitle')}
             </p>
 
             <p
@@ -84,8 +88,8 @@ function LibraryBooksPanel({
               `}
             >
               {search.trim()
-                ? 'Essaie une autre recherche ou un autre filtre.'
-                : 'Aucun livre dans cette catégorie.'}
+                ? t('libraryPage.panel.emptySearch')
+                : t('libraryPage.panel.emptyFilter')}
             </p>
           </div>
         </div>

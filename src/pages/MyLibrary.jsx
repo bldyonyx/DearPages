@@ -1,5 +1,6 @@
 import { Search, X } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 
 import HeaderActions from '../components/layout/HeaderActions.jsx'
@@ -19,6 +20,7 @@ const LIBRARY_FILTERS = [
 ]
 
 function MyLibrary() {
+  const { t } = useTranslation()
   const { user } = useAuth()
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -111,7 +113,7 @@ function MyLibrary() {
                 ${libraryLarge.pageTitle}
               `}
             >
-              Ma bibliothèque
+              {t('libraryPage.title')}
             </h1>
 
             <p
@@ -121,7 +123,7 @@ function MyLibrary() {
                 ${libraryLarge.pageDescription}
               `}
             >
-              tous tes livres, au même endroit ♡
+              {t('libraryPage.subtitle')}
             </p>
           </div>
 
@@ -160,8 +162,8 @@ function MyLibrary() {
               }
               aria-label={
                 isSearchOpen
-                  ? 'Fermer la recherche'
-                  : 'Rechercher dans ma bibliothèque'
+                  ? t('libraryPage.closeSearch')
+                  : t('libraryPage.searchAria')
               }
               aria-expanded={isSearchOpen}
               className={`
@@ -220,7 +222,7 @@ function MyLibrary() {
             ${libraryLarge.sectionGap}
           `}
         >
-          Chargement de ta bibliothèque...
+          {t('libraryPage.loading')}
         </p>
       ) : error ? (
         <div

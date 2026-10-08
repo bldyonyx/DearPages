@@ -3,6 +3,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import Button from '../ui/Button.jsx'
 import Modal from '../ui/Modal.jsx'
@@ -15,6 +16,7 @@ function AccountDeleteModal({
   onClose,
   onDelete,
 }) {
+  const { t } = useTranslation()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const usesPasswordProvider = Boolean(
@@ -38,19 +40,17 @@ function AccountDeleteModal({
     <Modal
       isOpen={isOpen}
       onClose={isDeleting ? () => {} : handleClose}
-      title="Supprimer ton compte ?"
+      title={t('settings.account.deleteModalTitle')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="font-ui text-sm leading-6 text-darkwood/70">
-          Cette action est définitive. Ta bibliothèque, tes
-          collections, tes notes, tes avis et tes préférences seront
-          supprimés.
+          {t('settings.account.deleteModalBody')}
         </p>
 
         {usesPasswordProvider && (
           <label className="block">
             <span className="font-ui text-xs font-bold text-darkwood/60">
-              Confirme avec ton mot de passe
+              {t('settings.account.confirmPassword')}
             </span>
 
             <div className="relative mt-2">
@@ -79,8 +79,8 @@ function AccountDeleteModal({
                 }
                 aria-label={
                   showPassword
-                    ? 'Masquer le mot de passe'
-                    : 'Afficher le mot de passe'
+                    ? t('settings.account.hidePassword')
+                    : t('settings.account.showPassword')
                 }
                 className="
                   absolute right-4 top-1/2
@@ -100,8 +100,7 @@ function AccountDeleteModal({
 
         {!usesPasswordProvider && (
           <p className="font-ui text-xs leading-5 text-darkwood/55">
-            Une fenêtre Google peut s'ouvrir pour confirmer ton
-            identité avant la suppression.
+            {t('settings.account.googleConfirmation')}
           </p>
         )}
 
@@ -121,7 +120,7 @@ function AccountDeleteModal({
             onClick={handleClose}
             disabled={isDeleting}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -136,8 +135,8 @@ function AccountDeleteModal({
             "
           >
             {isDeleting
-              ? 'Suppression...'
-              : 'Supprimer définitivement'}
+              ? t('settings.account.deleting')
+              : t('settings.account.deleteForever')}
           </Button>
         </div>
       </form>

@@ -1,10 +1,13 @@
 import { ArrowRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import BookCard from '../books/BookCard'
 import { dashboardLarge } from './dashboardResponsive.js'
 
 function RecentlyAdded({ books }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -22,7 +25,7 @@ function RecentlyAdded({ books }) {
               ${dashboardLarge.title}
             `}
           >
-            Ajoutés récemment
+            {t('dashboard.recentlyAdded.title')}
           </h2>
 
           <p
@@ -31,7 +34,7 @@ function RecentlyAdded({ books }) {
               ${dashboardLarge.description}
             `}
           >
-            Les derniers livres ajoutés à ta bibliothèque.
+            {t('dashboard.recentlyAdded.subtitle')}
           </p>
         </div>
 
@@ -45,7 +48,7 @@ function RecentlyAdded({ books }) {
             [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
           "
         >
-          <span>Voir tout</span>
+          <span>{t('dashboard.recentlyAdded.viewAll')}</span>
 
           <ArrowRight
             aria-hidden="true"
@@ -68,7 +71,7 @@ function RecentlyAdded({ books }) {
             ${dashboardLarge.description}
           `}
         >
-          Aucun livre ajouté pour le moment.
+          {t('dashboard.recentlyAdded.empty')}
         </p>
       ) : (
         <div

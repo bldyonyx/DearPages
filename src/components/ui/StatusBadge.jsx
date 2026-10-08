@@ -1,19 +1,18 @@
+import { useTranslation } from 'react-i18next'
+
 function StatusBadge({ status, className = '' }) {
+  const { t } = useTranslation()
   const statuses = {
     'to-read': {
-      label: 'À lire',
       className: 'bg-walnut/20 text-ink',
     },
     reading: {
-      label: 'En cours',
       className: 'bg-lime text-ink',
     },
     finished: {
-      label: 'Terminé',
       className: 'bg-sage text-mintcream',
     },
     abandoned: {
-      label: 'Abandonné',
       className: 'bg-dustyrose text-ink',
     },
   }
@@ -36,7 +35,7 @@ function StatusBadge({ status, className = '' }) {
         ${className}
       `}
     >
-      {currentStatus.label}
+      {t(`status.${status}`)}
     </span>
   )
 }

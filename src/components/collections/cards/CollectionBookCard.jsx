@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BookMinus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import BookCover from '../../books/BookCover.jsx'
 import StatusBadge from '../../ui/StatusBadge.jsx'
@@ -14,6 +15,7 @@ function CollectionBookCard({
   isRemoving = false,
   onRemove,
 }) {
+  const { t } = useTranslation()
   const bookId = getBookId(book)
 
   function handleRemoveClick(event) {
@@ -29,7 +31,7 @@ function CollectionBookCard({
           type="button"
           onClick={handleRemoveClick}
           disabled={isRemoving}
-          aria-label="Retirer de la collection"
+          aria-label={t('collectionPage.bookCard.remove')}
           className="
             peer flex h-8 w-8 cursor-pointer
             items-center justify-center rounded-full
@@ -69,7 +71,7 @@ function CollectionBookCard({
             peer-focus:opacity-100
           "
         >
-          Retirer de la collection
+          {t('collectionPage.bookCard.remove')}
         </span>
       </div>
 
@@ -134,7 +136,7 @@ function CollectionBookCard({
               ${collectionPageLarge.bookAuthor}
             `}
           >
-            {book.authors?.join(', ') || 'Auteur inconnu'}
+            {book.authors?.join(', ') || t('common.unknownAuthor')}
           </p>
 
           <div className="mt-auto pt-3">

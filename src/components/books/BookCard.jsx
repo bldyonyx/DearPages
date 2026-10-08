@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import StatusBadge from '../ui/StatusBadge'
@@ -17,6 +18,7 @@ function BookCard({
   authorClassName = '',
   contentClassName = '',
 }) {
+  const { t } = useTranslation()
   const routeBook =
     book ||
     (bookId
@@ -24,7 +26,7 @@ function BookCard({
           id: bookId,
           googleBooksId: bookId,
           title,
-          authors: author ? [author] : ['Auteur inconnu'],
+          authors: author ? [author] : [t('common.unknownAuthor')],
           cover: cover || null,
           isbn: isbn || null,
           isbns: isbn ? [isbn] : [],
@@ -68,7 +70,7 @@ function BookCard({
             focus-visible:ring-2
             focus-visible:ring-olive/35
           "
-          aria-label={`Voir ${title}`}
+          aria-label={t('common.viewBook', { title })}
         >
           {coverContent}
         </Link>
@@ -118,7 +120,7 @@ function BookCard({
             ${authorClassName}
           `}
         >
-          {author || 'Auteur inconnu'}
+          {author || t('common.unknownAuthor')}
         </p>
 
         {status && (

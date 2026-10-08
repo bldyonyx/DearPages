@@ -1,46 +1,47 @@
 import { Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/coverUtils.js'
 import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
 import { bookLarge } from './bookResponsive.js'
 
-const CATEGORY_TRANSLATIONS = {
-  fiction: 'Fiction',
-  nonfiction: 'Non-fiction',
-  'non-fiction': 'Non-fiction',
-  fantasy: 'Fantasy',
-  romance: 'Romance',
-  mystery: 'Mystère',
-  thriller: 'Thriller',
-  suspense: 'Suspense',
-  horror: 'Horreur',
-  historical: 'Historique',
-  adventure: 'Aventure',
-  humorous: 'Humour',
-  humor: 'Humour',
-  comedy: 'Humour',
-  biography: 'Biographie',
-  autobiography: 'Autobiographie',
-  memoir: 'Mémoires',
-  poetry: 'Poésie',
-  drama: 'Théâtre',
-  history: 'Histoire',
-  philosophy: 'Philosophie',
-  psychology: 'Psychologie',
-  religion: 'Religion',
-  science: 'Science',
-  technology: 'Technologie',
-  art: 'Art',
-  music: 'Musique',
-  cooking: 'Cuisine',
-  travel: 'Voyage',
-  education: 'Éducation',
-  juvenile: 'Jeunesse',
-  'young adult': 'Young Adult',
-  comics: 'BD',
-  'graphic novels': 'Romans graphiques',
-  'media tie-in': 'Adaptation',
+const CATEGORY_LABEL_KEYS = {
+  fiction: 'bookPage.categories.fiction',
+  nonfiction: 'bookPage.categories.nonfiction',
+  'non-fiction': 'bookPage.categories.nonfiction',
+  fantasy: 'bookPage.categories.fantasy',
+  romance: 'bookPage.categories.romance',
+  mystery: 'bookPage.categories.mystery',
+  thriller: 'bookPage.categories.thriller',
+  suspense: 'bookPage.categories.suspense',
+  horror: 'bookPage.categories.horror',
+  historical: 'bookPage.categories.historical',
+  adventure: 'bookPage.categories.adventure',
+  humorous: 'bookPage.categories.humorous',
+  humor: 'bookPage.categories.humor',
+  comedy: 'bookPage.categories.comedy',
+  biography: 'bookPage.categories.biography',
+  autobiography: 'bookPage.categories.autobiography',
+  memoir: 'bookPage.categories.memoir',
+  poetry: 'bookPage.categories.poetry',
+  drama: 'bookPage.categories.drama',
+  history: 'bookPage.categories.history',
+  philosophy: 'bookPage.categories.philosophy',
+  psychology: 'bookPage.categories.psychology',
+  religion: 'bookPage.categories.religion',
+  science: 'bookPage.categories.science',
+  technology: 'bookPage.categories.technology',
+  art: 'bookPage.categories.art',
+  music: 'bookPage.categories.music',
+  cooking: 'bookPage.categories.cooking',
+  travel: 'bookPage.categories.travel',
+  education: 'bookPage.categories.education',
+  juvenile: 'bookPage.categories.juvenile',
+  'young adult': 'bookPage.categories.young adult',
+  comics: 'bookPage.categories.comics',
+  'graphic novels': 'bookPage.categories.graphic novels',
+  'media tie-in': 'bookPage.categories.media tie-in',
 }
 
 /**
@@ -50,7 +51,7 @@ const CATEGORY_TRANSLATIONS = {
  * @param {string[]} categories - Raw book categories.
  * @returns {string[]} Clean categories displayed in Dear Pages.
  */
-function formatCategories(categories = []) {
+function formatCategories(categories = [], t) {
   const ignoredCategories = [
     'general',
     'literary collections',
@@ -68,7 +69,9 @@ function formatCategories(categories = []) {
       const normalizedCategory = category.toLowerCase()
 
       return (
-        CATEGORY_TRANSLATIONS[normalizedCategory] ||
+        (CATEGORY_LABEL_KEYS[normalizedCategory]
+          ? t(CATEGORY_LABEL_KEYS[normalizedCategory])
+          : null) ||
         category
       )
     })
@@ -126,8 +129,10 @@ function BookDetails({
   onStatusChange,
   onRemoveFromLibrary,
 }) {
+  const { t } = useTranslation()
   const visibleCategories = formatCategories(
-    book.categories
+    book.categories,
+    t
   )
 
   const titleSize = getTitleSize(book.title)
@@ -283,10 +288,10 @@ function BookDetails({
                   "
                 >
                   {isLibraryLoading
-                    ? 'Chargement...'
+                    ? t('bookPage.details.loading')
                     : isSaving
-                    ? 'Ajout...'
-                    : '+ Ajouter à ma bibliothèque'}
+                      ? t('bookPage.details.adding')
+                      : t('bookPage.details.addToLibrary')}
                 </button>
 
                 <div className="mt-5">
@@ -300,7 +305,7 @@ function BookDetails({
                       ${bookLarge.controlLabel}
                     `}
                   >
-                    Statut
+                    {t('bookPage.details.status')}
                   </p>
 
                   <BookStatusSelect
@@ -319,7 +324,7 @@ function BookDetails({
                     ${bookLarge.libraryStatus}
                   `}
                 >
-                  Dans ma bibliothèque ♡
+                  {t('bookPage.details.inLibrary')}
                 </p>
 
                 <div className="mt-5">
@@ -333,7 +338,7 @@ function BookDetails({
                       ${bookLarge.controlLabel}
                     `}
                   >
-                    Statut
+                    {t('bookPage.details.status')}
                   </p>
 
                   <div
@@ -380,7 +385,7 @@ function BookDetails({
                         strokeWidth={1.7}
                       />
 
-                      Retirer de ma bibliothèque
+                      {t('bookPage.details.removeFromLibrary')}
                     </button>
                   </div>
                 </div>

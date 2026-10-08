@@ -42,6 +42,14 @@ const GENRE_LABELS_BY_SUBJECT = AVAILABLE_GENRES.reduce(
   {}
 )
 
+const GENRE_KEYS_BY_LABEL = AVAILABLE_GENRES.reduce(
+  (labels, genre) => ({
+    ...labels,
+    [genre.label]: genre.subject,
+  }),
+  {}
+)
+
 function normalizeCategoryKey(value) {
   return String(value || '')
     .normalize('NFD')
@@ -80,7 +88,7 @@ function getDisplayGenreForCategory(category) {
  * @param {Object[]} library Books already loaded for the dashboard.
  * @returns {string} User-facing genre label, or "Non défini".
  */
-export function getFavoriteGenreLabelFromLibrary(library) {
+export function getFavoriteGenreLabelFromLibrary(library, t) {
   const genreCounts = new Map()
   const firstSeenByGenre = new Map()
   let genreOrder = 0
@@ -148,5 +156,15 @@ export function getFavoriteGenreLabelFromLibrary(library) {
     }
   })
 
-  return favoriteGenre?.label || 'Non défini'
+  if (!favoriteGenre?.label) {
+    return t
+      ? t('genres.undefined')
+      : 'Non défini'
+  }
+
+  const subject = GENRE_KEYS_BY_LABEL[favoriteGenre.label]
+
+  return subject && t
+    ? t(`genres.${subject}`)
+    : favoriteGenre.label
 }

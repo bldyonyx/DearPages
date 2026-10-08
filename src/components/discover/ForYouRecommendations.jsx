@@ -1,4 +1,5 @@
 import { RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import useForYouRecommendations from '../../hooks/useForYouRecommendations'
 import BookCard from '../books/BookCard'
@@ -11,6 +12,7 @@ function ForYouRecommendations({
   cacheSignature,
   isEnabled,
 }) {
+  const { t } = useTranslation()
   const {
     preferences: discoverPreferences,
     genreState,
@@ -31,7 +33,7 @@ function ForYouRecommendations({
           [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        Retour aux découvertes
+        {t('discoverPage.search.back')}
       </BackButton>
 
       <header className="dp-page-enter">
@@ -41,7 +43,7 @@ function ForYouRecommendations({
             ${discoverLarge.pageTitle}
           `}
         >
-          Suggestions pour toi ♡
+          {t('discoverPage.forYou.pageTitle')}
         </h2>
 
         <p
@@ -52,8 +54,7 @@ function ForYouRecommendations({
             ${discoverLarge.pageDescription}
           `}
         >
-          Des recommandations inspirees par tes genres preferes, pour
-          retrouver rapidement une lecture qui colle a tes envies.
+          {t('discoverPage.forYou.pageSubtitle')}
         </p>
       </header>
 
@@ -86,7 +87,7 @@ function ForYouRecommendations({
                       ${discoverLarge.handwritten}
                     `}
                   >
-                    parce que tu aimes ♡
+                    {t('discoverPage.forYou.genreEyebrow')}
                   </p>
 
                   <h3
@@ -103,7 +104,9 @@ function ForYouRecommendations({
                   type="button"
                   onClick={() => refreshGenre(subject)}
                   disabled={isLoading}
-                  aria-label={`Rafraîchir les suggestions ${label}`}
+                  aria-label={t('discoverPage.forYou.refreshAria', {
+                    label,
+                  })}
                   className={`
                     grid size-10 shrink-0 place-items-center
                     rounded-full border border-walnut/20
@@ -191,7 +194,7 @@ function ForYouRecommendations({
                     ${discoverLarge.description}
                   `}
                 >
-                  Préparation des suggestions...
+                  {t('discoverPage.forYou.loading')}
                 </p>
               )}
             </section>

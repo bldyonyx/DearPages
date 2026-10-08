@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { getBookById } from '../services/booksApi.js'
 import { getOpenLibraryBookById } from '../services/trendingBooksApi.js'
@@ -23,6 +24,7 @@ export function useBookPageData({
   routeKey,
   routeState,
 }) {
+  const { t } = useTranslation()
   const routeBook = getRouteStateBook(routeState, bookId)
 
   const [bookState, setBookState] = useState(() => ({
@@ -75,7 +77,7 @@ export function useBookPageData({
         console.error(fetchError)
 
         if (!isCancelled) {
-          setError('Impossible de charger ce livre.')
+          setError(t('bookPage.loadError'))
         }
       } finally {
         if (!isCancelled) {
@@ -89,7 +91,7 @@ export function useBookPageData({
     return () => {
       isCancelled = true
     }
-  }, [bookId, routeKey, routeState])
+  }, [bookId, routeKey, routeState, t])
 
   return {
     book,

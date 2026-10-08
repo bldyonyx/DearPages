@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import CurrentlyReading from '../components/dashboard/CurrentlyReading'
 import DashboardHeader from '../components/dashboard/DashboardHeader'
@@ -34,6 +35,7 @@ function isFinishedThisYear(book) {
 }
 
 function Dashboard() {
+  const { t } = useTranslation()
   const { user, preferences } = useAuth()
 
   const {
@@ -62,8 +64,8 @@ function Dashboard() {
     : DEFAULT_ANNUAL_GOAL
 
   const favoriteGenreLabel = useMemo(
-    () => getFavoriteGenreLabelFromLibrary(library),
-    [library]
+    () => getFavoriteGenreLabelFromLibrary(library, t),
+    [library, t]
   )
 
   return (
@@ -76,7 +78,7 @@ function Dashboard() {
           aria-live="polite"
           className="mt-8 font-ui text-sm text-walnut/65"
         >
-          Chargement de ton dashboard...
+          {t('dashboard.loading')}
         </p>
       )}
 

@@ -1,13 +1,17 @@
+import { useTranslation } from 'react-i18next'
+
 function WelcomeStep({
   displayName,
   onNext,
 }) {
+  const { t } = useTranslation()
   const firstName = displayName?.trim().split(/\s+/)[0]
+  const greetingName = firstName ? `, ${firstName}` : ''
 
   return (
     <div>
       <p className="font-handwritten text-xl text-walnut sm:text-2xl">
-        un nouveau chapitre commence
+        {t('onboarding.welcome.eyebrow')}
       </p>
 
       <h1
@@ -17,7 +21,9 @@ function WelcomeStep({
           sm:text-5xl
         "
       >
-        Bienvenue sur Dear Pages{firstName ? `, ${firstName}` : ''} ♡
+        {t('onboarding.welcome.title', {
+          name: greetingName,
+        })}
       </h1>
 
       <p
@@ -26,9 +32,7 @@ function WelcomeStep({
           text-darkwood/65 sm:text-base
         "
       >
-        On va personnaliser ton espace de lecture avec quelques
-        préférences simples, pour que tes prochaines découvertes te
-        ressemblent davantage.
+        {t('onboarding.welcome.description')}
       </p>
 
       <div className="mt-10">
@@ -44,7 +48,7 @@ function WelcomeStep({
             sm:w-auto
           "
         >
-          Commencer
+          {t('onboarding.welcome.start')}
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import FloatingMenu from '../ui/FloatingMenu.jsx'
 
@@ -55,6 +56,7 @@ function BookStatusSelect({
   disabled = false,
   onChange,
 }) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef(null)
   const menuRef = useRef(null)
@@ -128,7 +130,9 @@ function BookStatusSelect({
         `}
       >
         <span className="min-w-0 truncate">
-          {selectedOption?.label || 'Choisir un statut'}
+          {selectedOption?.labelKey
+            ? t(selectedOption.labelKey)
+            : selectedOption?.label || t('bookPage.details.chooseStatus')}
         </span>
 
         <ChevronDown
@@ -185,7 +189,7 @@ function BookStatusSelect({
                 `}
               >
                 <span className="min-w-0 truncate">
-                  {option.label}
+                  {option.labelKey ? t(option.labelKey) : option.label}
                 </span>
 
                 {isSelected && (

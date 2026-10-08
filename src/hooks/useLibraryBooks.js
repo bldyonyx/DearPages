@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { getUserLibrary } from '../services/libraryService.js'
 
@@ -18,6 +19,7 @@ import { getUserLibrary } from '../services/libraryService.js'
  * }} Library books and loading state for the current user.
  */
 function useLibraryBooks(userId) {
+  const { t } = useTranslation()
   const [books, setBooks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -47,7 +49,7 @@ function useLibraryBooks(userId) {
 
         if (isActive) {
           setError(
-            'Impossible de charger ta bibliothèque pour le moment.'
+            t('libraryPage.loadError')
           )
         }
       } finally {
@@ -62,7 +64,7 @@ function useLibraryBooks(userId) {
     return () => {
       isActive = false
     }
-  }, [userId])
+  }, [userId, t])
 
   return {
     books,

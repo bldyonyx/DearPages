@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { AVAILABLE_GENRES } from '../../constants/genres.js'
 
 function GenresStep({
@@ -7,11 +9,13 @@ function GenresStep({
   onNext,
   onToggleGenre,
 }) {
+  const { t } = useTranslation()
+
   return (
     <div>
       <div>
         <p className="font-handwritten text-xl text-walnut sm:text-2xl">
-          tes envies du moment
+          {t('onboarding.genres.eyebrow')}
         </p>
 
         <h1
@@ -20,12 +24,11 @@ function GenresStep({
             leading-tight text-darkwood sm:text-5xl
           "
         >
-          Qu'est-ce que tu aimes lire ?
+          {t('onboarding.genres.title')}
         </h1>
 
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-darkwood/65 sm:text-base">
-          Choisis quelques genres. Ils serviront plus tard à
-          personnaliser tes recommandations.
+          {t('onboarding.genres.description')}
         </p>
       </div>
 
@@ -53,7 +56,7 @@ function GenresStep({
                   : 'border-walnut/20 bg-mintcream text-darkwood/70 hover:border-olive/50 hover:text-darkwood',
               ].join(' ')}
             >
-              {genre.label}
+              {t(`genres.${genre.subject}`)}
             </button>
           )
         })}
@@ -85,7 +88,7 @@ function GenresStep({
             focus-visible:ring-olive/35
           "
         >
-          Retour
+          {t('onboarding.back')}
         </button>
 
         <button
@@ -99,7 +102,7 @@ function GenresStep({
             focus-visible:ring-olive/35
           "
         >
-          Continuer
+          {t('onboarding.continue')}
         </button>
       </div>
     </div>

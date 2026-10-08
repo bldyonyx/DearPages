@@ -11,7 +11,7 @@ function getElementWidth(element) {
 function useResponsivePlaceholder(
   fullPlaceholder,
   {
-    shortPlaceholder = 'Rechercher…',
+    shortPlaceholder = fullPlaceholder,
     minWidth = 340,
   } = {}
 ) {

@@ -1,6 +1,19 @@
+import { useTranslation } from 'react-i18next'
+
 import littleCats from '../../../assets/images/little-cats.jpg'
 
+function LineBreakText({ text }) {
+  return text.split('\n').map((line, index, lines) => (
+    <span key={`${line}-${index}`}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </span>
+  ))
+}
+
 function SidebarNote() {
+  const { t } = useTranslation()
+
   return (
     <div className="flex shrink-0 justify-center">
       <div
@@ -69,9 +82,7 @@ function SidebarNote() {
               [@media(min-height:1400px)]:lg:text-[28px]
             "
           >
-            La lecture
-            <br />
-            agrandit l’âme.
+            <LineBreakText text={t('sidebar.note.quote')} />
           </p>
 
           <p
@@ -91,7 +102,7 @@ function SidebarNote() {
               [@media(min-height:1400px)]:lg:text-[20px]
             "
           >
-            — Voltaire
+            {t('sidebar.note.author')}
           </p>
         </div>
       </div>

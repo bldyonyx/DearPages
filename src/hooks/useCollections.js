@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '../context/AuthContext.jsx'
 import {
@@ -42,6 +43,7 @@ function getBookId(book) {
 }
 
 function useCollections() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const userId = user?.uid
 
@@ -87,12 +89,12 @@ function useCollections() {
       )
 
       setError(
-        'Impossible de charger tes collections pour le moment.',
+        t('collectionsPage.loadError'),
       )
     } finally {
       setIsLoading(false)
     }
-  }, [userId])
+  }, [userId, t])
 
   useEffect(() => {
     let isActive = true
@@ -126,7 +128,7 @@ function useCollections() {
 
         if (isActive) {
           setError(
-            'Impossible de charger tes collections pour le moment.',
+            t('collectionsPage.loadError'),
           )
         }
       } finally {
@@ -141,7 +143,7 @@ function useCollections() {
     return () => {
       isActive = false
     }
-  }, [userId])
+  }, [userId, t])
 
   async function handleCreateCollection(collection) {
     if (!userId) {
@@ -169,7 +171,7 @@ function useCollections() {
       )
 
       setError(
-        'Impossible de créer cette collection pour le moment.',
+        t('collectionsPage.createError'),
       )
 
       return false
@@ -207,7 +209,7 @@ function useCollections() {
       )
 
       setError(
-        'Impossible de supprimer cette collection pour le moment.',
+        t('collectionsPage.deleteError'),
       )
     } finally {
       setIsDeleting(false)
@@ -256,7 +258,7 @@ function useCollections() {
       )
 
       setError(
-        'Impossible de modifier cette collection pour le moment.',
+        t('collectionsPage.updateError'),
       )
 
       return false
@@ -305,7 +307,7 @@ function useCollections() {
       )
 
       setError(
-        'Impossible de mettre à jour cette collection pour le moment.',
+        t('collectionsPage.pinError'),
       )
     }
   }

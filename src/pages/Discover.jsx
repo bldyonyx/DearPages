@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import DiscoverHome from '../components/discover/DiscoverHome'
 import DiscoverSearch from '../components/discover/DiscoverSearch'
@@ -15,6 +16,7 @@ import {
 } from '../utils/discoverPreferences'
 
 function Discover() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user, preferences, isPreferencesLoading } = useAuth()
 
@@ -32,9 +34,18 @@ function Discover() {
   const discoverPreferenceLabels = useMemo(
     () =>
       discoverPreferences.map(
-        (preference) => preference.label
+        (preference) => t(`genres.${preference.subject}`)
       ),
-    [discoverPreferences]
+    [discoverPreferences, t]
+  )
+
+  const translatedDiscoverPreferences = useMemo(
+    () =>
+      discoverPreferences.map((preference) => ({
+        ...preference,
+        label: t(`genres.${preference.subject}`),
+      })),
+    [discoverPreferences, t]
   )
 
   const discoverPreferencesSignature = useMemo(
@@ -98,7 +109,7 @@ function Discover() {
                 ${discoverLarge.pageTitle}
               `}
             >
-              Découvrir
+              {t('discoverPage.title')}
             </h1>
 
             <p
@@ -108,7 +119,7 @@ function Discover() {
                 ${discoverLarge.pageDescription}
               `}
             >
-              Trouve ta prochaine lecture.
+              {t('discoverPage.subtitle')}
             </p>
           </div>
 
@@ -160,7 +171,7 @@ function Discover() {
       {isForYouMode && (
         <ForYouRecommendations
           userId={user?.uid}
-          preferences={discoverPreferences}
+          preferences={translatedDiscoverPreferences}
           cacheSignature={discoverPreferencesSignature}
           isEnabled={Boolean(user?.uid) && !isPreferencesLoading}
         />

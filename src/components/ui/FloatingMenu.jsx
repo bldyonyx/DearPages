@@ -43,6 +43,7 @@ function FloatingMenu({
   menuRef,
   role,
   ariaLabel,
+  ...restProps
 }) {
   const [style, setStyle] = useState(null)
 
@@ -85,6 +86,7 @@ function FloatingMenu({
         ref={menuRef}
         role={role}
         aria-label={ariaLabel}
+        {...restProps}
         className={className}
         style={style}
         onMouseDown={(event) => event.stopPropagation()}

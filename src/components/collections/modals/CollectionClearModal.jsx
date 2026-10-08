@@ -1,15 +1,8 @@
 import { BookMinus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import Button from '../../ui/Button.jsx'
 import Modal from '../../ui/Modal.jsx'
-
-function getBookMessage(bookCount) {
-  if (bookCount > 1) {
-    return `Les ${bookCount} livres seront retirés de cette collection.`
-  }
-
-  return 'Le livre sera retiré de cette collection.'
-}
 
 function CollectionClearModal({
   isOpen,
@@ -19,16 +12,20 @@ function CollectionClearModal({
   onClose,
   onClear,
 }) {
+  const { t } = useTranslation()
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={isClearing ? () => {} : onClose}
-      title="Vider cette collection ?"
+      title={t('collectionPage.clearModal.title')}
     >
       <div className="space-y-4">
         <p className="font-ui text-sm leading-6 text-darkwood/70">
-          {getBookMessage(bookCount)} Ils resteront dans Ma
-          bibliothèque.
+          {t('collectionPage.clearModal.message', {
+            count: bookCount,
+          })}{' '}
+          {t('collectionPage.clearModal.suffix')}
         </p>
 
         {error && (
@@ -47,7 +44,7 @@ function CollectionClearModal({
             onClick={onClose}
             disabled={isClearing}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -68,8 +65,8 @@ function CollectionClearModal({
               aria-hidden="true"
             />
             {isClearing
-              ? 'Vidage en cours...'
-              : 'Vider la collection'}
+              ? t('collectionPage.clearModal.clearing')
+              : t('collectionPage.clearModal.clear')}
           </Button>
         </div>
       </div>

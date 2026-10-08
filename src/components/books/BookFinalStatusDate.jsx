@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   CalendarDays,
   Check,
@@ -10,7 +11,6 @@ import {
 import {
   createReadingTimestamp,
   getReadingMonthYear,
-  READING_MONTHS,
 } from '../../utils/readingDateUtils.js'
 import FloatingMenu from '../ui/FloatingMenu.jsx'
 
@@ -21,7 +21,12 @@ function BookFinalStatusDate({
   isSaving = false,
   onSave,
 }) {
+  const { t } = useTranslation()
   const currentYear = new Date().getFullYear()
+  const monthLabels = Array.from(
+    { length: 12 },
+    (_, index) => t(`months.${index}`)
+  )
 
   const initialDate = getReadingMonthYear(value)
 
@@ -177,8 +182,8 @@ function BookFinalStatusDate({
 
           <span>
             {currentDate
-              ? `${READING_MONTHS[currentDate.month]} ${currentDate.year}`
-              : 'Date inconnue'}
+              ? `${monthLabels[currentDate.month]} ${currentDate.year}`
+              : t('bookPage.date.unknown')}
           </span>
 
           <Pencil
@@ -239,7 +244,7 @@ function BookFinalStatusDate({
                   disabled:opacity-60
                 "
               >
-                <span>{READING_MONTHS[month]}</span>
+                <span>{monthLabels[month]}</span>
 
                 <ChevronDown
                   size={16}
@@ -275,7 +280,7 @@ function BookFinalStatusDate({
                     ${dropdownScrollbar}
                   `}
                 >
-                  {READING_MONTHS.map(
+                  {monthLabels.map(
                     (monthLabel, monthIndex) => {
                       const isSelected =
                         month === monthIndex
@@ -473,7 +478,7 @@ function BookFinalStatusDate({
                 aria-hidden="true"
               />
 
-              Enregistrer
+              {t('common.save')}
             </button>
 
             <button
@@ -499,7 +504,7 @@ function BookFinalStatusDate({
                 aria-hidden="true"
               />
 
-              Annuler
+              {t('common.cancel')}
             </button>
 
             <button
@@ -519,7 +524,7 @@ function BookFinalStatusDate({
                 sm:ml-auto
               "
             >
-              Je ne sais plus
+              {t('bookPage.date.forgot')}
             </button>
           </div>
 
@@ -528,7 +533,7 @@ function BookFinalStatusDate({
             aria-live="polite"
             className="mt-3 min-h-5 font-ui text-xs text-walnut/60"
           >
-            {isSaving ? 'Enregistrement de la date...' : ''}
+            {isSaving ? t('bookPage.date.saving') : ''}
           </p>
         </div>
       )}

@@ -1,13 +1,11 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import useResponsivePlaceholder from '../../hooks/useResponsivePlaceholder'
 import Input from '../ui/Input'
 import SearchSuggestions from './SearchSuggestions'
 import { discoverLarge } from './discoverResponsive'
-
-const DISCOVER_SEARCH_PLACEHOLDER =
-  'Rechercher un titre, un auteur...'
 
 function DiscoverSearch({
   search,
@@ -18,9 +16,15 @@ function DiscoverSearch({
   suggestions,
   isSuggestionsLoading,
 }) {
+  const { t } = useTranslation()
   const searchRef = useRef(null)
   const { containerRef, placeholder } =
-    useResponsivePlaceholder(DISCOVER_SEARCH_PLACEHOLDER)
+    useResponsivePlaceholder(
+      t('discoverPage.search.placeholder'),
+      {
+        shortPlaceholder: t('common.searchShort'),
+      }
+    )
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
   const trimmedSearch = search.trim()
   const trimmedSubmittedQuery = submittedQuery.trim()
@@ -113,7 +117,7 @@ function DiscoverSearch({
           onChange={handleChange}
           onFocus={handleFocus}
           placeholder={placeholder}
-          aria-label="Rechercher un livre"
+          aria-label={t('common.searchBook')}
           autoComplete="off"
           className={`
             w-full
@@ -128,7 +132,7 @@ function DiscoverSearch({
           <button
             type="button"
             onClick={handleClear}
-            aria-label="Effacer la recherche"
+            aria-label={t('common.clearSearch')}
             className="
               absolute right-4 top-1/2 z-10
               flex h-7 w-7

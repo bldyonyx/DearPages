@@ -1,8 +1,11 @@
 import { BookOpen, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { collectionPageLarge } from './collectionPageResponsive.js'
 
 function CollectionPageEmptyState({ onAddBooks }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -45,7 +48,7 @@ function CollectionPageEmptyState({ onAddBooks }) {
             ${collectionPageLarge.emptyTitle}
           `}
         >
-          Cette collection est encore vide
+          {t('collectionPage.empty.title')}
         </h2>
 
         <p
@@ -57,8 +60,7 @@ function CollectionPageEmptyState({ onAddBooks }) {
             ${collectionPageLarge.text}
           `}
         >
-          Ajoute quelques livres pour commencer à remplir
-          cette collection.
+          {t('collectionPage.empty.description')}
         </p>
 
         <button
@@ -85,7 +87,7 @@ function CollectionPageEmptyState({ onAddBooks }) {
             strokeWidth={1.8}
           />
 
-          <span>Ajouter des livres</span>
+          <span>{t('collectionPage.addBooks')}</span>
         </button>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import { Info, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import BookCard from '../books/BookCard'
 import { discoverLarge } from './discoverResponsive'
@@ -13,6 +14,8 @@ function DiscoverShelf({
   onRefresh,
   coverLoading = 'lazy',
 }) {
+  const { t } = useTranslation()
+
   if (books.length === 0) return null
 
   return (
@@ -33,7 +36,9 @@ function DiscoverShelf({
               <div className="group/info relative">
                 <button
                   type="button"
-                  aria-label={`À propos de ${title}`}
+                  aria-label={t('discoverPage.shelves.about', {
+                    title,
+                  })}
                   className="
                     grid size-5 place-items-center
                     rounded-full border border-darkwood/25
@@ -104,7 +109,9 @@ function DiscoverShelf({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            aria-label={`Rafraîchir ${title}`}
+            aria-label={t('discoverPage.shelves.refresh', {
+              title,
+            })}
             className={`
               grid size-10 shrink-0 place-items-center
               rounded-full border border-walnut/20

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import Button from '../../ui/Button.jsx'
 import Modal from '../../ui/Modal.jsx'
 
@@ -7,20 +9,19 @@ function CollectionDeleteModal({
   onClose,
   onDelete,
 }) {
+  const { t } = useTranslation()
+
   return (
     <Modal
       isOpen={Boolean(collection)}
       onClose={isDeleting ? () => {} : onClose}
-      title="Supprimer la collection"
+      title={t('collectionsPage.deleteModal.title')}
     >
       <div className="space-y-4">
         <p className="font-ui text-sm leading-6 text-darkwood/70">
-          Tu vas supprimer la collection{' '}
-          <span className="font-bold text-darkwood">
-            {collection?.name}
-          </span>
-          . Les livres qu'elle contient resteront dans Ma
-          bibliothèque.
+          {t('collectionsPage.deleteModal.body', {
+            name: collection?.name || '',
+          })}
         </p>
 
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
@@ -30,7 +31,7 @@ function CollectionDeleteModal({
             onClick={onClose}
             disabled={isDeleting}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -44,7 +45,7 @@ function CollectionDeleteModal({
               disabled:opacity-60
             "
           >
-            {isDeleting ? 'Suppression...' : 'Supprimer'}
+            {isDeleting ? t('common.deleting') : t('common.delete')}
           </Button>
         </div>
       </div>

@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { libraryLarge } from './libraryResponsive.js'
 
 function LibraryEmptyState() {
+  const { t } = useTranslation()
+
   return (
     <div
       className={`
@@ -22,7 +25,7 @@ function LibraryEmptyState() {
           ${libraryLarge.emptyTitle}
         `}
       >
-        Ta bibliothèque est encore vide
+        {t('libraryPage.empty.title')}
       </p>
 
       <p
@@ -33,8 +36,7 @@ function LibraryEmptyState() {
           ${libraryLarge.description}
         `}
       >
-        Découvre des livres et ajoute ceux que tu veux
-        garder près de toi.
+        {t('libraryPage.empty.description')}
       </p>
 
       <Link
@@ -51,7 +53,7 @@ function LibraryEmptyState() {
           [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
         "
       >
-        Découvrir des livres
+        {t('libraryPage.empty.cta')}
       </Link>
     </div>
   )

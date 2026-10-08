@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import BookCard from '../books/BookCard'
@@ -8,6 +9,8 @@ function ForYouSection({
   books,
   preferences,
 }) {
+  const { t } = useTranslation()
+
   if (books.length === 0) return null
 
   return (
@@ -36,7 +39,7 @@ function ForYouSection({
               ${discoverLarge.handwritten}
             `}
           >
-            ton mood lecture ♡
+            {t('discoverPage.forYou.eyebrow')}
           </p>
 
           <h2
@@ -45,7 +48,7 @@ function ForYouSection({
               ${discoverLarge.featuredTitle}
             `}
           >
-            Peut-être pour toi
+            {t('discoverPage.forYou.title')}
           </h2>
 
           <p
@@ -54,7 +57,7 @@ function ForYouSection({
               ${discoverLarge.description}
             `}
           >
-            Quelques livres qui pourraient te plaire.
+            {t('discoverPage.forYou.subtitle')}
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2 [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-5 [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-3">
@@ -92,7 +95,7 @@ function ForYouSection({
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
               "
             >
-              Modifier mes goûts
+              {t('discoverPage.forYou.editTaste')}
             </Link>
           </div>
         </div>
@@ -117,7 +120,7 @@ function ForYouSection({
             ${discoverLarge.actionText}
           `}
         >
-          <span>Voir toutes les suggestions</span>
+          <span>{t('discoverPage.forYou.viewAll')}</span>
 
           <ArrowRight
             aria-hidden="true"

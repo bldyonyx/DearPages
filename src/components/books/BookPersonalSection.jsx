@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import BookPersonalSpace from './BookPersonalSpace.jsx'
 import { bookLarge } from './bookResponsive.js'
 
@@ -8,6 +10,8 @@ function BookPersonalSection({
   onLibraryBookChange,
   userId,
 }) {
+  const { t } = useTranslation()
+
   if (libraryBook && userId) {
     return (
       <BookPersonalSpace
@@ -35,7 +39,7 @@ function BookPersonalSection({
             ${bookLarge.handwritten}
           `}
         >
-          entre toi et les pages
+          {t('bookPage.personal.eyebrowLoading')}
         </p>
 
         <h2
@@ -44,7 +48,7 @@ function BookPersonalSection({
             ${bookLarge.sectionTitle}
           `}
         >
-          Mon espace
+          {t('bookPage.personal.title')}
         </h2>
 
         <div className="mt-3 h-px w-full bg-walnut/15" />
@@ -57,7 +61,7 @@ function BookPersonalSection({
             ${bookLarge.personalText}
           `}
         >
-          Chargement de ton espace...
+          {t('bookPage.personal.loading')}
         </p>
       </section>
     )
@@ -78,7 +82,7 @@ function BookPersonalSection({
           ${bookLarge.handwritten}
         `}
       >
-        entre toi et les pages ♡
+        {t('bookPage.personal.eyebrow')}
       </p>
 
       <h2
@@ -87,7 +91,7 @@ function BookPersonalSection({
           ${bookLarge.sectionTitle}
         `}
       >
-        Mon espace
+        {t('bookPage.personal.title')}
       </h2>
 
       <div className="mt-3 h-px w-full bg-walnut/15" />
@@ -98,8 +102,7 @@ function BookPersonalSection({
           ${bookLarge.personalText}
         `}
       >
-        Ajoute ce livre à ta bibliothèque pour garder tes
-        pensées et tes notes.
+        {t('bookPage.personal.locked')}
       </p>
     </section>
   )

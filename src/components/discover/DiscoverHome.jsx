@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import DiscoverShelf from './DiscoverShelf'
 import ForYouSection from './ForYouSection'
 import { discoverLarge } from './discoverResponsive'
@@ -16,6 +18,8 @@ function DiscoverHome({
   mustReadRefreshError,
   onRefreshMustReads,
 }) {
+  const { t } = useTranslation()
+
   return (
     <div
       aria-busy={isLoading}
@@ -31,7 +35,7 @@ function DiscoverHome({
             ${discoverLarge.description}
           `}
         >
-          Préparation de tes découvertes...
+          {t('discoverPage.loading')}
         </p>
       )}
 
@@ -56,9 +60,9 @@ function DiscoverHome({
           />
 
           <DiscoverShelf
-            title="Tendances du moment"
-            description="Les livres qui attirent l'attention en ce moment."
-            info="Selon l’activité récente de la communauté Open Library."
+            title={t('discoverPage.shelves.trendingTitle')}
+            description={t('discoverPage.shelves.trendingDescription')}
+            info={t('discoverPage.shelves.trendingInfo')}
             books={trendingBooks}
             error={trendingRefreshError}
             isRefreshing={isTrendingRefreshing}
@@ -66,8 +70,8 @@ function DiscoverHome({
           />
 
           <DiscoverShelf
-            title="Les incontournables"
-            description="Des histoires intemporelles à découvrir."
+            title={t('discoverPage.shelves.mustReadTitle')}
+            description={t('discoverPage.shelves.mustReadDescription')}
             books={mustReadBooks}
             error={mustReadRefreshError}
             isRefreshing={isMustReadRefreshing}

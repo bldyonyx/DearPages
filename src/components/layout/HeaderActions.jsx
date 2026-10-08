@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import UserAvatar from '../ui/UserAvatar.jsx'
 
 function HeaderActions({ className = '', user = null }) {
+  const { t } = useTranslation()
+
   return (
     <div
       className={[
@@ -13,7 +16,7 @@ function HeaderActions({ className = '', user = null }) {
       {/* Profil */}
       <Link
         to="/settings"
-        aria-label="Ouvrir les paramètres du profil"
+        aria-label={t('navigation.openProfileSettings')}
         className="
           shrink-0 cursor-pointer
           rounded-full
