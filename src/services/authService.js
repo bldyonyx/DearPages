@@ -12,6 +12,7 @@ import {
   updateProfile,
 } from 'firebase/auth'
 import { get, ref, remove, set, update } from 'firebase/database'
+import i18n, { normalizeLanguage } from '../i18n/index.js'
 import { auth, database } from './firebase.js'
 import { initializeOnboardingPreferences } from './preferencesService.js'
 
@@ -70,7 +71,8 @@ async function saveUserProfile(user, displayName = '') {
 export async function signUpWithEmail(
   email,
   password,
-  displayName
+  displayName,
+  language = i18n.language
 ) {
   const credential = await createUserWithEmailAndPassword(
     auth,
@@ -90,7 +92,8 @@ export async function signUpWithEmail(
   )
 
   const preferences = await initializeOnboardingPreferences(
-    credential.user.uid
+    credential.user.uid,
+    normalizeLanguage(language)
   )
 
   return {
@@ -186,7 +189,7 @@ export function getEmailSignInErrorMessage(
  *   preferences: Object | null
  * }>}
  */
-export async function signInWithGoogle() {
+export async function signInWithGoogle(language = i18n.language) {
   const credential = await signInWithPopup(
     auth,
     googleProvider
@@ -199,7 +202,10 @@ export async function signInWithGoogle() {
   await saveUserProfile(credential.user)
 
   const preferences = isNewUser
-    ? await initializeOnboardingPreferences(credential.user.uid)
+    ? await initializeOnboardingPreferences(
+        credential.user.uid,
+        normalizeLanguage(language)
+      )
     : null
 
   return {

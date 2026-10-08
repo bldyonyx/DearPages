@@ -7,6 +7,9 @@ import {
 } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 
+import i18n, {
+  SUPPORTED_LANGUAGES,
+} from '../i18n/index.js'
 import { auth } from '../services/firebase.js'
 import { getUserPreferences } from '../services/preferencesService.js'
 
@@ -21,6 +24,17 @@ function getOnboardingStatus(nextPreferences) {
   return nextPreferences?.onboardingCompleted === false
     ? ONBOARDING_STATUS.REQUIRED
     : ONBOARDING_STATUS.COMPLETE
+}
+
+function applyStoredLanguage(nextPreferences) {
+  const preferredLanguage = nextPreferences?.language
+
+  if (
+    SUPPORTED_LANGUAGES.includes(preferredLanguage) &&
+    i18n.language !== preferredLanguage
+  ) {
+    i18n.changeLanguage(preferredLanguage)
+  }
 }
 
 /**
@@ -88,6 +102,7 @@ export function AuthProvider({ children }) {
           isActive &&
           preferencesRequestIdRef.current === requestId
         ) {
+          applyStoredLanguage(userPreferences)
           setPreferences(userPreferences)
           setIsPreferencesResolved(true)
           setOnboardingStatus(
@@ -124,6 +139,7 @@ export function AuthProvider({ children }) {
 
   function updatePreferences(nextPreferences) {
     preferencesRequestIdRef.current += 1
+    applyStoredLanguage(nextPreferences)
     setPreferences(nextPreferences)
     setIsPreferencesResolved(true)
     setOnboardingStatus(getOnboardingStatus(nextPreferences))

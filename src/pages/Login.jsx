@@ -18,7 +18,7 @@ import {
 } from '../services/authService.js'
 
 function Login() {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const {
     beginAuthBootstrap,
@@ -55,7 +55,7 @@ function Login() {
     beginAuthBootstrap()
 
     try {
-      const result = await signInWithGoogle()
+      const result = await signInWithGoogle(i18n.language)
 
       if (result.preferences) {
         updatePreferences(result.preferences)

@@ -462,6 +462,7 @@
   "language": {
     "applicationLanguage": "Application language",
     "description": "Choose the language used in the interface.",
+    "switchTo": "Switch to {{language}}",
     "fr": "Français",
     "en": "English"
   },
@@ -597,7 +598,8 @@
       "google": "Continue with Google",
       "googleSubmitting": "Creating with Google...",
       "createError": "We couldn't create your account right now.",
-      "googleError": "We couldn't continue with Google right now."
+      "googleError": "We couldn't continue with Google right now.",
+      "or": "or"
     },
     "showPassword": "Show password",
     "hidePassword": "Hide password"

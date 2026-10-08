@@ -18,7 +18,7 @@ import {
 } from '../services/authService.js'
 
 function SignUp() {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const {
     beginAuthBootstrap,
@@ -55,6 +55,7 @@ function SignUp() {
         email.trim(),
         password,
         displayName.trim(),
+        i18n.language
       )
 
       updatePreferences(result.preferences)
@@ -73,7 +74,7 @@ function SignUp() {
     beginAuthBootstrap()
 
     try {
-      const result = await signInWithGoogle()
+      const result = await signInWithGoogle(i18n.language)
 
       if (result.preferences) {
         updatePreferences(result.preferences)
@@ -247,7 +248,7 @@ function SignUp() {
         <div className="h-px flex-1 bg-walnut/20" />
 
         <span className="font-heading text-lg text-walnut">
-          ou
+          {t('auth.signup.or')}
         </span>
 
         <div className="h-px flex-1 bg-walnut/20" />

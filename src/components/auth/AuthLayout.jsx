@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+import LanguageToggle from '../ui/LanguageToggle.jsx'
+
 function LineBreakText({ text }) {
   return text.split('\n').map((line, index, lines) => (
     <span key={line}>
@@ -44,12 +46,25 @@ function AuthLayout({
     >
       <section
         className="
-          mx-auto flex min-h-180 w-full max-w-5xl
+          relative mx-auto flex min-h-180 w-full max-w-5xl
           flex-col overflow-hidden rounded-[28px]
           bg-cream shadow-xl
           md:min-h-190 md:flex-row
         "
       >
+        <LanguageToggle
+          labelMode="short"
+          orientation="vertical"
+          className="
+            absolute right-4 top-4 z-10
+            rounded-xl bg-cream/90 shadow-sm backdrop-blur
+            sm:right-5 sm:top-5
+          "
+          buttonClassName="
+            min-w-10 px-2.5 py-1.5 text-xs
+          "
+        />
+
         {/* Panneau bois desktop */}
         <aside
           className="

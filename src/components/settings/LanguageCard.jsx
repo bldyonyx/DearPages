@@ -1,20 +1,34 @@
 import { useTranslation } from 'react-i18next'
 
-import { SUPPORTED_LANGUAGES } from '../../i18n/index.js'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { normalizeLanguage } from '../../i18n/index.js'
+import { updateReadingPreferences } from '../../services/preferencesService.js'
+import LanguageToggle from '../ui/LanguageToggle.jsx'
 import { settingsLarge } from './settingsResponsive.js'
 
 function LanguageCard() {
-  const { i18n, t } = useTranslation()
-  const currentLanguage = SUPPORTED_LANGUAGES.includes(i18n.language)
-    ? i18n.language
-    : 'fr'
+  const { t } = useTranslation()
+  const { user, preferences, updatePreferences } = useAuth()
 
-  function handleLanguageChange(language) {
-    if (language === currentLanguage) {
+  async function handleLanguageChange(language) {
+    const nextLanguage = normalizeLanguage(language)
+
+    if (!user?.uid) {
       return
     }
 
-    i18n.changeLanguage(language)
+    try {
+      const savedChanges = await updateReadingPreferences(user.uid, {
+        language: nextLanguage,
+      })
+
+      updatePreferences({
+        ...(preferences || {}),
+        ...savedChanges,
+      })
+    } catch (firebaseError) {
+      console.error(firebaseError)
+    }
   }
 
   return (
@@ -47,41 +61,17 @@ function LanguageCard() {
           </p>
         </div>
 
-        <div
-          className="
-            mt-5 grid grid-cols-2 gap-2 rounded-2xl
-            border border-walnut/15 bg-mintcream/75 p-1
+        <LanguageToggle
+          onLanguageChange={handleLanguageChange}
+          className={`
+            mt-5
             sm:mt-0 sm:w-auto
-          "
-          role="radiogroup"
-          aria-label={t('language.applicationLanguage')}
-        >
-          {SUPPORTED_LANGUAGES.map((language) => {
-            const isSelected = currentLanguage === language
-
-            return (
-              <button
-                key={language}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => handleLanguageChange(language)}
-                className={[
-                  'min-w-24 rounded-xl px-4 py-2.5',
-                  'font-ui text-sm font-bold transition',
-                  'focus-visible:outline-none focus-visible:ring-2',
-                  'focus-visible:ring-olive/35',
-                  settingsLarge.controlButton,
-                  isSelected
-                    ? 'bg-lime text-darkwood shadow-sm'
-                    : 'text-darkwood/60 hover:bg-cream/70 hover:text-darkwood',
-                ].join(' ')}
-              >
-                {t(`language.${language}`)}
-              </button>
-            )
-          })}
-        </div>
+          `}
+          buttonClassName={`
+            min-w-24 px-4 py-2.5
+            ${settingsLarge.controlButton}
+          `}
+        />
       </div>
     </section>
   )

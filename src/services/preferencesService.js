@@ -6,16 +6,22 @@ import {
 } from 'firebase/database'
 
 import { database } from './firebase.js'
+import {
+  normalizeLanguage,
+  SUPPORTED_LANGUAGES,
+} from '../i18n/index.js'
 
 const MAX_ANNUAL_GOAL = 200
 
 function createCompletedOnboardingPreferences(
   favoriteGenres,
-  annualGoal
+  annualGoal,
+  language
 ) {
   return {
     favoriteGenres,
     annualGoal,
+    language: normalizeLanguage(language),
     onboardingCompleted: true,
     updatedAt: Date.now(),
   }
@@ -28,10 +34,14 @@ function createCompletedOnboardingPreferences(
  * preferences are treated as legacy users and must not be converted to false.
  *
  * @param {string} userId - Firebase Authentication user ID.
+ * @param {string} [language] - Current interface language.
  * @returns {Promise<Object>} Initial preferences saved to Firebase.
  * @throws {Error} If the user information is missing.
  */
-export async function initializeOnboardingPreferences(userId) {
+export async function initializeOnboardingPreferences(
+  userId,
+  language
+) {
   if (!userId) {
     throw new Error('Missing user information.')
   }
@@ -41,6 +51,7 @@ export async function initializeOnboardingPreferences(userId) {
     `users/${userId}/preferences`
   )
   const preferences = {
+    language: normalizeLanguage(language),
     onboardingCompleted: false,
     updatedAt: Date.now(),
   }
@@ -91,13 +102,15 @@ export async function getUserPreferences(userId) {
  * @param {string} userId - Firebase Authentication user ID.
  * @param {string[]} favoriteGenres - Selected genre subjects, not labels.
  * @param {number} annualGoal - Validated yearly reading goal.
+ * @param {string} [language] - Current interface language.
  * @returns {Promise<Object>} Preferences saved to Firebase.
  * @throws {Error} If required preference information is missing or invalid.
  */
 export async function saveOnboardingPreferences(
   userId,
   favoriteGenres,
-  annualGoal
+  annualGoal,
+  language
 ) {
   if (!userId) {
     throw new Error('Missing user information.')
@@ -122,7 +135,8 @@ export async function saveOnboardingPreferences(
 
   const preferences = createCompletedOnboardingPreferences(
     favoriteGenres,
-    annualGoal
+    annualGoal,
+    language
   )
 
   await set(preferencesRef, preferences)
@@ -135,7 +149,7 @@ export async function saveOnboardingPreferences(
  * preferences object, so onboardingCompleted and future fields are preserved.
  *
  * @param {string} userId - Firebase Authentication user ID.
- * @param {{ favoriteGenres?: string[], annualGoal?: number }} changes
+ * @param {{ favoriteGenres?: string[], annualGoal?: number, language?: string }} changes
  * Reading preference fields to update.
  * @returns {Promise<Object>} Partial preferences saved to Firebase.
  * @throws {Error} If required user information is missing or changes are invalid.
@@ -177,6 +191,14 @@ export async function updateReadingPreferences(userId, changes) {
     }
 
     preferences.annualGoal = changes.annualGoal
+  }
+
+  if (Object.hasOwn(changes, 'language')) {
+    if (!SUPPORTED_LANGUAGES.includes(changes.language)) {
+      throw new Error('Invalid language.')
+    }
+
+    preferences.language = changes.language
   }
 
   const preferencesRef = ref(

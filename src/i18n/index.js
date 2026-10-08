@@ -8,6 +8,16 @@ export const LANGUAGE_STORAGE_KEY = 'dearpages:language'
 export const SUPPORTED_LANGUAGES = ['fr', 'en']
 export const DEFAULT_LANGUAGE = 'fr'
 
+export function normalizeLanguage(language) {
+  const normalizedLanguage = String(language || '')
+    .toLowerCase()
+    .slice(0, 2)
+
+  return SUPPORTED_LANGUAGES.includes(normalizedLanguage)
+    ? normalizedLanguage
+    : DEFAULT_LANGUAGE
+}
+
 function getStoredLanguage() {
   if (typeof window === 'undefined') {
     return DEFAULT_LANGUAGE
@@ -17,9 +27,7 @@ function getStoredLanguage() {
     LANGUAGE_STORAGE_KEY,
   )
 
-  return SUPPORTED_LANGUAGES.includes(storedLanguage)
-    ? storedLanguage
-    : DEFAULT_LANGUAGE
+  return normalizeLanguage(storedLanguage)
 }
 
 i18n.use(initReactI18next).init({

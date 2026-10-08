@@ -462,6 +462,7 @@
   "language": {
     "applicationLanguage": "Langue de l'application",
     "description": "Choisis la langue utilisée dans l'interface.",
+    "switchTo": "Passer en {{language}}",
     "fr": "Français",
     "en": "English"
   },
@@ -597,7 +598,8 @@
       "google": "Continuer avec Google",
       "googleSubmitting": "Création avec Google...",
       "createError": "Impossible de créer ton compte pour le moment.",
-      "googleError": "Impossible de continuer avec Google pour le moment."
+      "googleError": "Impossible de continuer avec Google pour le moment.",
+      "or": "ou"
     },
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe"

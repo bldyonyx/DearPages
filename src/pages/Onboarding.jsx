@@ -19,7 +19,7 @@ function normalizeAnnualGoal(value) {
 }
 
 function Onboarding() {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const navigate = useNavigate()
   const { user, updatePreferences } = useAuth()
 
@@ -120,7 +120,8 @@ function Onboarding() {
       const savedPreferences = await saveOnboardingPreferences(
         user.uid,
         favoriteGenres,
-        normalizedAnnualGoal
+        normalizedAnnualGoal,
+        i18n.language
       )
       updatePreferences(savedPreferences)
       navigate('/')
