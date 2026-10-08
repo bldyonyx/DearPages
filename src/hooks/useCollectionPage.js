@@ -436,8 +436,11 @@ function useCollectionPage() {
     handleBooksSaved,
 
     openEditCollectionModal,
+    openEditModalFromMenu: openEditCollectionModal,
     closeEditCollectionModal,
+    closeEditModal: closeEditCollectionModal,
     handleUpdateCollection,
+    handleEditCollection: handleUpdateCollection,
 
     openRemoveBookModal,
     closeRemoveBookModal,

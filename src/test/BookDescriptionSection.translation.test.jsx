@@ -22,17 +22,15 @@ vi.mock('../services/translationService.js', () => ({
   translateText: vi.fn(),
 }))
 
-const ENGLISH_DESCRIPTION =
-  'This English description has enough words to be clearly eligible for translation in the book page.'
+const foreignDescriptions = {
+  en: 'This English description has enough words to be clearly eligible for translation in the book page.',
+  es: 'Esta descripcion en espanol tiene suficientes palabras para ser claramente elegible para la traduccion en la pagina del libro.',
+  de: 'Diese deutsche Beschreibung hat genug Worte um eindeutig fuer die Uebersetzung auf der Buchseite geeignet zu sein.',
+  it: 'Questa descrizione italiana contiene abbastanza parole per essere chiaramente idonea alla traduzione nella pagina del libro.',
+}
 
 const FRENCH_DESCRIPTION =
   'Ce resume francais contient assez de mots pour etre reconnu comme une description a traduire sur la page du livre.'
-
-const GERMAN_DESCRIPTION =
-  'Diese deutsche Beschreibung enthaelt genug Woerter, damit sie als Buchzusammenfassung in eine andere Sprache uebersetzt werden kann.'
-
-const SPANISH_DESCRIPTION =
-  'Esta descripcion espanola contiene suficientes palabras para traducirse correctamente dentro de la pagina del libro.'
 
 const UNKNOWN_SOURCE_DESCRIPTION =
   'Beschreibung ohne Metadaten mit genug Inhalt fuer eine automatische Erkennung durch den Uebersetzungsdienst.'
@@ -42,7 +40,7 @@ function createBook(overrides = {}) {
     googleBooksId: 'volume-1',
     source: 'google-books',
     language: 'en',
-    description: ENGLISH_DESCRIPTION,
+    description: foreignDescriptions.en,
     ...overrides,
   }
 }
@@ -59,70 +57,22 @@ afterEach(async () => {
 })
 
 describe('BookDescriptionSection translations', () => {
-  it('translates a French description into English', async () => {
-    await i18n.changeLanguage('en')
-    translateText.mockResolvedValue('English translated summary.')
+  it.each([
+    ['English', 'en'],
+    ['Spanish', 'es'],
+    ['German', 'de'],
+    ['Italian', 'it'],
+  ])('translates %s descriptions to French', async (_, language) => {
+    translateText.mockResolvedValue(
+      `Description traduite depuis ${language}.`
+    )
 
     render(
       <BookDescriptionSection
         book={createBook({
-          language: 'fr',
-          description: FRENCH_DESCRIPTION,
-        })}
-      />
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Translate into English',
-      })
-    )
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('English translated summary.')
-      ).toBeInTheDocument()
-    })
-
-    expect(translateText).toHaveBeenCalledWith(
-      FRENCH_DESCRIPTION,
-      'fr',
-      'en'
-    )
-  })
-
-  it('translates an English description into French', async () => {
-    translateText.mockResolvedValue('Resume traduit en francais.')
-
-    render(<BookDescriptionSection book={createBook()} />)
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Traduire en français',
-      })
-    )
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('Resume traduit en francais.')
-      ).toBeInTheDocument()
-    })
-
-    expect(translateText).toHaveBeenCalledWith(
-      ENGLISH_DESCRIPTION,
-      'en',
-      'fr'
-    )
-  })
-
-  it('translates a German description into French', async () => {
-    translateText.mockResolvedValue('Resume allemand traduit.')
-
-    render(
-      <BookDescriptionSection
-        book={createBook({
-          language: 'de',
-          description: GERMAN_DESCRIPTION,
+          googleBooksId: `volume-${language}`,
+          language,
+          description: foreignDescriptions[language],
         })}
       />
     )
@@ -134,49 +84,70 @@ describe('BookDescriptionSection translations', () => {
     )
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Resume allemand traduit.')
-      ).toBeInTheDocument()
+      expect(translateText).toHaveBeenCalledWith(
+        foreignDescriptions[language],
+        language,
+        'fr'
+      )
     })
 
-    expect(translateText).toHaveBeenCalledWith(
-      GERMAN_DESCRIPTION,
-      'de',
-      'fr'
-    )
+    expect(
+      await screen.findByText(
+        `Description traduite depuis ${language}.`
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Voir l’original' })
+    ).toBeInTheDocument()
   })
 
-  it('translates a Spanish description into English', async () => {
-    await i18n.changeLanguage('en')
-    translateText.mockResolvedValue('Spanish summary translated.')
+  it.each([
+    ['French', 'fr', FRENCH_DESCRIPTION],
+    ['Spanish', 'es', foreignDescriptions.es],
+    ['German', 'de', foreignDescriptions.de],
+    ['Italian', 'it', foreignDescriptions.it],
+  ])(
+    'translates %s descriptions to English',
+    async (_, language, description) => {
+      await i18n.changeLanguage('en')
+      translateText.mockResolvedValue(
+        `English translation from ${language}.`
+      )
 
-    render(
-      <BookDescriptionSection
-        book={createBook({
-          language: 'es',
-          description: SPANISH_DESCRIPTION,
-        })}
-      />
-    )
+      render(
+        <BookDescriptionSection
+          book={createBook({
+            googleBooksId: `volume-${language}-en`,
+            language,
+            description,
+          })}
+        />
+      )
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Translate into English',
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Translate into English',
+        })
+      )
+
+      await waitFor(() => {
+        expect(translateText).toHaveBeenCalledWith(
+          description,
+          language,
+          'en'
+        )
       })
-    )
 
-    await waitFor(() => {
       expect(
-        screen.getByText('Spanish summary translated.')
+        await screen.findByText(
+          `English translation from ${language}.`
+        )
       ).toBeInTheDocument()
-    })
-
-    expect(translateText).toHaveBeenCalledWith(
-      SPANISH_DESCRIPTION,
-      'es',
-      'en'
-    )
-  })
+      expect(
+        screen.getByRole('button', { name: 'See the original' })
+      ).toBeInTheDocument()
+    }
+  )
 
   it('does not offer translation when the description already matches the target language', async () => {
     await i18n.changeLanguage('en')
@@ -184,11 +155,31 @@ describe('BookDescriptionSection translations', () => {
     render(<BookDescriptionSection book={createBook()} />)
 
     expect(
-      screen.getByText(ENGLISH_DESCRIPTION)
+      screen.getByText(foreignDescriptions.en)
     ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', {
         name: /translate/i,
+      })
+    ).not.toBeInTheDocument()
+    expect(translateText).not.toHaveBeenCalled()
+  })
+
+  it('does not offer translation for descriptions already identified as French', () => {
+    render(
+      <BookDescriptionSection
+        book={createBook({
+          googleBooksId: 'volume-fr',
+          language: 'fr',
+          description:
+            'Cette description française contient assez de mots pour être clairement reconnue comme déjà disponible en français.',
+        })}
+      />
+    )
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Traduire en français',
       })
     ).not.toBeInTheDocument()
     expect(translateText).not.toHaveBeenCalled()
@@ -216,7 +207,7 @@ describe('BookDescriptionSection translations', () => {
     })
 
     expect(
-      screen.getByText(ENGLISH_DESCRIPTION)
+      screen.getByText(foreignDescriptions.en)
     ).toBeInTheDocument()
     expect(
       screen.queryByText('Resume francais en cache.')
@@ -299,7 +290,41 @@ describe('BookDescriptionSection translations', () => {
     expect(translateText).toHaveBeenCalledTimes(1)
   })
 
-  it('shows only the friendly error when translation fails', async () => {
+  it('keeps the original description available after translation', async () => {
+    translateText.mockResolvedValue('Description traduite.')
+
+    render(
+      <BookDescriptionSection
+        book={createBook({
+          language: 'es',
+          description: foreignDescriptions.es,
+        })}
+      />
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Traduire en français',
+      })
+    )
+
+    expect(
+      await screen.findByText('Description traduite.')
+    ).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Voir l’original' })
+    )
+
+    expect(
+      screen.getByText(foreignDescriptions.es)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Voir la traduction' })
+    ).toBeInTheDocument()
+  })
+
+  it('shows only the friendly localized error when translation fails', async () => {
     const translationError = new Error('Translation request failed.')
     translationError.diagnostic = {
       status: 403,

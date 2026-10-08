@@ -1,6 +1,8 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import Portal from './Portal.jsx'
+
 function Modal({
   isOpen,
   onClose,
@@ -15,6 +17,7 @@ function Modal({
   }
 
   return (
+    <Portal>
     <div
       className="
         dp-backdrop-enter fixed inset-0 z-50
@@ -62,6 +65,7 @@ function Modal({
         {children}
       </div>
     </div>
+    </Portal>
   )
 }
 

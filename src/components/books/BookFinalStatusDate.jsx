@@ -12,6 +12,7 @@ import {
   createReadingTimestamp,
   getReadingMonthYear,
 } from '../../utils/readingDateUtils.js'
+import FloatingMenu from '../ui/FloatingMenu.jsx'
 
 function BookFinalStatusDate({
   title,
@@ -41,6 +42,10 @@ function BookFinalStatusDate({
   )
 
   const editorRef = useRef(null)
+  const monthDropdownRef = useRef(null)
+  const monthMenuRef = useRef(null)
+  const yearDropdownRef = useRef(null)
+  const yearMenuRef = useRef(null)
 
   useEffect(() => {
     const nextDate = getReadingMonthYear(value)
@@ -58,7 +63,9 @@ function BookFinalStatusDate({
     function handleOutsideClick(event) {
       if (
         editorRef.current &&
-        !editorRef.current.contains(event.target)
+        !editorRef.current.contains(event.target) &&
+        !monthMenuRef.current?.contains(event.target) &&
+        !yearMenuRef.current?.contains(event.target)
       ) {
         setOpenDropdown(null)
       }
@@ -205,7 +212,7 @@ function BookFinalStatusDate({
             "
           >
             {/* Month */}
-            <div className="relative w-full sm:w-44">
+            <div ref={monthDropdownRef} className="relative w-full sm:w-44">
               <button
                 type="button"
                 onClick={() =>
@@ -256,13 +263,14 @@ function BookFinalStatusDate({
               </button>
 
               {openDropdown === 'month' && (
-                <div
+                <FloatingMenu
+                  anchorRef={monthDropdownRef}
+                  menuRef={monthMenuRef}
+                  matchAnchorWidth
                   className={`
                     dp-menu-enter
-                    absolute left-0 top-full
-                    z-30 mt-2
+                    z-40
                     max-h-56
-                    w-full
                     overflow-y-auto
                     rounded-2xl
                     border border-walnut/10
@@ -316,12 +324,12 @@ function BookFinalStatusDate({
                       )
                     }
                   )}
-                </div>
+                </FloatingMenu>
               )}
             </div>
 
             {/* Year */}
-            <div className="relative w-full sm:w-28">
+            <div ref={yearDropdownRef} className="relative w-full sm:w-28">
               <button
                 type="button"
                 onClick={() =>
@@ -372,13 +380,15 @@ function BookFinalStatusDate({
               </button>
 
               {openDropdown === 'year' && (
-                <div
+                <FloatingMenu
+                  anchorRef={yearDropdownRef}
+                  menuRef={yearMenuRef}
+                  align="right"
+                  matchAnchorWidth
                   className={`
                     dp-menu-enter
-                    absolute right-0 top-full
-                    z-30 mt-2
+                    z-40
                     max-h-56
-                    w-full
                     overflow-y-auto
                     rounded-2xl
                     border border-walnut/10
@@ -430,7 +440,7 @@ function BookFinalStatusDate({
                       </button>
                     )
                   })}
-                </div>
+                </FloatingMenu>
               )}
             </div>
           </div>

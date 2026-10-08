@@ -2,6 +2,8 @@ import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import FloatingMenu from '../ui/FloatingMenu.jsx'
+
 const STATUS_STYLES = {
   'to-read': {
     trigger: `
@@ -57,6 +59,7 @@ function BookStatusSelect({
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef(null)
+  const menuRef = useRef(null)
 
   const selectedOption = options.find(
     (option) => option.value === value
@@ -68,7 +71,8 @@ function BookStatusSelect({
     function handleClickOutside(event) {
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target)
+        !containerRef.current.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
       ) {
         setIsOpen(false)
       }
@@ -143,11 +147,13 @@ function BookStatusSelect({
       </button>
 
       {isOpen && (
-        <div
+        <FloatingMenu
+          anchorRef={containerRef}
+          menuRef={menuRef}
+          matchAnchorWidth
           className="
             dp-menu-enter
-            absolute left-0 top-[calc(100%+8px)]
-            z-30 w-full overflow-hidden
+            z-40 overflow-hidden
             rounded-2xl
             border border-walnut/15
             bg-cream
@@ -198,7 +204,7 @@ function BookStatusSelect({
               </button>
             )
           })}
-        </div>
+        </FloatingMenu>
       )}
     </div>
   )

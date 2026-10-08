@@ -136,9 +136,11 @@ export function useBookDescriptionTranslation(book) {
     })
 
     try {
+      const translationSourceLanguage =
+        sourceLanguage === 'unknown' ? '' : sourceLanguage
       const translatedText = await translateText(
         originalDescription,
-        sourceLanguage === 'unknown' ? '' : sourceLanguage,
+        translationSourceLanguage,
         targetLanguage
       )
 

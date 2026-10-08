@@ -55,10 +55,11 @@ function countMatches(text, words) {
 /**
  * Classifies the visible description language for translation decisions.
  *
- * Metadata wins when it provides a normalized ISO-like language code. Without
+ * Metadata wins when it provides a normalized language code. Without
  * metadata, the heuristic only returns English or French when common function
  * words and French accents make the result reasonably clear; uncertain
- * descriptions stay unknown and can be translated with provider auto-detect.
+ * descriptions stay unknown so the translation API can auto-detect them when
+ * the user asks for a translation.
  *
  * @param {string} description - Displayed book description.
  * @param {string} metadataLanguage - Normalized book metadata language.
@@ -70,7 +71,7 @@ export function detectDescriptionLanguage(
 ) {
   const explicitLanguage = normalizeLanguageCode(metadataLanguage)
 
-  if (/^[a-z]{2}$/.test(explicitLanguage)) {
+  if (explicitLanguage) {
     return explicitLanguage
   }
 
