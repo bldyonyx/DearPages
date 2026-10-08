@@ -1,13 +1,11 @@
 import {
   get,
   ref,
-  remove,
   set,
   update,
 } from 'firebase/database'
 
 import { database } from './firebase.js'
-import { removeBookFromAllCollections } from './collectionsService.js'
 
 /**
  * Available reading statuses for books stored in Dear Pages.
@@ -284,13 +282,37 @@ export async function removeBookFromLibrary(
     )
   }
 
-  const bookRef = ref(
+  const userRef = ref(
     database,
-    `users/${userId}/library/${bookId}`
+    `users/${userId}`
   )
+  const collectionsRef = ref(
+    database,
+    `users/${userId}/collections`
+  )
+  const snapshot = await get(collectionsRef)
+  const updates = {
+    [`library/${bookId}`]: null,
+  }
 
-  await removeBookFromAllCollections(userId, bookId)
-  await remove(bookRef)
+  if (snapshot.exists()) {
+    const now = Date.now()
+
+    Object.entries(snapshot.val()).forEach(
+      ([collectionId, collection]) => {
+        if (!collection?.books?.[bookId]) {
+          return
+        }
+
+        updates[
+          `collections/${collectionId}/books/${bookId}`
+        ] = null
+        updates[`collections/${collectionId}/updatedAt`] = now
+      }
+    )
+  }
+
+  await update(userRef, updates)
 }
 
 /**
