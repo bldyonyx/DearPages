@@ -90,7 +90,7 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ### Backend & data
 
-`Firebase Authentication` · `Cloud Firestore`
+`Firebase Authentication` · `Firebase Realtime Database`
 
 `Google Books API` · `Open Library API` · `Google Cloud Translation API`
 
