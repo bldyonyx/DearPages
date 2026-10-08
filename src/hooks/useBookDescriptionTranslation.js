@@ -68,7 +68,7 @@ export function useBookDescriptionTranslation(book) {
 
   const hasDescription = Boolean(originalDescription)
   const isTranslationAvailable =
-    hasDescription && sourceLanguage === 'en'
+    hasDescription && sourceLanguage !== TARGET_LANGUAGE
   const isCurrentDescription =
     translationState.cacheKey === cacheKey
   const cachedDescription =
@@ -111,9 +111,11 @@ export function useBookDescriptionTranslation(book) {
     })
 
     try {
+      const translationSourceLanguage =
+        sourceLanguage === 'unknown' ? '' : sourceLanguage
       const translatedText = await translateText(
         originalDescription,
-        sourceLanguage,
+        translationSourceLanguage,
         TARGET_LANGUAGE
       )
 
