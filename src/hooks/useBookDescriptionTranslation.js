@@ -9,7 +9,26 @@ import {
   setCachedTranslation,
 } from '../utils/translationSessionCache.js'
 
-const TARGET_LANGUAGE = 'fr'
+const SUPPORTED_DESCRIPTION_TARGET_LANGUAGES = ['fr', 'en']
+
+function getTargetLanguage(language) {
+  const normalizedLanguage = String(language || '')
+    .trim()
+    .toLowerCase()
+    .slice(0, 2)
+
+  return SUPPORTED_DESCRIPTION_TARGET_LANGUAGES.includes(
+    normalizedLanguage
+  )
+    ? normalizedLanguage
+    : 'fr'
+}
+
+function getCacheSourceLanguage(sourceLanguage) {
+  return sourceLanguage && sourceLanguage !== 'unknown'
+    ? sourceLanguage
+    : 'auto'
+}
 
 /**
  * Owns the BookPage description translation state.
@@ -22,8 +41,9 @@ const TARGET_LANGUAGE = 'fr'
  * @returns {Object} Description text, action labels, and handlers.
  */
 export function useBookDescriptionTranslation(book) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const originalDescription = String(book?.description || '').trim()
+  const targetLanguage = getTargetLanguage(i18n.language)
   const sourceLanguage = useMemo(
     () =>
       detectDescriptionLanguage(
@@ -41,8 +61,8 @@ export function useBookDescriptionTranslation(book) {
           book?.id ||
           '',
         source: book?.source || 'unknown',
-        sourceLanguage,
-        targetLanguage: TARGET_LANGUAGE,
+        sourceLanguage: getCacheSourceLanguage(sourceLanguage),
+        targetLanguage,
         description: originalDescription,
       }),
     [
@@ -52,6 +72,7 @@ export function useBookDescriptionTranslation(book) {
       book?.source,
       originalDescription,
       sourceLanguage,
+      targetLanguage,
     ]
   )
   const activeCacheKeyRef = useRef(cacheKey)
@@ -70,7 +91,7 @@ export function useBookDescriptionTranslation(book) {
 
   const hasDescription = Boolean(originalDescription)
   const isTranslationAvailable =
-    hasDescription && sourceLanguage === 'en'
+    hasDescription && sourceLanguage !== targetLanguage
   const isCurrentDescription =
     translationState.cacheKey === cacheKey
   const cachedDescription =
@@ -117,8 +138,8 @@ export function useBookDescriptionTranslation(book) {
     try {
       const translatedText = await translateText(
         originalDescription,
-        sourceLanguage,
-        TARGET_LANGUAGE
+        sourceLanguage === 'unknown' ? '' : sourceLanguage,
+        targetLanguage
       )
 
       if (activeCacheKeyRef.current !== cacheKey) {
@@ -178,7 +199,9 @@ export function useBookDescriptionTranslation(book) {
     ? t('bookPage.description.showOriginal')
     : translatedDescription
       ? t('bookPage.description.showTranslation')
-      : t('bookPage.description.translateToFrench')
+      : targetLanguage === 'en'
+        ? t('bookPage.description.translateToEnglish')
+        : t('bookPage.description.translateToFrench')
 
   return {
     displayedDescription,

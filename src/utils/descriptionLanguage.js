@@ -55,14 +55,14 @@ function countMatches(text, words) {
 /**
  * Classifies the visible description language for translation decisions.
  *
- * Metadata wins when it explicitly says French or English. Without metadata,
- * the heuristic only returns English or French when common function words and
- * French accents make the result reasonably clear; uncertain descriptions stay
- * unknown so Dear Pages does not offer translation for the wrong text.
+ * Metadata wins when it provides a normalized ISO-like language code. Without
+ * metadata, the heuristic only returns English or French when common function
+ * words and French accents make the result reasonably clear; uncertain
+ * descriptions stay unknown and can be translated with provider auto-detect.
  *
  * @param {string} description - Displayed book description.
  * @param {string} metadataLanguage - Normalized book metadata language.
- * @returns {'fr'|'en'|'unknown'} Description language.
+ * @returns {string} Normalized source language, or "unknown".
  */
 export function detectDescriptionLanguage(
   description,
@@ -70,7 +70,7 @@ export function detectDescriptionLanguage(
 ) {
   const explicitLanguage = normalizeLanguageCode(metadataLanguage)
 
-  if (explicitLanguage === 'fr' || explicitLanguage === 'en') {
+  if (/^[a-z]{2}$/.test(explicitLanguage)) {
     return explicitLanguage
   }
 

@@ -392,7 +392,8 @@
       "translationError": "Impossible de traduire ce résumé pour le moment.",
       "showOriginal": "Voir l’original",
       "showTranslation": "Voir la traduction",
-      "translateToFrench": "Traduire en français"
+      "translateToFrench": "Traduire en français",
+      "translateToEnglish": "Traduire en anglais"
     },
     "personal": {
       "eyebrow": "entre toi et les pages ♡",

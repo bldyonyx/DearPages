@@ -392,7 +392,8 @@
       "translationError": "We couldn't translate this summary right now.",
       "showOriginal": "See the original",
       "showTranslation": "See the translation",
-      "translateToFrench": "Translate into French"
+      "translateToFrench": "Translate into French",
+      "translateToEnglish": "Translate into English"
     },
     "personal": {
       "eyebrow": "between you and the pages ♡",
