@@ -12,9 +12,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 
-import {
-  BOOK_STATUSES,
-} from '../../services/libraryService'
+import { BOOK_STATUSES } from '../../services/libraryService'
 import BookCover from '../books/BookCover'
 import StatusBadge from '../ui/StatusBadge'
 import { dashboardLarge } from './dashboardResponsive.js'
@@ -116,11 +114,7 @@ function DashboardCover({
         md:w-36 lg:w-40
         [@media_(min-width:2200px)_and_(min-height:1100px)]:w-48
         [@media_(min-width:2400px)_and_(min-height:1300px)]:w-56
-        ${
-          prefersReducedMotion
-            ? 'duration-0'
-            : 'duration-500'
-        }
+        ${prefersReducedMotion ? 'duration-0' : 'duration-500'}
         ${isSelected ? 'scale-105 shadow-lg' : ''}
       `}
       imageClassName="h-full w-full object-cover"
@@ -409,7 +403,7 @@ function CurrentlyReading({
                     ${
                       stackIndex === 0
                         ? ''
-                        : '-ml-20 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'
+                        : '-ml-20 lg:-ml-24 [@media_(min-width:2200px)_and_(min-height:1100px)]:-ml-24 [@media_(min-width:2400px)_and_(min-height:1300px)]:-ml-28'
                     }
                     ${
                       isSelected
@@ -423,10 +417,10 @@ function CurrentlyReading({
                       isSelected ? '-0.75rem' : '0'
                     }) rotate(${
                       stackIndex === 0
-                        ? -2
+                        ? 0
                         : stackIndex === 1
-                          ? 2
-                          : 5
+                          ? -1.5
+                          : 1.5
                     }deg)`,
                   }}
                   aria-label={`Afficher ${book.title}`}
@@ -471,42 +465,45 @@ function CurrentlyReading({
             />
           </div>
 
-          {/* Hauteur réservée pour 3 lignes de titre */}
-          <h3
+          {/* Titre et auteur centrés dans une hauteur stable */}
+          <div
             className="
-              mt-3 line-clamp-3
-              min-h-[calc(3*1.25*1.5rem)]
-              wrap-break-word
-              font-heading text-2xl
-              font-bold leading-tight
-              text-darkwood
+              mt-3
+              flex flex-col justify-center
+              min-h-[calc(3*1.25*1.5rem+2.5rem)]
               [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-4
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-[calc(3*1.25*1.875rem)]
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-3xl
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-[calc(3*1.25*2.25rem)]
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-4xl
+              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-[calc(3*1.25*1.875rem+3rem)]
+              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-[calc(3*1.25*2.25rem+3.5rem)]
             "
           >
-            {currentBook.title}
-          </h3>
+            <h3
+              className="
+                line-clamp-3
+                wrap-break-word
+                font-heading text-2xl
+                font-bold leading-tight
+                text-darkwood
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-3xl
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-4xl
+              "
+            >
+              {currentBook.title}
+            </h3>
 
-          {/* Hauteur réservée pour 2 lignes d'auteur */}
-          <p
-            className="
-              mt-1 line-clamp-2
-              min-h-10
-              wrap-break-word
-              font-ui text-sm
-              text-darkwood/60
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:min-h-12
-              [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:min-h-14
-              [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
-            "
-          >
-            {currentBook.authors?.join(', ') ||
-              'Auteur inconnu'}
-          </p>
+            <p
+              className="
+                mt-2 line-clamp-2
+                wrap-break-word
+                font-ui text-sm
+                text-darkwood/60
+                [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base
+                [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
+              "
+            >
+              {currentBook.authors?.join(', ') ||
+                'Auteur inconnu'}
+            </p>
+          </div>
 
           <div
             className="
