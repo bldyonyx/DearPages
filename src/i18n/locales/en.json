@@ -4,10 +4,16 @@
     "cancel": "Cancel",
     "changeStatus": "Change status",
     "clearSearch": "Clear search",
+    "close": "Close",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "description": "Description",
     "error": "Something went wrong.",
     "loading": "Loading...",
+    "name": "Name",
     "retry": "Try again",
     "save": "Save",
+    "saving": "Saving...",
     "searchBook": "Search for a book",
     "searchShort": "Search…",
     "settings": "Settings",
@@ -15,6 +21,20 @@
     "backToTop": "Back to top",
     "unknownAuthor": "Unknown author",
     "viewBook": "View {{title}}"
+  },
+  "months": {
+    "0": "January",
+    "1": "February",
+    "2": "March",
+    "3": "April",
+    "4": "May",
+    "5": "June",
+    "6": "July",
+    "7": "August",
+    "8": "September",
+    "9": "October",
+    "10": "November",
+    "11": "December"
   },
   "status": {
     "to-read": "To read",
@@ -141,6 +161,170 @@
       "noNewMustRead": "No new timeless pick is available right now.",
       "mustReadRefreshError": "We couldn't refresh timeless picks right now."
     }
+  },
+  "libraryPage": {
+    "title": "My library",
+    "subtitle": "all your books, gathered in one place ♡",
+    "loading": "Loading your library...",
+    "loadError": "We couldn't load your library right now.",
+    "searchPlaceholder": "Search my library...",
+    "searchAria": "Search my library",
+    "closeSearch": "Close search",
+    "filters": {
+      "all": "All",
+      "to-read": "To read",
+      "reading": "Reading",
+      "finished": "Finished",
+      "abandoned": "Abandoned"
+    },
+    "bookCount_one": "{{count}} book",
+    "bookCount_other": "{{count}} books",
+    "empty": {
+      "title": "Your library is still empty",
+      "description": "Discover books and add the ones you want to keep close.",
+      "cta": "Discover books"
+    },
+    "panel": {
+      "emptyTitle": "No books found",
+      "emptySearch": "Try another search or another filter.",
+      "emptyFilter": "No books in this category."
+    },
+    "unknownDate": "Unknown date"
+  },
+  "collectionsPage": {
+    "title": "My collections",
+    "subtitle": "Little stacks of books arranged your way.",
+    "newCollection": "New collection",
+    "loading": "Loading your collections...",
+    "loadError": "We couldn't load your collections right now.",
+    "createError": "We couldn't create this collection right now.",
+    "deleteError": "We couldn't delete this collection right now.",
+    "updateError": "We couldn't update this collection right now.",
+    "pinError": "We couldn't update this collection right now.",
+    "empty": {
+      "title": "No collections yet",
+      "description": "Create a first collection to gather your moods, favorites, or future reads.",
+      "cta": "Create my first collection →"
+    },
+    "card": {
+      "open": "Open collection {{name}}",
+      "bookCount_one": "{{count}} book",
+      "bookCount_other": "{{count}} books",
+      "pinned": "Pinned",
+      "emptyPreview": "no books yet",
+      "actions": "Actions for {{name}}",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "edit": "Edit",
+      "delete": "Delete",
+      "coverFallback": "Book without a cover"
+    },
+    "form": {
+      "nameRequired": "Give your collection a name.",
+      "newTitle": "New collection",
+      "editTitle": "Edit collection",
+      "namePlaceholder": "Autumn reads",
+      "icon": "Icon",
+      "descriptionPlaceholder": "A gentle note to find this stack again later...",
+      "creating": "Creating...",
+      "createSubmit": "Create collection"
+    },
+    "deleteModal": {
+      "title": "Delete collection",
+      "body": "You’re about to delete the collection {{name}}. The books inside it will stay in My library."
+    }
+  },
+  "collectionPage": {
+    "loading": "Loading collection...",
+    "loadError": "We couldn't load this collection right now.",
+    "notFoundTitle": "Collection not found",
+    "notFoundDescription": "It may have been deleted or moved.",
+    "backToCollections": "Back to collections",
+    "bookCount_one": "{{count}} book",
+    "bookCount_other": "{{count}} books",
+    "addBooks": "Add books",
+    "actions": "Collection actions",
+    "edit": "Edit collection",
+    "clear": "Clear collection",
+    "updateError": "We couldn't update this collection right now.",
+    "removeError": "We couldn't remove this book from the collection right now.",
+    "clearError": "We couldn't clear this collection right now.",
+    "empty": {
+      "title": "This collection is still empty",
+      "description": "Add a few books to start filling this collection."
+    },
+    "bookCard": {
+      "remove": "Remove from collection"
+    },
+    "booksModal": {
+      "title": "Add books",
+      "searchPlaceholder": "Search for a book or author...",
+      "emptyLibraryTitle": "Your library is empty",
+      "emptyLibraryDescription": "Add books to My library first so you can place them in a collection.",
+      "saveError": "We couldn't update the books in this collection right now.",
+      "emptySearch": "No books found."
+    },
+    "removeModal": {
+      "fallbackTitle": "This book",
+      "title": "Remove from collection?",
+      "body": "“{{title}}” will be removed from this collection. It will stay in My library.",
+      "removing": "Removing...",
+      "remove": "Remove"
+    },
+    "clearModal": {
+      "title": "Clear this collection?",
+      "message_one": "The book will be removed from this collection.",
+      "message_other": "The {{count}} books will be removed from this collection.",
+      "suffix": "They will stay in My library.",
+      "clearing": "Clearing...",
+      "clear": "Clear collection"
+    },
+    "bookCollectionsModal": {
+      "title": "Add to a collection ♡",
+      "loading": "Loading collections...",
+      "loadError": "We couldn't load your collections right now.",
+      "saveError": "We couldn't update collections right now.",
+      "emptyTitle": "No collections yet",
+      "emptyDescription": "Create a collection from the Collections page so you can place this book there."
+    }
+  },
+  "collectionIcons": {
+    "library": "Library",
+    "book": "Books",
+    "book-marked": "Selection",
+    "bookmark": "To keep",
+    "heart": "Favorite",
+    "book-heart": "Loved books",
+    "star": "Favorites",
+    "sparkles": "Little gems",
+    "crown": "Royalty",
+    "gem": "Treasures",
+    "thumbs-down": "Disappointments",
+    "heart-crack": "Broken hearts",
+    "alert": "To avoid",
+    "skull": "Disasters",
+    "moon": "Evening reads",
+    "sun": "Bright reads",
+    "flower": "Cozy",
+    "clover": "Lucky charm",
+    "coffee": "Relaxing",
+    "cake": "Sweetness",
+    "rainbow": "Feel good",
+    "wand": "Fantasy",
+    "castle": "Imaginary worlds",
+    "ghost": "Spooky",
+    "flame": "Intense",
+    "zap": "Addictive",
+    "feather": "Literature",
+    "glasses": "Classics",
+    "lightbulb": "Thought-provoking",
+    "music": "Music",
+    "paw": "Animals",
+    "trees": "Nature",
+    "shell": "Escape",
+    "plane": "Travel",
+    "telescope": "Exploration",
+    "rocket": "Science fiction"
   },
   "language": {
     "applicationLanguage": "Application language",

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import CollectionCreateModal from '../components/collections/modals/CollectionCreateModal.jsx'
 import CollectionDeleteModal from '../components/collections/modals/CollectionDeleteModal.jsx'
 import CollectionEditModal from '../components/collections/modals/CollectionEditModal.jsx'
@@ -10,6 +12,7 @@ import LoadingState from '../components/ui/LoadingState.jsx'
 import useCollections from '../hooks/useCollections.js'
 
 function Collections() {
+  const { t } = useTranslation()
   const {
     user,
     collections,
@@ -59,7 +62,7 @@ function Collections() {
             ${collectionsLarge.sectionGap}
           `}
         >
-          <LoadingState message="Chargement de tes collections..." />
+          <LoadingState message={t('collectionsPage.loading')} />
         </section>
       ) : error ? (
         <section

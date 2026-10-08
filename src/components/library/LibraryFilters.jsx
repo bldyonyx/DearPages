@@ -1,33 +1,35 @@
+import { useTranslation } from 'react-i18next'
+
 import { libraryLarge } from './libraryResponsive.js'
 
 const FILTERS = [
   {
     value: 'all',
-    label: 'Tous',
+    labelKey: 'libraryPage.filters.all',
     accent: 'bg-darkwood',
     countStyle: 'bg-parchment text-darkwood',
   },
   {
     value: 'to-read',
-    label: 'À lire',
+    labelKey: 'libraryPage.filters.to-read',
     accent: 'bg-walnut/40',
     countStyle: 'bg-walnut/20 text-ink',
   },
   {
     value: 'reading',
-    label: 'En cours',
+    labelKey: 'libraryPage.filters.reading',
     accent: 'bg-lime',
     countStyle: 'bg-lime text-ink',
   },
   {
     value: 'finished',
-    label: 'Terminés',
+    labelKey: 'libraryPage.filters.finished',
     accent: 'bg-sage',
     countStyle: 'bg-sage text-mintcream',
   },
   {
     value: 'abandoned',
-    label: 'Abandonnés',
+    labelKey: 'libraryPage.filters.abandoned',
     accent: 'bg-dustyrose',
     countStyle: 'bg-dustyrose text-ink',
   },
@@ -39,6 +41,8 @@ function LibraryFilters({
   counts,
   totalBooks,
 }) {
+  const { t } = useTranslation()
+
   return (
     <div>
       {/* Compteur mobile */}
@@ -50,8 +54,7 @@ function LibraryFilters({
           md:hidden
         "
       >
-        {totalBooks}{' '}
-        {totalBooks === 1 ? 'livre' : 'livres'}
+        {t('libraryPage.bookCount', { count: totalBooks })}
       </p>
 
       <div
@@ -114,7 +117,7 @@ function LibraryFilters({
                 `}
               >
                 <span>
-                  {filter.label}
+                  {t(filter.labelKey)}
                 </span>
 
                 <span
@@ -162,8 +165,7 @@ function LibraryFilters({
             ${libraryLarge.description}
           `}
         >
-          {totalBooks}{' '}
-          {totalBooks === 1 ? 'livre' : 'livres'}
+          {t('libraryPage.bookCount', { count: totalBooks })}
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import {
   addBookToCollection,
@@ -11,15 +12,12 @@ import Button from '../../ui/Button.jsx'
 import Input from '../../ui/Input.jsx'
 import Modal from '../../ui/Modal.jsx'
 
-const COLLECTION_BOOKS_SEARCH_PLACEHOLDER =
-  'Rechercher un livre ou un auteur...'
-
 function getBookId(book) {
   return book.googleBooksId || book.id
 }
 
-function getBookAuthors(book) {
-  return book.authors?.join(', ') || 'Auteur inconnu'
+function getBookAuthors(book, fallback) {
+  return book.authors?.join(', ') || fallback
 }
 
 function CollectionBooksModal({
@@ -30,6 +28,7 @@ function CollectionBooksModal({
   onClose,
   onSaved,
 }) {
+  const { t } = useTranslation()
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [initialSelectedIds, setInitialSelectedIds] =
     useState(new Set())
@@ -38,8 +37,11 @@ function CollectionBooksModal({
   const [error, setError] = useState('')
   const { containerRef, placeholder } =
     useResponsivePlaceholder(
-      COLLECTION_BOOKS_SEARCH_PLACEHOLDER,
-      { minWidth: 300 }
+      t('collectionPage.booksModal.searchPlaceholder'),
+      {
+        minWidth: 300,
+        shortPlaceholder: t('common.searchShort'),
+      }
     )
 
   useEffect(() => {
@@ -153,7 +155,7 @@ function CollectionBooksModal({
       )
 
       setError(
-        'Impossible de modifier les livres de cette collection pour le moment.'
+        t('collectionPage.booksModal.saveError')
       )
     } finally {
       setIsSaving(false)
@@ -164,17 +166,16 @@ function CollectionBooksModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Ajouter des livres"
+      title={t('collectionPage.booksModal.title')}
     >
       {libraryBooks.length === 0 ? (
         <div className="py-6 text-center">
           <p className="font-heading text-xl font-bold text-darkwood">
-            Ta bibliothèque est vide
+            {t('collectionPage.booksModal.emptyLibraryTitle')}
           </p>
 
           <p className="mx-auto mt-2 max-w-xs font-ui text-sm leading-6 text-walnut/70">
-            Ajoute d'abord des livres à Ma bibliothèque pour les
-            ranger dans une collection.
+            {t('collectionPage.booksModal.emptyLibraryDescription')}
           </p>
 
           <div className="mt-6 flex justify-center">
@@ -184,7 +185,7 @@ function CollectionBooksModal({
               onClick={handleClose}
               disabled={isSaving}
             >
-              Fermer
+              {t('common.close')}
             </Button>
           </div>
         </div>
@@ -199,7 +200,7 @@ function CollectionBooksModal({
                 setSearch(event.target.value)
               }
               placeholder={placeholder}
-              aria-label="Rechercher dans ma bibliothèque"
+              aria-label={t('libraryPage.searchAria')}
               className="mb-4 w-full rounded-full! px-5 py-2.5"
             />
           </div>
@@ -258,7 +259,10 @@ function CollectionBooksModal({
                       </span>
 
                       <span className="mt-1 block truncate font-ui text-xs text-walnut/65">
-                        {getBookAuthors(book)}
+                        {getBookAuthors(
+                          book,
+                          t('common.unknownAuthor')
+                        )}
                       </span>
                     </span>
 
@@ -288,7 +292,7 @@ function CollectionBooksModal({
               })
             ) : (
               <p className="py-8 text-center font-ui text-sm text-walnut/70">
-                Aucun livre trouvé.
+                {t('collectionPage.booksModal.emptySearch')}
               </p>
             )}
           </div>
@@ -306,7 +310,7 @@ function CollectionBooksModal({
               onClick={handleClose}
               disabled={isSaving}
             >
-              Annuler
+              {t('common.cancel')}
             </Button>
 
             <Button
@@ -317,7 +321,7 @@ function CollectionBooksModal({
                 disabled:opacity-60
               "
             >
-              {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+              {isSaving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </form>

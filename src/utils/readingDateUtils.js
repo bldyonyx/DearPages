@@ -13,6 +13,21 @@ export const READING_MONTHS = [
   'Décembre',
 ]
 
+const READING_MONTHS_EN = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
 export function getReadingMonthYear(timestamp) {
   if (!timestamp) {
     return null
@@ -37,14 +52,19 @@ export function createReadingTimestamp(month, year) {
   return new Date(year, month, 1, 12).getTime()
 }
 
-export function formatReadingMonthYear(timestamp) {
+export function formatReadingMonthYear(timestamp, language = 'fr') {
   const date = getReadingMonthYear(timestamp)
 
   if (!date) {
     return ''
   }
 
-  return `${READING_MONTHS[date.month]} ${date.year}`
+  const months =
+    String(language).slice(0, 2) === 'en'
+      ? READING_MONTHS_EN
+      : READING_MONTHS
+
+  return `${months[date.month]} ${date.year}`
 }
 
 export function wasFinishedInYear(book, year) {

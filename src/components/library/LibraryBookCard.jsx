@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import BookCover from '../books/BookCover.jsx'
@@ -7,15 +8,16 @@ import { formatReadingMonthYear } from '../../utils/readingDateUtils.js'
 import { libraryLarge } from './libraryResponsive.js'
 
 function LibraryBookCard({ book }) {
+  const { i18n, t } = useTranslation()
   const isFinished =
     book.status === BOOK_STATUSES.FINISHED
   const isAbandoned =
     book.status === BOOK_STATUSES.ABANDONED
 
   const finalStatusDate = isFinished
-    ? formatReadingMonthYear(book.finishedAt)
+    ? formatReadingMonthYear(book.finishedAt, i18n.language)
     : isAbandoned
-      ? formatReadingMonthYear(book.abandonedAt)
+      ? formatReadingMonthYear(book.abandonedAt, i18n.language)
       : ''
 
   const showsFinalStatusDate = isFinished || isAbandoned
@@ -82,7 +84,7 @@ function LibraryBookCard({ book }) {
             ${libraryLarge.bookAuthor}
           `}
         >
-          {book.authors?.join(', ') || 'Auteur inconnu'}
+          {book.authors?.join(', ') || t('common.unknownAuthor')}
         </p>
 
         <div className="mt-auto pt-3">
@@ -97,7 +99,7 @@ function LibraryBookCard({ book }) {
                 ${libraryLarge.bookAuthor}
               `}
             >
-              {finalStatusDate || 'Date inconnue'}
+              {finalStatusDate || t('libraryPage.unknownDate')}
             </p>
           )}
         </div>

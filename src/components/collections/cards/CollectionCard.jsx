@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
   Heart,
@@ -17,8 +18,10 @@ function getBookCount(collection) {
 }
 
 function CollectionCoverPreview({ preview }) {
+  const { t } = useTranslation()
   const book = preview.book
-  const title = book?.title || 'Livre sans couverture'
+  const title =
+    book?.title || t('collectionsPage.card.coverFallback')
 
   return (
     <div
@@ -54,10 +57,12 @@ function CollectionCard({
   onEditRequest,
   onPinRequest,
 }) {
+  const { t } = useTranslation()
   const bookCount = getBookCount(collection)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const collectionIcon = getCollectionIcon(collection.icon)
+  const collectionIconLabel = t(`collectionIcons.${collectionIcon.id}`)
   const CollectionIcon = collectionIcon.icon
 
   function handleDeleteClick(event) {
@@ -106,7 +111,9 @@ function CollectionCard({
           focus-visible:ring-darkwood/30
           ${collectionsLarge.cardPadding}
         `}
-        aria-label={`Ouvrir la collection ${collection.name}`}
+        aria-label={t('collectionsPage.card.open', {
+          name: collection.name,
+        })}
       >
         <div className="flex min-w-0 items-start gap-3 pr-11">
           <div
@@ -119,7 +126,7 @@ function CollectionCard({
               text-walnut
               shadow-sm
             "
-            title={collectionIcon.label}
+            title={collectionIconLabel}
           >
             <CollectionIcon
               aria-hidden="true"
@@ -155,7 +162,9 @@ function CollectionCard({
                   ${collectionsLarge.smallText}
                 `}
               >
-                {bookCount} {bookCount > 1 ? 'livres' : 'livre'}
+                {t('collectionsPage.card.bookCount', {
+                  count: bookCount,
+                })}
               </p>
 
               {collection.pinned && (
@@ -175,7 +184,7 @@ function CollectionCard({
                     strokeWidth={1.8}
                   />
 
-                  <span>Épinglée</span>
+                  <span>{t('collectionsPage.card.pinned')}</span>
                 </span>
               )}
             </div>
@@ -208,7 +217,7 @@ function CollectionCard({
                   text-walnut/55
                 "
               >
-                <span>aucun livre pour le moment</span>
+                <span>{t('collectionsPage.card.emptyPreview')}</span>
 
                 <Heart
                   aria-hidden="true"
@@ -232,7 +241,9 @@ function CollectionCard({
         <button
           type="button"
           onClick={handleMenuClick}
-          aria-label={`Actions pour ${collection.name}`}
+          aria-label={t('collectionsPage.card.actions', {
+            name: collection.name,
+          })}
           aria-expanded={isMenuOpen}
           className="
             flex h-9 w-9 cursor-pointer
@@ -286,8 +297,8 @@ function CollectionCard({
                 aria-hidden="true"
               />
               {collection.pinned
-                ? 'Désépingler'
-                : 'Épingler'}
+                ? t('collectionsPage.card.unpin')
+                : t('collectionsPage.card.pin')}
             </button>
 
             <button
@@ -308,7 +319,7 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
-              Modifier
+              {t('collectionsPage.card.edit')}
             </button>
 
             <button
@@ -329,7 +340,7 @@ function CollectionCard({
                 strokeWidth={1.8}
                 aria-hidden="true"
               />
-              Supprimer
+              {t('collectionsPage.card.delete')}
             </button>
           </div>
         )}

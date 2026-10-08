@@ -4,14 +4,11 @@ import {
   Pencil,
   Plus,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { getCollectionIcon } from '../../data/collectionIcons.js'
 import BackButton from '../ui/BackButton.jsx'
 import { collectionPageLarge } from './collectionPageResponsive.js'
-
-function getBookLabel(bookCount) {
-  return `${bookCount} ${bookCount > 1 ? 'livres' : 'livre'}`
-}
 
 function CollectionPageHeader({
   collection,
@@ -23,7 +20,9 @@ function CollectionPageHeader({
   onEditCollection,
   onClearCollection,
 }) {
+  const { t } = useTranslation()
   const collectionIcon = getCollectionIcon(collection.icon)
+  const collectionIconLabel = t(`collectionIcons.${collectionIcon.id}`)
   const CollectionIcon = collectionIcon.icon
 
   return (
@@ -49,7 +48,7 @@ function CollectionPageHeader({
               sm:h-12 sm:w-12
               ${collectionPageLarge.icon}
             `}
-            title={collectionIcon.label}
+            title={collectionIconLabel}
           >
             <CollectionIcon
               className={`
@@ -120,7 +119,7 @@ function CollectionPageHeader({
               text-walnut
             "
           >
-            {getBookLabel(bookCount)}
+            {t('collectionPage.bookCount', { count: bookCount })}
           </span>
 
           <div
@@ -158,7 +157,7 @@ function CollectionPageHeader({
                 aria-hidden="true"
               />
 
-              Ajouter des livres
+              {t('collectionPage.addBooks')}
             </button>
 
             <div
@@ -168,7 +167,7 @@ function CollectionPageHeader({
               <button
                 type="button"
                 onClick={onToggleActionsMenu}
-                aria-label="Actions de collection"
+                aria-label={t('collectionPage.actions')}
                 aria-haspopup="menu"
                 aria-expanded={isActionsMenuOpen}
                 className="
@@ -228,7 +227,7 @@ function CollectionPageHeader({
                       aria-hidden="true"
                     />
 
-                    Modifier la collection
+                    {t('collectionPage.edit')}
                   </button>
 
                   {bookCount > 0 && (
@@ -252,7 +251,7 @@ function CollectionPageHeader({
                         aria-hidden="true"
                       />
 
-                      Vider la collection
+                      {t('collectionPage.clear')}
                     </button>
                   )}
                 </div>

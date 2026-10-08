@@ -4,10 +4,16 @@
     "cancel": "Annuler",
     "changeStatus": "Changer le statut",
     "clearSearch": "Effacer la recherche",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "deleting": "Suppression...",
+    "description": "Description",
     "error": "Une erreur est survenue.",
     "loading": "Chargement...",
+    "name": "Nom",
     "retry": "Réessayer",
     "save": "Enregistrer",
+    "saving": "Enregistrement...",
     "searchBook": "Rechercher un livre",
     "searchShort": "Rechercher…",
     "settings": "Paramètres",
@@ -15,6 +21,20 @@
     "backToTop": "Retour en haut",
     "unknownAuthor": "Auteur inconnu",
     "viewBook": "Voir {{title}}"
+  },
+  "months": {
+    "0": "Janvier",
+    "1": "Février",
+    "2": "Mars",
+    "3": "Avril",
+    "4": "Mai",
+    "5": "Juin",
+    "6": "Juillet",
+    "7": "Août",
+    "8": "Septembre",
+    "9": "Octobre",
+    "10": "Novembre",
+    "11": "Décembre"
   },
   "status": {
     "to-read": "À lire",
@@ -141,6 +161,170 @@
       "noNewMustRead": "Aucun nouvel incontournable disponible pour le moment.",
       "mustReadRefreshError": "Impossible de rafraîchir les incontournables pour le moment."
     }
+  },
+  "libraryPage": {
+    "title": "Ma bibliothèque",
+    "subtitle": "tous tes livres, au même endroit ♡",
+    "loading": "Chargement de ta bibliothèque...",
+    "loadError": "Impossible de charger ta bibliothèque pour le moment.",
+    "searchPlaceholder": "Rechercher dans ma bibliothèque...",
+    "searchAria": "Rechercher dans ma bibliothèque",
+    "closeSearch": "Fermer la recherche",
+    "filters": {
+      "all": "Tous",
+      "to-read": "À lire",
+      "reading": "En cours",
+      "finished": "Terminés",
+      "abandoned": "Abandonnés"
+    },
+    "bookCount_one": "{{count}} livre",
+    "bookCount_other": "{{count}} livres",
+    "empty": {
+      "title": "Ta bibliothèque est encore vide",
+      "description": "Découvre des livres et ajoute ceux que tu veux garder près de toi.",
+      "cta": "Découvrir des livres"
+    },
+    "panel": {
+      "emptyTitle": "Aucun livre trouvé",
+      "emptySearch": "Essaie une autre recherche ou un autre filtre.",
+      "emptyFilter": "Aucun livre dans cette catégorie."
+    },
+    "unknownDate": "Date inconnue"
+  },
+  "collectionsPage": {
+    "title": "Mes collections",
+    "subtitle": "Des piles de livres rangées à ta façon.",
+    "newCollection": "Nouvelle collection",
+    "loading": "Chargement de tes collections...",
+    "loadError": "Impossible de charger tes collections pour le moment.",
+    "createError": "Impossible de créer cette collection pour le moment.",
+    "deleteError": "Impossible de supprimer cette collection pour le moment.",
+    "updateError": "Impossible de modifier cette collection pour le moment.",
+    "pinError": "Impossible de mettre à jour cette collection pour le moment.",
+    "empty": {
+      "title": "Aucune collection pour le moment",
+      "description": "Crée une première collection pour regrouper tes envies, tes coups de coeur ou tes lectures à venir.",
+      "cta": "Créer ma première collection →"
+    },
+    "card": {
+      "open": "Ouvrir la collection {{name}}",
+      "bookCount_one": "{{count}} livre",
+      "bookCount_other": "{{count}} livres",
+      "pinned": "Épinglée",
+      "emptyPreview": "aucun livre pour le moment",
+      "actions": "Actions pour {{name}}",
+      "pin": "Épingler",
+      "unpin": "Désépingler",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "coverFallback": "Livre sans couverture"
+    },
+    "form": {
+      "nameRequired": "Donne un nom à ta collection.",
+      "newTitle": "Nouvelle collection",
+      "editTitle": "Modifier la collection",
+      "namePlaceholder": "Lectures d'automne",
+      "icon": "Icône",
+      "descriptionPlaceholder": "Une note douce pour retrouver cette pile plus tard...",
+      "creating": "Création...",
+      "createSubmit": "Créer la collection"
+    },
+    "deleteModal": {
+      "title": "Supprimer la collection",
+      "body": "Tu vas supprimer la collection {{name}}. Les livres qu'elle contient resteront dans Ma bibliothèque."
+    }
+  },
+  "collectionPage": {
+    "loading": "Chargement de la collection...",
+    "loadError": "Impossible de charger cette collection pour le moment.",
+    "notFoundTitle": "Collection introuvable",
+    "notFoundDescription": "Elle a peut-être été supprimée ou déplacée.",
+    "backToCollections": "Retour aux collections",
+    "bookCount_one": "{{count}} livre",
+    "bookCount_other": "{{count}} livres",
+    "addBooks": "Ajouter des livres",
+    "actions": "Actions de collection",
+    "edit": "Modifier la collection",
+    "clear": "Vider la collection",
+    "updateError": "Impossible de modifier cette collection pour le moment.",
+    "removeError": "Impossible de retirer ce livre de la collection pour le moment.",
+    "clearError": "Impossible de vider cette collection pour le moment.",
+    "empty": {
+      "title": "Cette collection est encore vide",
+      "description": "Ajoute quelques livres pour commencer à remplir cette collection."
+    },
+    "bookCard": {
+      "remove": "Retirer de la collection"
+    },
+    "booksModal": {
+      "title": "Ajouter des livres",
+      "searchPlaceholder": "Rechercher un livre ou un auteur...",
+      "emptyLibraryTitle": "Ta bibliothèque est vide",
+      "emptyLibraryDescription": "Ajoute d'abord des livres à Ma bibliothèque pour les ranger dans une collection.",
+      "saveError": "Impossible de modifier les livres de cette collection pour le moment.",
+      "emptySearch": "Aucun livre trouvé."
+    },
+    "removeModal": {
+      "fallbackTitle": "Ce livre",
+      "title": "Retirer de la collection ?",
+      "body": "« {{title}} » sera retiré de cette collection. Il restera dans Ma bibliothèque.",
+      "removing": "Retrait...",
+      "remove": "Retirer"
+    },
+    "clearModal": {
+      "title": "Vider cette collection ?",
+      "message_one": "Le livre sera retiré de cette collection.",
+      "message_other": "Les {{count}} livres seront retirés de cette collection.",
+      "suffix": "Ils resteront dans Ma bibliothèque.",
+      "clearing": "Vidage en cours...",
+      "clear": "Vider la collection"
+    },
+    "bookCollectionsModal": {
+      "title": "Ajouter à une collection ♡",
+      "loading": "Chargement des collections...",
+      "loadError": "Impossible de charger tes collections pour le moment.",
+      "saveError": "Impossible de modifier les collections pour le moment.",
+      "emptyTitle": "Aucune collection pour le moment",
+      "emptyDescription": "Crée une collection depuis la page Collections pour y ranger ce livre."
+    }
+  },
+  "collectionIcons": {
+    "library": "Bibliothèque",
+    "book": "Livres",
+    "book-marked": "Sélection",
+    "bookmark": "À garder",
+    "heart": "Coup de cœur",
+    "book-heart": "Livres aimés",
+    "star": "Favoris",
+    "sparkles": "Pépites",
+    "crown": "Royauté",
+    "gem": "Trésors",
+    "thumbs-down": "Déceptions",
+    "heart-crack": "Cœurs brisés",
+    "alert": "À éviter",
+    "skull": "Catastrophes",
+    "moon": "Lectures du soir",
+    "sun": "Lectures lumineuses",
+    "flower": "Cozy",
+    "clover": "Porte-bonheur",
+    "coffee": "Détente",
+    "cake": "Douceur",
+    "rainbow": "Feel good",
+    "wand": "Fantasy",
+    "castle": "Imaginaire",
+    "ghost": "Spooky",
+    "flame": "Intense",
+    "zap": "Addictif",
+    "feather": "Littérature",
+    "glasses": "Classiques",
+    "lightbulb": "À réfléchir",
+    "music": "Musique",
+    "paw": "Animaux",
+    "trees": "Nature",
+    "shell": "Évasion",
+    "plane": "Voyage",
+    "telescope": "Exploration",
+    "rocket": "Science-fiction"
   },
   "language": {
     "applicationLanguage": "Langue de l'application",

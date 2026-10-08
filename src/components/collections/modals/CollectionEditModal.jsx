@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   COLLECTION_ICONS,
@@ -14,6 +15,7 @@ function CollectionEditModal({
   onClose,
   onSave,
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState(DEFAULT_COLLECTION_ICON)
@@ -44,7 +46,7 @@ function CollectionEditModal({
     const trimmedName = name.trim()
 
     if (!trimmedName) {
-      setFormError('Donne un nom à ta collection.')
+      setFormError(t('collectionsPage.form.nameRequired'))
       return
     }
 
@@ -61,12 +63,12 @@ function CollectionEditModal({
     <Modal
       isOpen={Boolean(collection)}
       onClose={handleClose}
-      title="Modifier la collection"
+      title={t('collectionsPage.form.editTitle')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="edit-collection-name"
-          label="Nom"
+          label={t('common.name')}
           value={name}
           onChange={(event) => {
             setName(event.target.value)
@@ -75,7 +77,7 @@ function CollectionEditModal({
               setFormError('')
             }
           }}
-          placeholder="Lectures d'automne"
+          placeholder={t('collectionsPage.form.namePlaceholder')}
           autoFocus
           disabled={isSaving}
           required
@@ -83,7 +85,7 @@ function CollectionEditModal({
 
         <fieldset className="flex flex-col gap-2">
           <legend className="font-ui text-sm text-darkwood">
-            Icône
+            {t('collectionsPage.form.icon')}
           </legend>
 
           <div
@@ -102,9 +104,9 @@ function CollectionEditModal({
                   type="button"
                   onClick={() => setIcon(option.id)}
                   disabled={isSaving}
-                  aria-label={option.label}
+                  aria-label={t(`collectionIcons.${option.id}`)}
                   aria-pressed={isSelected}
-                  title={option.label}
+                  title={t(`collectionIcons.${option.id}`)}
                   className={`
                     flex aspect-square w-full
                     cursor-pointer items-center
@@ -150,7 +152,7 @@ function CollectionEditModal({
             htmlFor="edit-collection-description"
             className="font-ui text-sm text-darkwood"
           >
-            Description
+            {t('common.description')}
           </label>
 
           <textarea
@@ -159,7 +161,7 @@ function CollectionEditModal({
             onChange={(event) =>
               setDescription(event.target.value)
             }
-            placeholder="Une note douce pour retrouver cette pile plus tard..."
+            placeholder={t('collectionsPage.form.descriptionPlaceholder')}
             rows={4}
             disabled={isSaving}
             className="
@@ -190,7 +192,7 @@ function CollectionEditModal({
             onClick={handleClose}
             disabled={isSaving}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -201,7 +203,7 @@ function CollectionEditModal({
               disabled:opacity-60
             "
           >
-            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+            {isSaving ? t('common.saving') : t('common.save')}
           </Button>
         </div>
       </form>

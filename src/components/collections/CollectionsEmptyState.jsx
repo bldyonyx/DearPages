@@ -1,6 +1,10 @@
+import { useTranslation } from 'react-i18next'
+
 import { collectionsLarge } from './collectionsResponsive.js'
 
 function CollectionsEmptyState({ onCreateCollection }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -22,7 +26,7 @@ function CollectionsEmptyState({ onCreateCollection }) {
           ${collectionsLarge.cardTitle}
         `}
       >
-        Aucune collection pour le moment
+        {t('collectionsPage.empty.title')}
       </p>
 
       <p
@@ -34,8 +38,7 @@ function CollectionsEmptyState({ onCreateCollection }) {
           ${collectionsLarge.description}
         `}
       >
-        Crée une première collection pour regrouper tes
-        envies, tes coups de coeur ou tes lectures à venir.
+        {t('collectionsPage.empty.description')}
       </p>
 
       <button
@@ -51,7 +54,7 @@ function CollectionsEmptyState({ onCreateCollection }) {
           hover:opacity-70
         "
       >
-        Créer ma première collection →
+        {t('collectionsPage.empty.cta')}
       </button>
     </section>
   )

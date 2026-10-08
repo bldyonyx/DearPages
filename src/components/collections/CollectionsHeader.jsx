@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import HeaderActions from '../layout/HeaderActions.jsx'
 import { collectionsLarge } from './collectionsResponsive.js'
@@ -7,6 +8,8 @@ function CollectionsHeader({
   user,
   onCreateCollection,
 }) {
+  const { t } = useTranslation()
+
   return (
     <header className={`dp-page-enter py-4 ${collectionsLarge.headerTop}`}>
       <div
@@ -22,7 +25,7 @@ function CollectionsHeader({
               ${collectionsLarge.pageTitle}
             `}
           >
-            Mes collections
+            {t('collectionsPage.title')}
           </h1>
 
           <p
@@ -32,7 +35,7 @@ function CollectionsHeader({
               ${collectionsLarge.pageDescription}
             `}
           >
-            Des piles de livres rangées à ta façon.
+            {t('collectionsPage.subtitle')}
           </p>
         </div>
 
@@ -74,7 +77,7 @@ function CollectionsHeader({
                 strokeWidth={1.8}
               />
 
-              <span>Nouvelle collection</span>
+              <span>{t('collectionsPage.newCollection')}</span>
             </button>
           </div>
         </div>

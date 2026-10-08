@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   COLLECTION_ICONS,
@@ -14,6 +15,7 @@ function CollectionCreateModal({
   onCreate,
   isSubmitting,
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState(DEFAULT_COLLECTION_ICON)
@@ -41,7 +43,7 @@ function CollectionCreateModal({
     const trimmedName = name.trim()
 
     if (!trimmedName) {
-      setFormError('Donne un nom à ta collection.')
+      setFormError(t('collectionsPage.form.nameRequired'))
       return
     }
 
@@ -62,12 +64,12 @@ function CollectionCreateModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Nouvelle collection"
+      title={t('collectionsPage.form.newTitle')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="collection-name"
-          label="Nom"
+          label={t('common.name')}
           value={name}
           onChange={(event) => {
             setName(event.target.value)
@@ -76,7 +78,7 @@ function CollectionCreateModal({
               setFormError('')
             }
           }}
-          placeholder="Lectures d'automne"
+          placeholder={t('collectionsPage.form.namePlaceholder')}
           autoFocus
           disabled={isSubmitting}
           required
@@ -84,7 +86,7 @@ function CollectionCreateModal({
 
         <fieldset className="flex flex-col gap-2">
           <legend className="font-ui text-sm text-darkwood">
-            Icône
+            {t('collectionsPage.form.icon')}
           </legend>
 
           <div
@@ -103,9 +105,9 @@ function CollectionCreateModal({
                   type="button"
                   onClick={() => setIcon(option.id)}
                   disabled={isSubmitting}
-                  aria-label={option.label}
+                  aria-label={t(`collectionIcons.${option.id}`)}
                   aria-pressed={isSelected}
-                  title={option.label}
+                  title={t(`collectionIcons.${option.id}`)}
                   className={`
                     flex aspect-square w-full
                     cursor-pointer items-center
@@ -151,7 +153,7 @@ function CollectionCreateModal({
             htmlFor="collection-description"
             className="font-ui text-sm text-darkwood"
           >
-            Description
+            {t('common.description')}
           </label>
 
           <textarea
@@ -160,7 +162,7 @@ function CollectionCreateModal({
             onChange={(event) =>
               setDescription(event.target.value)
             }
-            placeholder="Une note douce pour retrouver cette pile plus tard..."
+            placeholder={t('collectionsPage.form.descriptionPlaceholder')}
             rows={4}
             disabled={isSubmitting}
             className="
@@ -191,7 +193,7 @@ function CollectionCreateModal({
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -203,8 +205,8 @@ function CollectionCreateModal({
             "
           >
             {isSubmitting
-              ? 'Création...'
-              : 'Créer la collection'}
+              ? t('collectionsPage.form.creating')
+              : t('collectionsPage.form.createSubmit')}
           </Button>
         </div>
       </form>

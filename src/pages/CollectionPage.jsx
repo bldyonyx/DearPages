@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import CollectionBooksGrid from '../components/collections/CollectionBooksGrid.jsx'
@@ -18,6 +19,7 @@ function getBookId(book) {
 }
 
 function CollectionPage() {
+  const { t } = useTranslation()
   const {
     user,
 
@@ -87,7 +89,7 @@ function CollectionPage() {
             ${collectionPageLarge.panel}
           `}
         >
-          <LoadingState message="Chargement de la collection..." />
+          <LoadingState message={t('collectionPage.loading')} />
         </section>
       </div>
     )
@@ -139,7 +141,7 @@ function CollectionPage() {
               ${collectionPageLarge.emptyTitle}
             `}
           >
-            Collection introuvable
+            {t('collectionPage.notFoundTitle')}
           </p>
 
           <p
@@ -150,7 +152,7 @@ function CollectionPage() {
               ${collectionPageLarge.text}
             `}
           >
-            Elle a peut-être été supprimée ou déplacée.
+            {t('collectionPage.notFoundDescription')}
           </p>
 
           <Link
@@ -172,7 +174,7 @@ function CollectionPage() {
               aria-hidden="true"
             />
 
-            Retour aux collections
+            {t('collectionPage.backToCollections')}
           </Link>
         </section>
       </div>

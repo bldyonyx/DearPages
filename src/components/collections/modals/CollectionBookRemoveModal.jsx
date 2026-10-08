@@ -1,4 +1,5 @@
 import { BookMinus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import Button from '../../ui/Button.jsx'
 import Modal from '../../ui/Modal.jsx'
@@ -9,21 +10,21 @@ function CollectionBookRemoveModal({
   onClose,
   onRemove,
 }) {
-  const bookTitle = book?.title || 'Ce livre'
+  const { t } = useTranslation()
+  const bookTitle =
+    book?.title || t('collectionPage.removeModal.fallbackTitle')
 
   return (
     <Modal
       isOpen={Boolean(book)}
       onClose={isRemoving ? () => {} : onClose}
-      title="Retirer de la collection ?"
+      title={t('collectionPage.removeModal.title')}
     >
       <div className="space-y-4">
         <p className="font-ui text-sm leading-6 text-darkwood/70">
-          <span className="font-bold text-darkwood">
-            « {bookTitle} »
-          </span>{' '}
-          sera retiré de cette collection. Il restera dans Ma
-          bibliothèque.
+          {t('collectionPage.removeModal.body', {
+            title: bookTitle,
+          })}
         </p>
 
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
@@ -33,7 +34,7 @@ function CollectionBookRemoveModal({
             onClick={onClose}
             disabled={isRemoving}
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -53,7 +54,9 @@ function CollectionBookRemoveModal({
               strokeWidth={1.8}
               aria-hidden="true"
             />
-            {isRemoving ? 'Retrait...' : 'Retirer'}
+            {isRemoving
+              ? t('collectionPage.removeModal.removing')
+              : t('collectionPage.removeModal.remove')}
           </Button>
         </div>
       </div>
