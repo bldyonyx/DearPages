@@ -54,7 +54,7 @@ function ReadingGoal({
       to="/library?status=finished"
       aria-label="Voir les livres terminés"
       className={`
-        block h-full
+        flex h-full flex-col
         rounded-3xl
         border border-darkwood/10
         bg-cream/80
@@ -69,37 +69,43 @@ function ReadingGoal({
         ${dashboardLarge.card}
       `}
     >
-      <h2
-        className={`
-          font-heading text-2xl font-bold text-darkwood
-          ${dashboardLarge.title}
-        `}
-      >
-        Objectif de lecture
-      </h2>
+      {/* En-tête */}
+      <div className="shrink-0">
+        <h2
+          className={`
+            font-heading text-2xl font-bold text-darkwood
+            ${dashboardLarge.title}
+          `}
+        >
+          Objectif de lecture
+        </h2>
 
-      <p
-        className={`
-          mt-1 font-ui text-sm text-darkwood/60
-          ${dashboardLarge.description}
-        `}
-      >
-        Ta progression cette année.
-      </p>
+        <p
+          className={`
+            mt-1 font-ui text-sm text-darkwood/60
+            ${dashboardLarge.description}
+          `}
+        >
+          Ta progression cette année.
+        </p>
+      </div>
 
+      {/* Progression centrée dans l'espace restant */}
       <div
         className={`
-          mt-4 flex flex-col items-center justify-center
-          sm:mt-6
+          flex flex-1 flex-col items-center justify-center
+          gap-4 py-6
+          sm:gap-5
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:gap-6
+          [@media_(min-width:2200px)_and_(min-height:1100px)]:py-8
+          [@media_(min-width:2400px)_and_(min-height:1300px)]:gap-8
           ${dashboardLarge.stackGap}
-          [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-8
-          [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-10
         `}
       >
         {/* Cercle de progression */}
         <div
           className="
-            relative h-36 w-36
+            relative h-36 w-36 shrink-0
             sm:h-48 sm:w-48
             [@media_(min-width:2200px)_and_(min-height:1100px)]:h-56
             [@media_(min-width:2200px)_and_(min-height:1100px)]:w-56
@@ -163,7 +169,8 @@ function ReadingGoal({
           </div>
         </div>
 
-        <p className="mt-4 text-center font-ui text-xs text-darkwood/60 sm:mt-5 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:mt-6 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg [@media_(min-width:2400px)_and_(min-height:1300px)]:mt-8">
+        {/* Livres terminés */}
+        <p className="text-center font-ui text-xs text-darkwood/60 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg">
           {completedBooks} livre{completedBooks > 1 ? 's' : ''}{' '}
           terminé{completedBooks > 1 ? 's' : ''} cette année
         </p>
