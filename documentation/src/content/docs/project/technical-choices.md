@@ -84,6 +84,27 @@ Il permet notamment d'utiliser :
 
 Les pages principales partagent `PageLayout`, tandis que les pages d'authentification utilisent une structure différente.
 
+## i18next et react-i18next
+
+**i18next** et **react-i18next** sont utilisés pour rendre l'interface disponible en français et en anglais.
+
+La configuration se trouve dans :
+
+```text
+src/i18n/index.js
+```
+
+Elle charge les ressources :
+
+```text
+src/i18n/locales/fr.json
+src/i18n/locales/en.json
+```
+
+Les composants utilisent `useTranslation` pour récupérer les libellés avec `t(...)` et accéder à `i18n.changeLanguage(...)` lorsque l'utilisateur change de langue.
+
+Le choix est conservé dans `localStorage` afin de rester disponible avant authentification. Une fois l'utilisateur connecté, la langue peut aussi être synchronisée avec ses préférences Firebase.
+
 ## Google Books API
 
 **Google Books API** est utilisée comme source externe principale pour les informations publiques concernant les livres.
@@ -120,7 +141,7 @@ Open Library ne remplace pas Google Books : les deux services fournissent des do
 
 **Google Cloud Translation API** est utilisée pour traduire certains contenus provenant des sources de livres.
 
-Elle est notamment utilisée pour les **résumés des livres** lorsqu'un résumé en anglais doit être présenté en français.
+Elle est notamment utilisée pour les **résumés des livres** lorsqu'un résumé doit être présenté dans la langue active de l'interface.
 
 Le service de traduction est isolé dans un service dédié afin de séparer les appels à l'API de l'interface React.
 
@@ -165,9 +186,10 @@ Firebase Authentication est utilisé pour :
 - la déconnexion ;
 - la suppression du compte.
 
-Cloud Firestore est utilisé pour enregistrer notamment :
+Firebase Realtime Database est utilisé pour enregistrer notamment :
 
 - les préférences de lecture ;
+- la langue préférée ;
 - la bibliothèque personnelle ;
 - les statuts de lecture ;
 - les collections ;
@@ -273,10 +295,11 @@ L'ensemble de ces choix peut être résumé ainsi :
 | React Router | Navigation |
 | Google Books API | Recherche et informations publiques des livres |
 | Open Library | Tendances et certaines couvertures |
-| Google Cloud Translation API | Traduction des résumés |
+| Google Cloud Translation API | Traduction des résumés vers la langue active |
+| i18next / react-i18next | Interface bilingue français / anglais |
 | `sessionStorage` | Persistance temporaire de certaines recommandations |
 | Firebase Authentication | Comptes et authentification |
-| Cloud Firestore | Données personnelles persistantes |
+| Firebase Realtime Database | Données personnelles persistantes |
 | Firebase Hosting | Hébergement de l'application et de la documentation |
 | GitHub Actions | Automatisation du déploiement |
 | Vitest | Tests automatisés |

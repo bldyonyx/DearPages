@@ -9,6 +9,50 @@ La traduction est volontairement **ciblée** : Dear Pages ne traduit pas automat
 
 Cette approche permet de conserver les informations bibliographiques dans leur forme d'origine tout en rendant certains contenus textuels plus accessibles.
 
+Dear Pages utilise aussi **i18next** et **react-i18next** pour l'interface bilingue français / anglais. Cette traduction de l'interface est séparée de la traduction dynamique des résumés de livres.
+
+## Interface bilingue
+
+Les textes de l'interface sont organisés dans deux fichiers de ressources :
+
+```text
+src/i18n/locales/fr.json
+src/i18n/locales/en.json
+```
+
+La configuration principale se trouve dans :
+
+```text
+src/i18n/index.js
+```
+
+Elle initialise i18next avec `initReactI18next`, déclare les langues supportées `fr` et `en`, puis charge les deux ressources sous le namespace `translation`.
+
+Les composants React utilisent ensuite `useTranslation` pour accéder à :
+
+- `t(...)`, qui retourne le libellé correspondant à la langue active ;
+- `i18n.language`, qui donne la langue courante ;
+- `i18n.changeLanguage(...)`, utilisé par les sélecteurs de langue.
+
+La langue par défaut est le français.
+
+## Changement de langue
+
+Le changement de langue est disponible à deux endroits principaux :
+
+- sur les écrans Login et Sign Up, via le sélecteur intégré au layout d'authentification ;
+- dans la page **Paramètres**, via la carte dédiée à la langue de l'application.
+
+Avant authentification, le choix est conservé dans `localStorage` avec la clé :
+
+```text
+dearpages:language
+```
+
+Après authentification, la langue peut aussi être synchronisée avec les préférences Firebase de l'utilisateur. Lorsqu'un compte est créé, la langue active est enregistrée dans les préférences initiales. Lorsqu'un utilisateur connecté charge l'application, la langue stockée dans ses préférences est appliquée si elle fait partie des langues supportées.
+
+Depuis les paramètres, changer de langue modifie immédiatement l'interface et enregistre la nouvelle valeur dans les préférences Firebase.
+
 ## Service de traduction
 
 La traduction est isolée dans un service dédié :
@@ -78,7 +122,7 @@ La langue source est donc facultative au niveau du service.
 
 ## Traduction des résumés
 
-La traduction est principalement utilisée sur la fiche d'un livre pour les **résumés disponibles en anglais**.
+La traduction dynamique est principalement utilisée sur la fiche d'un livre pour les **résumés disponibles dans une autre langue que celle de l'interface**.
 
 Le comportement est géré par le hook de traduction associé aux données du livre.
 
@@ -89,7 +133,7 @@ Résumé du livre
       ↓
 Détection de la langue
       ↓
-Résumé en anglais ?
+Langue différente de l'interface ?
       │
    ┌──┴──┐
    │     │
@@ -99,12 +143,12 @@ Résumé en anglais ?
    │  Google Cloud Translation
    │     │
    │     ▼
-   │  Traduction française
+   │  Traduction FR ou EN
    │     │
    └─────┴─────→ Affichage du résumé
 ```
 
-La langue cible utilisée par Dear Pages pour cette traduction est le français.
+La langue cible utilisée par Dear Pages correspond à la langue active de l'interface lorsque celle-ci est supportée pour les résumés : français ou anglais.
 
 Si le résumé n'a pas besoin d'être traduit, le texte original peut être utilisé directement sans effectuer de requête vers Google Cloud Translation.
 
@@ -114,7 +158,11 @@ Avant de demander une traduction, Dear Pages détermine si le résumé doit rée
 
 Cette vérification évite notamment d'envoyer inutilement à l'API un résumé déjà disponible dans la langue cible.
 
-Lorsque les informations du livre permettent de connaître la langue du contenu, elles peuvent être utilisées pour cette décision.
+Lorsque les informations du livre permettent de connaître la langue du contenu, elles sont utilisées en priorité pour cette décision.
+
+Si aucune langue fiable n'est fournie par les métadonnées, Dear Pages applique une heuristique légère sur le texte du résumé. Elle cherche notamment des mots fréquents en français ou en anglais et prend en compte certains accents français. Les résumés trop courts ou ambigus restent en langue `unknown`.
+
+Dans ce cas, la traduction peut tout de même être demandée : Dear Pages n'envoie alors pas de langue source explicite à Google Cloud Translation afin de laisser le fournisseur faire l'auto-détection.
 
 La logique de traduction reste ainsi séparée de l'affichage du composant.
 
@@ -122,7 +170,9 @@ La logique de traduction reste ainsi séparée de l'affichage du composant.
 
 Les traductions déjà obtenues peuvent être conservées temporairement pendant la session.
 
-Le cache utilise l'identité du livre ainsi que le résumé source afin d'associer une traduction au contenu correspondant.
+Le cache utilise l'identité du livre, la source du catalogue, la langue source, la langue cible et le résumé source afin d'associer une traduction au contenu correspondant.
+
+La clé de cache inclut un hash du résumé exact. Si le texte source change, l'ancienne traduction n'est donc pas réutilisée pour un autre contenu.
 
 Cela permet d'éviter de répéter une requête de traduction lorsque le même résumé a déjà été traduit pendant la session.
 

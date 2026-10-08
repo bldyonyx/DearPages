@@ -31,6 +31,7 @@ Un livre Google Books possède notamment la structure suivante :
   description: 'Description du livre',
   categories: ['Fantasy'],
   publishedDate: '2026',
+  language: 'fr',
 }
 ```
 
@@ -48,6 +49,7 @@ Un livre Google Books possède notamment la structure suivante :
 | `description` | `string` | Description du livre |
 | `categories` | `string[]` | Catégories associées au livre |
 | `publishedDate` | `string` | Date de publication fournie par Google Books |
+| `language` | `string` | Langue du volume lorsqu'elle est fournie par Google Books |
 
 ## Livre Open Library
 
@@ -191,6 +193,7 @@ Elles comprennent notamment :
 
 - les genres préférés ;
 - l'objectif annuel de lecture ;
+- la langue d'interface préférée ;
 - l'état de complétion de l'onboarding.
 
 Ces préférences sont utilisées par différentes parties de l'application, notamment les recommandations personnalisées.

@@ -7,6 +7,8 @@ Dear Pages est une application personnelle de suivi de lecture conçue pour perm
 
 L'application est pensée comme un espace **privé et personnel** : la bibliothèque, les notes, les avis, les collections, les préférences et les informations de lecture sont associées au compte de l'utilisateur.
 
+L'interface est disponible en **français** et en **anglais**. La langue peut être changée depuis les écrans Login et Sign Up avant connexion, puis depuis les paramètres une fois l'utilisateur connecté.
+
 ## Tableau de bord
 
 Le tableau de bord donne un aperçu personnalisé de l'activité de lecture.
@@ -92,7 +94,7 @@ La fiche peut notamment présenter :
 - les catégories ;
 - le résumé.
 
-Lorsqu'un résumé est disponible en anglais, Dear Pages peut proposer sa traduction en français à l'aide de Google Cloud Translation.
+Lorsqu'un résumé est disponible dans une langue différente de celle de l'interface, Dear Pages peut proposer sa traduction vers le français ou l'anglais à l'aide de Google Cloud Translation.
 
 La fiche constitue également le point central des actions personnelles liées au livre.
 
@@ -149,6 +151,7 @@ L'application permet notamment :
 - de créer un compte avec une adresse e-mail et un mot de passe ;
 - de se connecter avec une adresse e-mail et un mot de passe ;
 - de continuer avec Google ;
+- de choisir la langue de l'interface avant la connexion ou l'inscription ;
 - de se déconnecter ;
 - de supprimer son compte avec confirmation.
 
@@ -177,6 +180,7 @@ La page **Paramètres** permet de retrouver les informations principales liées 
 Elle permet notamment de :
 
 - consulter les informations du profil ;
+- modifier la langue de l'interface ;
 - modifier les genres préférés ;
 - modifier l'objectif annuel de lecture ;
 - se déconnecter ;

@@ -12,7 +12,7 @@ Contrairement à Google Books et Open Library, qui fournissent les informations 
 Firebase intervient principalement dans trois parties de Dear Pages :
 
 - **Firebase Authentication** pour créer, connecter et identifier les utilisateurs ;
-- **Cloud Firestore** pour conserver leurs données personnelles ;
+- **Firebase Realtime Database** pour conserver leurs données personnelles ;
 - **Firebase Hosting** pour héberger l'application et sa documentation.
 
 Les informations bibliographiques des livres continuent à provenir de Google Books et Open Library.
@@ -70,9 +70,9 @@ Lorsqu'un utilisateur utilise cette méthode, Firebase fournit les informations 
 
 Ces informations sont ensuite utilisées par Dear Pages pour identifier l'utilisateur et afficher les informations de profil disponibles.
 
-## Cloud Firestore
+## Firebase Realtime Database
 
-**Cloud Firestore** constitue la base de données utilisée par Dear Pages pour les informations propres aux utilisateurs.
+**Firebase Realtime Database** constitue la base de données utilisée par Dear Pages pour les informations propres aux utilisateurs.
 
 Les données sont organisées de manière à être associées à l'identifiant Firebase du compte concerné.
 
@@ -98,6 +98,7 @@ Elles comprennent notamment :
 
 - les genres préférés ;
 - l'objectif annuel de lecture.
+- la langue préférée de l'interface.
 
 Ces informations sont utilisées par Dear Pages pour personnaliser certaines parties de l'application, notamment :
 
@@ -106,9 +107,16 @@ Ces informations sont utilisées par Dear Pages pour personnaliser certaines par
 
 Elles peuvent être définies pendant l'onboarding puis modifiées depuis la page **Paramètres**.
 
+La langue suit le même principe :
+
+- avant authentification, le choix effectué depuis Login ou Sign Up est conservé localement par i18next ;
+- lors de la création d'un compte e-mail ou Google, cette langue est enregistrée dans les préférences Firebase initiales ;
+- lorsqu'un utilisateur connecté revient dans l'application, la langue stockée dans ses préférences est appliquée si elle est supportée ;
+- depuis **Paramètres**, le changement de langue met à jour l'interface et enregistre aussi la nouvelle valeur dans Firebase.
+
 ## Bibliothèque
 
-La bibliothèque personnelle utilise les données utilisateur enregistrées dans Cloud Firestore.
+La bibliothèque personnelle utilise les données utilisateur enregistrées dans Firebase Realtime Database.
 
 Elle permet notamment de conserver :
 
@@ -124,7 +132,7 @@ Cela permet par exemple à deux utilisateurs d'avoir le même livre dans leur bi
 
 ## Collections
 
-Les collections sont également des données personnelles enregistrées dans Firestore.
+Les collections sont également des données personnelles enregistrées dans Firebase Realtime Database.
 
 Elles permettent à chaque utilisateur de créer ses propres regroupements de livres indépendamment de leur statut de lecture.
 
@@ -191,11 +199,11 @@ Google Books / Open Library
      ┌────┴────┐
      │         │
      ▼         ▼
-Interface   Firebase
+   Interface   Firebase
 React          │
                ├── Authentication
                │
-               └── Cloud Firestore
+               └── Realtime Database
                     ├── Préférences
                     ├── Bibliothèque
                     ├── Collections
@@ -208,7 +216,7 @@ Les différentes sources ont donc des responsabilités distinctes :
 
 **Firebase Authentication identifie l'utilisateur.**
 
-**Cloud Firestore conserve les données propres à l'utilisateur et sa relation avec les livres.**
+**Firebase Realtime Database conserve les données propres à l'utilisateur et sa relation avec les livres.**
 
 ## Suppression du compte
 
@@ -269,6 +277,7 @@ Il prend en charge :
 - l'authentification ;
 - les sessions utilisateur ;
 - les préférences de lecture ;
+- la préférence de langue ;
 - la bibliothèque ;
 - les statuts de lecture ;
 - les collections ;

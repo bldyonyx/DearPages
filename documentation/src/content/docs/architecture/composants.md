@@ -12,6 +12,7 @@ L'architecture sépare les responsabilités entre plusieurs niveaux :
 - les **hooks** centralisent certains états et chargements ;
 - le **contexte React** partage l'authentification et les préférences ;
 - les **services** communiquent avec Firebase et les API externes ;
+- i18next et react-i18next fournissent les textes de l'interface dans la langue active ;
 - les **utilitaires** isolent la logique réutilisable.
 
 ## Organisation des composants
@@ -81,6 +82,14 @@ Lorsqu'un identifiant est disponible, la carte peut permettre d'accéder à :
 ```
 
 Sa mise en page reste suffisamment flexible pour être utilisée dans différents conteneurs et différentes tailles d'écran.
+
+### `BookDescriptionSection`
+
+`BookDescriptionSection` affiche le résumé disponible pour la fiche d'un livre.
+
+Il s'appuie sur `useBookDescriptionTranslation` pour proposer une traduction lorsque la langue détectée du résumé est différente de la langue de l'interface.
+
+Le composant ne communique pas directement avec Google Cloud Translation : il reçoit l'état de traduction, le texte à afficher, le libellé de l'action et les erreurs éventuelles depuis le hook.
 
 ## Page Découvrir
 
@@ -255,6 +264,8 @@ contient les composants liés au parcours d'authentification et à la protection
 
 Il comprend notamment la mise en page commune des écrans d'authentification ainsi que les composants chargés de contrôler l'accès aux différentes parties de l'application.
 
+`AuthLayout` intègre le sélecteur de langue utilisé sur Login et Sign Up. Ce sélecteur permet de changer l'interface avant authentification et s'appuie sur la persistance locale d'i18next.
+
 `ProtectedRoute` protège les pages nécessitant un utilisateur connecté et gère également le passage obligatoire par l'onboarding lorsque celui-ci n'est pas terminé.
 
 `PublicOnlyRoute` encadre les pages destinées aux utilisateurs non connectés, comme Login et Sign Up.
@@ -272,12 +283,15 @@ Cette séparation permet à `Settings.jsx` de coordonner la page sans contenir t
 Les différentes cartes prennent notamment en charge :
 
 - le profil ;
+- la langue de l'application ;
 - les préférences de lecture ;
 - les actions liées au compte ;
 - la suppression du compte ;
 - les informations et liens liés au projet.
 
 La page donne également accès à la documentation Dear Pages et au dépôt GitHub.
+
+`LanguageCard` réutilise le même sélecteur de langue que les écrans d'authentification, puis enregistre la langue choisie dans les préférences Firebase de l'utilisateur connecté.
 
 ## Composants de layout
 
@@ -319,7 +333,7 @@ Les **services** isolent notamment :
 - Google Books ;
 - Open Library ;
 - Firebase Authentication ;
-- Firestore ;
+- Firebase Realtime Database ;
 - les préférences ;
 - la bibliothèque ;
 - les collections ;
@@ -332,6 +346,8 @@ Les **utilitaires** regroupent les transformations et règles réutilisables, no
 - les couvertures ;
 - la normalisation des données ;
 - la déduplication ;
+- la détection de langue des descriptions ;
+- le cache de session des traductions de résumés ;
 - certaines optimisations de requêtes.
 
 Cette séparation permet de conserver une architecture claire :

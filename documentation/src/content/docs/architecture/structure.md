@@ -22,6 +22,7 @@ DearPages/
 │   ├── constants/
 │   ├── context/
 │   ├── hooks/
+│   ├── i18n/
 │   ├── pages/
 │   ├── services/
 │   ├── utils/
@@ -95,6 +96,24 @@ Les fonctionnalités de Découvrir utilisent notamment des hooks dédiés pour :
 - les recommandations personnalisées ;
 - la gestion des données affichées.
 
+La fiche d'un livre utilise également un hook dédié pour gérer l'état de traduction du résumé, la langue cible et le cache de session associé.
+
+## `src/i18n`
+
+Ce dossier contient la configuration bilingue de l'application.
+
+```text
+i18n/
+├── index.js
+└── locales/
+    ├── en.json
+    └── fr.json
+```
+
+`index.js` initialise i18next avec react-i18next, déclare les langues supportées et charge les ressources de traduction.
+
+Les fichiers `fr.json` et `en.json` contiennent les libellés de l'interface. Ils suivent la même organisation de clés afin que les composants puissent utiliser les mêmes appels `t(...)` quelle que soit la langue active.
+
 ## `src/pages`
 
 Ce dossier contient les composants utilisés directement par React Router pour représenter les différentes pages de l'application.
@@ -141,6 +160,7 @@ Les utilitaires servent notamment à :
 - sélectionner et dédupliquer des recommandations ;
 - gérer les couvertures et leurs fallbacks ;
 - éviter ou partager certaines requêtes identiques ;
+- détecter la langue des descriptions et construire les clés de cache des traductions ;
 - transformer les données avant leur utilisation dans l'interface.
 
 Ils permettent de garder les composants et les services plus simples.
@@ -163,7 +183,7 @@ Des composants dédiés contrôlent l'accès aux routes selon l'état d'authenti
 La configuration Firebase permet à Dear Pages d'utiliser :
 
 - Firebase Authentication ;
-- Cloud Firestore ;
+- Firebase Realtime Database ;
 - Firebase Hosting.
 
 Les données personnelles sont organisées par utilisateur afin d'isoler les bibliothèques, collections, préférences et informations de lecture.
