@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import {
   BookOpen,
@@ -18,10 +19,10 @@ import StatusBadge from '../ui/StatusBadge'
 import { dashboardLarge } from './dashboardResponsive.js'
 
 const statusOptions = [
-  { value: BOOK_STATUSES.TO_READ, label: 'À lire' },
-  { value: BOOK_STATUSES.READING, label: 'En cours' },
-  { value: BOOK_STATUSES.FINISHED, label: 'Terminé' },
-  { value: BOOK_STATUSES.ABANDONED, label: 'Abandonné' },
+  { value: BOOK_STATUSES.TO_READ, labelKey: 'status.to-read' },
+  { value: BOOK_STATUSES.READING, labelKey: 'status.reading' },
+  { value: BOOK_STATUSES.FINISHED, labelKey: 'status.finished' },
+  { value: BOOK_STATUSES.ABANDONED, labelKey: 'status.abandoned' },
 ]
 
 const AUTO_ROTATION_INTERVAL_MS = 5000
@@ -127,6 +128,7 @@ function CurrentlyReading({
   updatingBookId,
   onStatusChange,
 }) {
+  const { t } = useTranslation()
   const [activeIndex, setActiveIndex] = useState(0)
   const [isStatusOpen, setIsStatusOpen] = useState(false)
   const [statusError, setStatusError] = useState('')
@@ -205,7 +207,7 @@ function CurrentlyReading({
       setIsStatusOpen(false)
     } catch {
       setStatusError(
-        'Impossible de modifier ce statut pour le moment.'
+        t('dashboard.currentlyReading.statusError')
       )
     }
   }
@@ -232,7 +234,7 @@ function CurrentlyReading({
               ${dashboardLarge.title}
             `}
           >
-            Lecture en cours
+            {t('dashboard.currentlyReading.title')}
           </h2>
 
           <p
@@ -241,7 +243,7 @@ function CurrentlyReading({
               ${dashboardLarge.description}
             `}
           >
-            Aucun livre en cours pour le moment.
+            {t('dashboard.currentlyReading.emptySubtitle')}
           </p>
         </div>
 
@@ -288,7 +290,7 @@ function CurrentlyReading({
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg
             "
           >
-            Peut-être que ta prochaine lecture t’attend déjà ♡
+            {t('dashboard.currentlyReading.emptyMessage')}
           </p>
 
           <Link
@@ -316,7 +318,7 @@ function CurrentlyReading({
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
             "
           >
-            Trouver ma prochaine lecture
+            {t('dashboard.currentlyReading.findNext')}
           </Link>
         </div>
       </section>
@@ -340,7 +342,7 @@ function CurrentlyReading({
             ${dashboardLarge.title}
           `}
         >
-          Lecture en cours
+          {t('dashboard.currentlyReading.title')}
         </h2>
 
         <p
@@ -349,7 +351,7 @@ function CurrentlyReading({
             ${dashboardLarge.description}
           `}
         >
-          Les livres que tu lis en ce moment.
+          {t('dashboard.currentlyReading.subtitle')}
         </p>
       </div>
 
@@ -423,7 +425,10 @@ function CurrentlyReading({
                           : 1.5
                     }deg)`,
                   }}
-                  aria-label={`Afficher ${book.title}`}
+                  aria-label={t(
+                    'dashboard.currentlyReading.showBook',
+                    { title: book.title }
+                  )}
                   data-testid="current-reading-cover"
                   data-active={
                     isSelected ? 'true' : 'false'
@@ -501,7 +506,7 @@ function CurrentlyReading({
               "
             >
               {currentBook.authors?.join(', ') ||
-                'Auteur inconnu'}
+                t('dashboard.currentlyReading.unknownAuthor')}
             </p>
           </div>
 
@@ -538,7 +543,7 @@ function CurrentlyReading({
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
               "
             >
-              Voir la fiche
+              {t('dashboard.currentlyReading.viewDetails')}
             </Link>
 
             <div className="relative">
@@ -574,8 +579,8 @@ function CurrentlyReading({
               >
                 {updatingBookId ===
                 currentBook.googleBooksId
-                  ? 'Modification...'
-                  : 'Changer le statut'}
+                  ? t('dashboard.currentlyReading.updating')
+                  : t('common.changeStatus')}
               </button>
 
               {isStatusOpen && (
@@ -595,7 +600,7 @@ function CurrentlyReading({
                       }
                       className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10 disabled:cursor-wait disabled:opacity-60 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm"
                     >
-                      {status.label}
+                      {t(status.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -637,16 +642,18 @@ function CurrentlyReading({
                             : 'bg-darkwood/20 hover:bg-darkwood/40'
                         }
                       `}
-                      aria-label={`Sélectionner ${book.title}`}
+                      aria-label={t(
+                        'dashboard.currentlyReading.selectBook',
+                        { title: book.title }
+                      )}
                     />
                   ))}
                 </div>
 
                 <p className="font-ui text-xs text-darkwood/50 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm">
-                  {books.length}{' '}
-                  {books.length === 1
-                    ? 'lecture en cours'
-                    : 'lectures en cours'}
+                  {t('dashboard.currentlyReading.count', {
+                    count: books.length,
+                  })}
                 </p>
               </div>
 
@@ -668,7 +675,7 @@ function CurrentlyReading({
                     focus-visible:ring-2
                     focus-visible:ring-olive/30
                   "
-                  aria-label="Lecture précédente"
+                  aria-label={t('dashboard.currentlyReading.previous')}
                 >
                   <ChevronLeft
                     aria-hidden="true"
@@ -694,7 +701,7 @@ function CurrentlyReading({
                     focus-visible:ring-2
                     focus-visible:ring-olive/30
                   "
-                  aria-label="Lecture suivante"
+                  aria-label={t('dashboard.currentlyReading.next')}
                 >
                   <ChevronRight
                     aria-hidden="true"

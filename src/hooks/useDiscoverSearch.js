@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   getBookSuggestions,
   searchBooks,
@@ -16,6 +17,7 @@ import {
  * @returns {Object} Etat et handlers necessaires a l'experience de recherche.
  */
 function useDiscoverSearch(queryFromUrl, setSearchParams) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState(queryFromUrl)
   const [books, setBooks] = useState([])
   const [suggestions, setSuggestions] = useState([])
@@ -47,9 +49,9 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
         if (isActive) {
           setBooks(results)
         }
-      } catch (err) {
+      } catch {
         if (isActive) {
-          setError(err.message)
+          setError(t('discoverPage.search.error'))
           setBooks([])
         }
       } finally {
@@ -64,7 +66,7 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     return () => {
       isActive = false
     }
-  }, [queryFromUrl])
+  }, [queryFromUrl, t])
 
   useEffect(() => {
     let isActive = true

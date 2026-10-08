@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { dashboardLarge } from './dashboardResponsive.js'
@@ -7,6 +8,8 @@ function ReadingStats({
   currentlyReading,
   favoriteGenre,
 }) {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -24,7 +27,7 @@ function ReadingStats({
             ${dashboardLarge.title}
           `}
         >
-          Tes lectures
+          {t('dashboard.stats.title')}
         </h2>
 
         <p
@@ -33,7 +36,7 @@ function ReadingStats({
             ${dashboardLarge.description}
           `}
         >
-          Un petit aperçu de ta bibliothèque.
+          {t('dashboard.stats.subtitle')}
         </p>
       </div>
 
@@ -57,7 +60,7 @@ function ReadingStats({
           {/* Livres */}
           <Link
             to="/library"
-            aria-label="Voir toute ma bibliothèque"
+            aria-label={t('dashboard.stats.allLibraryAria')}
             className="
               group
               w-1/2 min-w-0
@@ -95,7 +98,7 @@ function ReadingStats({
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
               "
             >
-              livres
+              {t('dashboard.stats.books')}
             </p>
 
             <p
@@ -107,7 +110,7 @@ function ReadingStats({
                 [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
               "
             >
-              dans ta bibliothèque
+              {t('dashboard.stats.inLibrary')}
             </p>
           </Link>
 
@@ -120,7 +123,7 @@ function ReadingStats({
           >
             <Link
               to="/library?status=reading"
-              aria-label="Voir mes livres en cours"
+              aria-label={t('dashboard.stats.currentlyReadingAria')}
               className="
                 group
                 block w-full
@@ -158,7 +161,7 @@ function ReadingStats({
                   [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
                 "
               >
-                en cours
+                {t('dashboard.stats.inProgress')}
               </p>
 
               <p
@@ -170,7 +173,7 @@ function ReadingStats({
                   [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
                 "
               >
-                actuellement
+                {t('dashboard.stats.currently')}
               </p>
             </Link>
           </div>
@@ -209,7 +212,7 @@ function ReadingStats({
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
             "
           >
-            genre préféré
+            {t('dashboard.stats.favoriteGenre')}
           </p>
         </div>
       </div>

@@ -2,13 +2,145 @@
   "common": {
     "appName": "Dear Pages",
     "cancel": "Annuler",
+    "changeStatus": "Changer le statut",
+    "clearSearch": "Effacer la recherche",
     "error": "Une erreur est survenue.",
     "loading": "Chargement...",
     "retry": "Réessayer",
     "save": "Enregistrer",
+    "searchBook": "Rechercher un livre",
+    "searchShort": "Rechercher…",
     "settings": "Paramètres",
     "back": "Retour",
-    "backToTop": "Retour en haut"
+    "backToTop": "Retour en haut",
+    "unknownAuthor": "Auteur inconnu",
+    "viewBook": "Voir {{title}}"
+  },
+  "status": {
+    "to-read": "À lire",
+    "reading": "En cours",
+    "finished": "Terminé",
+    "abandoned": "Abandonné"
+  },
+  "genres": {
+    "fantasy": "Fantasy",
+    "romance": "Romance",
+    "mystery": "Mystère",
+    "thriller": "Thriller",
+    "crime": "Policier",
+    "horror": "Horreur",
+    "science fiction": "Science-fiction",
+    "adventure": "Aventure",
+    "young adult": "Young Adult",
+    "classics": "Classiques",
+    "history": "Histoire",
+    "biography": "Biographies",
+    "poetry": "Poésie",
+    "comics": "Bandes dessinées & mangas",
+    "self help": "Développement personnel",
+    "philosophy": "Philosophie",
+    "undefined": "Non défini"
+  },
+  "dashboard": {
+    "loading": "Chargement de ton dashboard...",
+    "loadError": "Impossible de charger ton dashboard pour le moment.",
+    "header": {
+      "greeting": "Bonjour, {{name}}",
+      "fallbackName": "lectrice",
+      "subtitle": "Voici un aperçu de tes lectures.",
+      "searchPlaceholder": "Rechercher un livre...",
+      "closeSearch": "Fermer la recherche"
+    },
+    "currentlyReading": {
+      "title": "Lecture en cours",
+      "emptySubtitle": "Aucun livre en cours pour le moment.",
+      "subtitle": "Les livres que tu lis en ce moment.",
+      "emptyMessage": "Peut-être que ta prochaine lecture t’attend déjà ♡",
+      "findNext": "Trouver ma prochaine lecture",
+      "unknownAuthor": "Auteur inconnu",
+      "viewDetails": "Voir la fiche",
+      "updating": "Modification...",
+      "statusError": "Impossible de modifier ce statut pour le moment.",
+      "showBook": "Afficher {{title}}",
+      "selectBook": "Sélectionner {{title}}",
+      "count_one": "{{count}} lecture en cours",
+      "count_other": "{{count}} lectures en cours",
+      "previous": "Lecture précédente",
+      "next": "Lecture suivante"
+    },
+    "readingGoal": {
+      "aria": "Voir les livres terminés",
+      "title": "Objectif de lecture",
+      "subtitle": "Ta progression cette année.",
+      "completed_one": "{{count}} livre terminé cette année",
+      "completed_other": "{{count}} livres terminés cette année"
+    },
+    "recentlyAdded": {
+      "title": "Ajoutés récemment",
+      "subtitle": "Les derniers livres ajoutés à ta bibliothèque.",
+      "viewAll": "Voir tout",
+      "empty": "Aucun livre ajouté pour le moment."
+    },
+    "stats": {
+      "title": "Tes lectures",
+      "subtitle": "Un petit aperçu de ta bibliothèque.",
+      "allLibraryAria": "Voir toute ma bibliothèque",
+      "currentlyReadingAria": "Voir mes livres en cours",
+      "books": "livres",
+      "inLibrary": "dans ta bibliothèque",
+      "inProgress": "en cours",
+      "currently": "actuellement",
+      "favoriteGenre": "genre préféré"
+    },
+    "companion": {
+      "imageAlt": "Petit chat tortoiseshell endormi",
+      "note": "Encore un chapitre,\npuis juste un dernier...\n♡"
+    }
+  },
+  "discoverPage": {
+    "title": "Découvrir",
+    "subtitle": "Trouve ta prochaine lecture.",
+    "loading": "Préparation de tes découvertes...",
+    "partialError": "Certaines sélections sont temporairement indisponibles.",
+    "search": {
+      "placeholder": "Rechercher un titre, un auteur...",
+      "loading": "Recherche...",
+      "resultsLoading": "Recherche en cours...",
+      "back": "Retour aux découvertes",
+      "resultsTitle": "Résultats pour « {{query}} »",
+      "resultsCount_one": "{{count}} livre trouvé",
+      "resultsCount_other": "{{count}} livres trouvés",
+      "emptyTitle": "Aucun livre trouvé",
+      "emptySubtitle": "Essaie avec un autre titre, auteur ou mot-clé.",
+      "error": "Impossible de récupérer les livres."
+    },
+    "forYou": {
+      "eyebrow": "ton mood lecture ♡",
+      "title": "Peut-être pour toi",
+      "subtitle": "Quelques livres qui pourraient te plaire.",
+      "editTaste": "Modifier mes goûts",
+      "viewAll": "Voir toutes les suggestions",
+      "pageTitle": "Suggestions pour toi ♡",
+      "pageSubtitle": "Des recommandations inspirees par tes genres preferes, pour retrouver rapidement une lecture qui colle a tes envies.",
+      "genreEyebrow": "parce que tu aimes ♡",
+      "refreshAria": "Rafraîchir les suggestions {{label}}",
+      "loading": "Préparation des suggestions...",
+      "selectionUnavailable": "Cette selection est temporairement indisponible.",
+      "refreshError": "Impossible de rafraîchir les suggestions pour le moment."
+    },
+    "shelves": {
+      "trendingTitle": "Tendances du moment",
+      "trendingDescription": "Les livres qui attirent l'attention en ce moment.",
+      "trendingInfo": "Selon l’activité récente de la communauté Open Library.",
+      "mustReadTitle": "Les incontournables",
+      "mustReadDescription": "Des histoires intemporelles à découvrir.",
+      "about": "À propos de {{title}}",
+      "refresh": "Rafraîchir {{title}}",
+      "noNewTrending": "Aucune nouvelle tendance disponible pour le moment.",
+      "trendingRefreshError": "Impossible de rafraîchir les tendances pour le moment.",
+      "noNewMustRead": "Aucun nouvel incontournable disponible pour le moment.",
+      "mustReadRefreshError": "Impossible de rafraîchir les incontournables pour le moment."
+    }
   },
   "language": {
     "applicationLanguage": "Langue de l'application",

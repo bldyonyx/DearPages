@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getOpenLibraryBooksBySubject } from '../services/trendingBooksApi'
 import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import { addBooksToIdentitySet } from '../utils/recommendationSelection'
@@ -13,9 +14,6 @@ const CANDIDATE_POOL_SIZE = 40
 const MAX_REFRESH_WINDOW_ATTEMPTS = 4
 const MAX_FALLBACK_WINDOW_ATTEMPTS = 2
 const EMPTY_EXCLUDED_BOOK_IDS = []
-const REFRESH_ERROR_MESSAGE =
-  'Impossible de rafraîchir les suggestions pour le moment.'
-
 function createInitialGenreState(preferences) {
   return preferences.reduce(
     (state, preference) => ({
@@ -116,6 +114,7 @@ function useForYouRecommendations(
   cacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
 ) {
+  const { t } = useTranslation()
   const [genreState, setGenreState] = useState(
     () => createInitialGenreState(preferences)
   )
@@ -275,7 +274,7 @@ function useForYouRecommendations(
             books,
             error:
               result.status === 'rejected'
-                ? 'Cette selection est temporairement indisponible.'
+                ? t('discoverPage.forYou.selectionUnavailable')
                 : '',
             isLoading: false,
             startIndex:
@@ -300,6 +299,7 @@ function useForYouRecommendations(
     preferences,
     cacheSignature,
     excludedBookIds,
+    t,
   ])
 
   async function refreshGenre(subject) {
@@ -404,7 +404,7 @@ function useForYouRecommendations(
         ...currentState,
         [subject]: {
           ...currentState[subject],
-          error: REFRESH_ERROR_MESSAGE,
+          error: t('discoverPage.forYou.refreshError'),
           isLoading: false,
         },
       }))

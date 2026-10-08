@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   getOpenLibraryBooksBySubject,
   getTrendingBooksDetails,
@@ -134,6 +135,7 @@ function useDiscoverHomeBooks({
   forYouCacheSignature,
   excludedBookIds = EMPTY_EXCLUDED_BOOK_IDS
 }) {
+  const { t } = useTranslation()
   const [forYouBooks, setForYouBooks] = useState([])
   const [trendingBooks, setTrendingBooks] = useState([])
   const [mustReadBooks, setMustReadBooks] = useState([])
@@ -440,7 +442,7 @@ function useDiscoverHomeBooks({
 
       if (hasFailedRequest) {
         setDiscoverError(
-          'Certaines sélections sont temporairement indisponibles.'
+          t('discoverPage.partialError')
         )
       }
 
@@ -459,6 +461,7 @@ function useDiscoverHomeBooks({
     personalizedSubject,
     forYouCacheSignature,
     excludedBookIds,
+    t,
   ])
 
   async function refreshTrendingBooks() {
@@ -508,7 +511,7 @@ function useDiscoverHomeBooks({
       } else {
         isTrendingPoolExhaustedRef.current = true
         setTrendingRefreshError(
-          'Aucune nouvelle tendance disponible pour le moment.'
+          t('discoverPage.shelves.noNewTrending')
         )
         writeTrendingState(userId, {
           books: trendingBooks,
@@ -519,7 +522,7 @@ function useDiscoverHomeBooks({
       }
     } catch {
       setTrendingRefreshError(
-        'Impossible de rafraîchir les tendances pour le moment.'
+        t('discoverPage.shelves.trendingRefreshError')
       )
     } finally {
       setIsTrendingRefreshing(false)
@@ -571,7 +574,7 @@ function useDiscoverHomeBooks({
         )
       } else {
         setMustReadRefreshError(
-          'Aucun nouvel incontournable disponible pour le moment.'
+          t('discoverPage.shelves.noNewMustRead')
         )
         mustReadShownIdentityKeysRef.current = seenIdentityKeys
         setMustReadStartIndex(startIndex)
@@ -587,7 +590,7 @@ function useDiscoverHomeBooks({
       }
     } catch {
       setMustReadRefreshError(
-        'Impossible de rafraîchir les incontournables pour le moment.'
+        t('discoverPage.shelves.mustReadRefreshError')
       )
     } finally {
       setIsMustReadRefreshing(false)

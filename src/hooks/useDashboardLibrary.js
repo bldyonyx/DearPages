@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   getUserLibrary,
@@ -24,6 +25,7 @@ import {
  * }} Dashboard library state and actions.
  */
 function useDashboardLibrary(userId) {
+  const { t } = useTranslation()
   const [library, setLibrary] = useState([])
   const [isLibraryLoading, setIsLibraryLoading] =
     useState(true)
@@ -50,7 +52,7 @@ function useDashboardLibrary(userId) {
 
         if (isActive) {
           setLibraryError(
-            'Impossible de charger ton dashboard pour le moment.'
+            t('dashboard.loadError')
           )
         }
       } finally {
@@ -65,7 +67,7 @@ function useDashboardLibrary(userId) {
     return () => {
       isActive = false
     }
-  }, [userId])
+  }, [userId, t])
 
   async function handleDashboardStatusChange(bookId, status) {
     if (!userId || !bookId || !status) return

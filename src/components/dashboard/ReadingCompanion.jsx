@@ -1,7 +1,11 @@
+import { useTranslation } from 'react-i18next'
+
 import sleepingCat from '../../assets/images/cats/sleeping-cat.png'
 import noteArea from '../../assets/images/note-area.png'
 
 function ReadingCompanion() {
+  const { t } = useTranslation()
+
   return (
     <section
       className={`
@@ -25,7 +29,7 @@ function ReadingCompanion() {
       >
         <img
           src={sleepingCat}
-          alt="Petit chat tortoiseshell endormi"
+          alt={t('dashboard.companion.imageAlt')}
           className={`
             h-auto
             w-64
@@ -86,11 +90,14 @@ function ReadingCompanion() {
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-3xl
             "
           >
-            Encore un chapitre,
-            <br />
-            puis juste un dernier...
-            <br />
-            ♡
+            {t('dashboard.companion.note')
+              .split('\n')
+              .map((line, index, lines) => (
+                <span key={`${line}-${index}`}>
+                  {line}
+                  {index < lines.length - 1 && <br />}
+                </span>
+              ))}
           </p>
         </div>
       </div>

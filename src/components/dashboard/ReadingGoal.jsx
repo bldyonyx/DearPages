@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { dashboardLarge } from './dashboardResponsive.js'
@@ -11,6 +12,7 @@ function ReadingGoal({
   completedBooks,
   goal,
 }) {
+  const { t } = useTranslation()
   const percentage = goal > 0
     ? Math.min(
         Math.max(
@@ -52,7 +54,7 @@ function ReadingGoal({
   return (
     <Link
       to="/library?status=finished"
-      aria-label="Voir les livres terminés"
+      aria-label={t('dashboard.readingGoal.aria')}
       className={`
         flex h-full flex-col
         rounded-3xl
@@ -77,7 +79,7 @@ function ReadingGoal({
             ${dashboardLarge.title}
           `}
         >
-          Objectif de lecture
+          {t('dashboard.readingGoal.title')}
         </h2>
 
         <p
@@ -86,7 +88,7 @@ function ReadingGoal({
             ${dashboardLarge.description}
           `}
         >
-          Ta progression cette année.
+          {t('dashboard.readingGoal.subtitle')}
         </p>
       </div>
 
@@ -171,8 +173,9 @@ function ReadingGoal({
 
         {/* Livres terminés */}
         <p className="text-center font-ui text-xs text-darkwood/60 sm:text-sm [@media_(min-width:2200px)_and_(min-height:1100px)]:text-base [@media_(min-width:2400px)_and_(min-height:1300px)]:text-lg">
-          {completedBooks} livre{completedBooks > 1 ? 's' : ''}{' '}
-          terminé{completedBooks > 1 ? 's' : ''} cette année
+          {t('dashboard.readingGoal.completed', {
+            count: completedBooks,
+          })}
         </p>
       </div>
     </Link>

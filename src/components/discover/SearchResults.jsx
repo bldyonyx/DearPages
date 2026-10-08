@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import BookCard from '../books/BookCard'
 import BackButton from '../ui/BackButton.jsx'
 import { discoverLarge } from './discoverResponsive'
@@ -9,6 +11,8 @@ function SearchResults({
   error,
   onBackToDiscover,
 }) {
+  const { t } = useTranslation()
+
   return (
     <section
       aria-busy={isLoading}
@@ -18,7 +22,7 @@ function SearchResults({
         onClick={onBackToDiscover}
         className={discoverLarge.searchResultsBackButton}
       >
-        Retour aux découvertes
+        {t('discoverPage.search.back')}
       </BackButton>
 
       {isLoading && (
@@ -42,7 +46,7 @@ function SearchResults({
               ${discoverLarge.description}
             `}
           >
-            Recherche en cours...
+            {t('discoverPage.search.resultsLoading')}
           </p>
         </div>
       )}
@@ -99,7 +103,7 @@ function SearchResults({
                 ${discoverLarge.searchResultsTitle}
               `}
             >
-              Résultats pour « {query} »
+              {t('discoverPage.search.resultsTitle', { query })}
             </h2>
 
             <p
@@ -108,9 +112,9 @@ function SearchResults({
                 ${discoverLarge.searchResultsMeta}
               `}
             >
-              {books.length} livre
-              {books.length > 1 ? 's' : ''} trouvé
-              {books.length > 1 ? 's' : ''}
+              {t('discoverPage.search.resultsCount', {
+                count: books.length,
+              })}
             </p>
           </div>
 
@@ -176,7 +180,7 @@ function SearchResults({
                   ${discoverLarge.searchResultsTitle}
                 `}
               >
-                Aucun livre trouvé
+                {t('discoverPage.search.emptyTitle')}
               </p>
 
               <p
@@ -185,7 +189,7 @@ function SearchResults({
                   ${discoverLarge.searchResultsMeta}
                 `}
               >
-                Essaie avec un autre titre, auteur ou mot-clé.
+                {t('discoverPage.search.emptySubtitle')}
               </p>
             </div>
           )}

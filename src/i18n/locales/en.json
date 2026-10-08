@@ -2,13 +2,145 @@
   "common": {
     "appName": "Dear Pages",
     "cancel": "Cancel",
+    "changeStatus": "Change status",
+    "clearSearch": "Clear search",
     "error": "Something went wrong.",
     "loading": "Loading...",
     "retry": "Try again",
     "save": "Save",
+    "searchBook": "Search for a book",
+    "searchShort": "Search…",
     "settings": "Settings",
     "back": "Back",
-    "backToTop": "Back to top"
+    "backToTop": "Back to top",
+    "unknownAuthor": "Unknown author",
+    "viewBook": "View {{title}}"
+  },
+  "status": {
+    "to-read": "To read",
+    "reading": "Reading",
+    "finished": "Finished",
+    "abandoned": "Abandoned"
+  },
+  "genres": {
+    "fantasy": "Fantasy",
+    "romance": "Romance",
+    "mystery": "Mystery",
+    "thriller": "Thriller",
+    "crime": "Crime",
+    "horror": "Horror",
+    "science fiction": "Science fiction",
+    "adventure": "Adventure",
+    "young adult": "Young Adult",
+    "classics": "Classics",
+    "history": "History",
+    "biography": "Biographies",
+    "poetry": "Poetry",
+    "comics": "Comics & manga",
+    "self help": "Self-help",
+    "philosophy": "Philosophy",
+    "undefined": "Not set"
+  },
+  "dashboard": {
+    "loading": "Loading your dashboard...",
+    "loadError": "We couldn't load your dashboard right now.",
+    "header": {
+      "greeting": "Hello, {{name}}",
+      "fallbackName": "reader",
+      "subtitle": "Here is a glimpse of your reading.",
+      "searchPlaceholder": "Search for a book...",
+      "closeSearch": "Close search"
+    },
+    "currentlyReading": {
+      "title": "Currently reading",
+      "emptySubtitle": "No books in progress yet.",
+      "subtitle": "The books you're reading right now.",
+      "emptyMessage": "Maybe your next read is already waiting for you ♡",
+      "findNext": "Find my next read",
+      "unknownAuthor": "Unknown author",
+      "viewDetails": "View details",
+      "updating": "Updating...",
+      "statusError": "We couldn't update this status right now.",
+      "showBook": "Show {{title}}",
+      "selectBook": "Select {{title}}",
+      "count_one": "{{count}} current read",
+      "count_other": "{{count}} current reads",
+      "previous": "Previous read",
+      "next": "Next read"
+    },
+    "readingGoal": {
+      "aria": "View finished books",
+      "title": "Reading goal",
+      "subtitle": "Your progress this year.",
+      "completed_one": "{{count}} book finished this year",
+      "completed_other": "{{count}} books finished this year"
+    },
+    "recentlyAdded": {
+      "title": "Recently added",
+      "subtitle": "The latest books added to your library.",
+      "viewAll": "View all",
+      "empty": "No books added yet."
+    },
+    "stats": {
+      "title": "Your reading",
+      "subtitle": "A small glimpse of your library.",
+      "allLibraryAria": "View my whole library",
+      "currentlyReadingAria": "View my current reads",
+      "books": "books",
+      "inLibrary": "in your library",
+      "inProgress": "in progress",
+      "currently": "right now",
+      "favoriteGenre": "favorite genre"
+    },
+    "companion": {
+      "imageAlt": "Small sleeping tortoiseshell cat",
+      "note": "One more chapter,\nthen just one last one...\n♡"
+    }
+  },
+  "discoverPage": {
+    "title": "Discover",
+    "subtitle": "Find your next read.",
+    "loading": "Preparing your discoveries...",
+    "partialError": "Some selections are temporarily unavailable.",
+    "search": {
+      "placeholder": "Search by title or author...",
+      "loading": "Searching...",
+      "resultsLoading": "Searching...",
+      "back": "Back to discoveries",
+      "resultsTitle": "Results for “{{query}}”",
+      "resultsCount_one": "{{count}} book found",
+      "resultsCount_other": "{{count}} books found",
+      "emptyTitle": "No books found",
+      "emptySubtitle": "Try another title, author, or keyword.",
+      "error": "We couldn't fetch books right now."
+    },
+    "forYou": {
+      "eyebrow": "your reading mood ♡",
+      "title": "Maybe for you",
+      "subtitle": "A few books you might like.",
+      "editTaste": "Edit my tastes",
+      "viewAll": "See all suggestions",
+      "pageTitle": "Suggestions for you ♡",
+      "pageSubtitle": "Recommendations inspired by your favorite genres, so you can quickly find a read that fits what you’re craving.",
+      "genreEyebrow": "because you like ♡",
+      "refreshAria": "Refresh {{label}} suggestions",
+      "loading": "Preparing suggestions...",
+      "selectionUnavailable": "This selection is temporarily unavailable.",
+      "refreshError": "We couldn't refresh suggestions right now."
+    },
+    "shelves": {
+      "trendingTitle": "Trending now",
+      "trendingDescription": "Books getting attention right now.",
+      "trendingInfo": "Based on recent activity from the Open Library community.",
+      "mustReadTitle": "Timeless picks",
+      "mustReadDescription": "Timeless stories to discover.",
+      "about": "About {{title}}",
+      "refresh": "Refresh {{title}}",
+      "noNewTrending": "No new trending picks are available right now.",
+      "trendingRefreshError": "We couldn't refresh trending picks right now.",
+      "noNewMustRead": "No new timeless pick is available right now.",
+      "mustReadRefreshError": "We couldn't refresh timeless picks right now."
+    }
   },
   "language": {
     "applicationLanguage": "Application language",
