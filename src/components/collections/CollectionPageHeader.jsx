@@ -7,6 +7,7 @@ import {
 
 import { getCollectionIcon } from '../../data/collectionIcons.js'
 import BackButton from '../ui/BackButton.jsx'
+import FloatingMenu from '../ui/FloatingMenu.jsx'
 import { collectionPageLarge } from './collectionPageResponsive.js'
 
 function getBookLabel(bookCount) {
@@ -195,11 +196,13 @@ function CollectionPageHeader({
               </button>
 
               {isActionsMenuOpen && (
-                <div
+                <FloatingMenu
+                  anchorRef={actionsMenuRef}
+                  align="right"
                   role="menu"
                   className="
                     dp-menu-enter
-                    absolute right-0 top-12 z-10
+                    z-40
                     w-max min-w-52
                     max-w-[calc(100vw-3rem)]
                     rounded-2xl
@@ -255,7 +258,7 @@ function CollectionPageHeader({
                       Vider la collection
                     </button>
                   )}
-                </div>
+                </FloatingMenu>
               )}
             </div>
           </div>

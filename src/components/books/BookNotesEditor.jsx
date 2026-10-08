@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 
+import FloatingMenu from '../ui/FloatingMenu.jsx'
+
 const TEXT_SIZES = {
   small: {
     label: 'Petit',
@@ -24,6 +26,7 @@ function BookNotesEditor({
 }) {
   const editorRef = useRef(null)
   const sizeMenuRef = useRef(null)
+  const sizeDropdownRef = useRef(null)
 
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
@@ -46,7 +49,8 @@ function BookNotesEditor({
     function handleClickOutside(event) {
       if (
         sizeMenuRef.current &&
-        !sizeMenuRef.current.contains(event.target)
+        !sizeMenuRef.current.contains(event.target) &&
+        !sizeDropdownRef.current?.contains(event.target)
       ) {
         setIsSizeMenuOpen(false)
       }
@@ -232,13 +236,15 @@ function BookNotesEditor({
           </button>
 
           {isSizeMenuOpen && !disabled && (
-            <div
+            <FloatingMenu
+              anchorRef={sizeMenuRef}
+              align="right"
+              menuRef={sizeDropdownRef}
               role="listbox"
               aria-label="Taille du texte"
               className="
                 dp-menu-enter
-                absolute right-0 top-full z-30
-                mt-2 w-36
+                z-40 w-36
                 overflow-hidden
                 rounded-xl
                 border border-walnut/15
@@ -289,7 +295,7 @@ function BookNotesEditor({
                   )
                 }
               )}
-            </div>
+            </FloatingMenu>
           )}
         </div>
       </div>

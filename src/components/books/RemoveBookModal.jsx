@@ -1,5 +1,7 @@
 import { Trash2, X } from 'lucide-react'
 
+import Portal from '../ui/Portal.jsx'
+
 function RemoveBookModal({
   isOpen,
   isRemoving,
@@ -11,6 +13,7 @@ function RemoveBookModal({
   }
 
   return (
+    <Portal>
     <div
       className="
         dp-backdrop-enter
@@ -160,6 +163,7 @@ function RemoveBookModal({
         </div>
       </div>
     </div>
+    </Portal>
   )
 }
 
