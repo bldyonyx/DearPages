@@ -15,6 +15,8 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Create an account and sign in with email or Google
 
+♡ Enjoy Dear Pages in French or English, with a language switcher available from authentication and Settings
+
 ♡ Personalize your experience through onboarding preferences
 
 ♡ Search for books by title, author, or keyword with live suggestions
@@ -23,7 +25,7 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 ♡ Browse trending books and timeless classics
 
-♡ Open detailed book pages with information and translated descriptions
+♡ Open detailed book pages with information and descriptions translated into your selected language
 
 ♡ Build and organize your personal library
 
@@ -84,6 +86,8 @@ tracking your reads, and keeping your favorite stories close. (˶ᵔ ᵕ ᵔ˶)
 
 `React` · `JavaScript` · `Tailwind CSS` · `Vite` · `React Router`
 
+`i18next` · `react-i18next`
+
 ### Backend & data
 
 `Firebase Authentication` · `Cloud Firestore`
@@ -107,8 +111,12 @@ and library tracking feel seamless.
 
 Google Books provides the main book data and search experience,
 while Open Library supports additional discovery and cover handling.
-English book descriptions can also be translated into French through
-Google Cloud Translation.
+Book descriptions can be translated from different source languages
+into French or English through Google Cloud Translation, depending
+on the language selected by the user.
+
+The interface supports both French and English through i18next,
+with language preferences preserved across sessions.
 
 Personal data ⸝ including library books, collections, ratings,
 reviews, notes, preferences, and reading goals ⸝ is connected
@@ -121,8 +129,13 @@ technical documentation built with Astro and Starlight.
 
 ## ✦ Language
 
-Dear Pages is currently available in French ♡  
-An English version may be added in a future update.
+Dear Pages is available in **French and English** ♡
+
+You can choose your preferred language when signing in or creating
+an account, and change it anytime from Settings.
+
+Your language preference is saved, so Dear Pages feels like your
+own little reading space every time you come back.
 
 ---
 
