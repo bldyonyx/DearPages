@@ -1,0 +1,95 @@
+---
+title: Dear Pages
+description: Dear Pages project documentation.
+template: splash
+hero:
+  title: Dear Pages
+  tagline: your personal reading journal ♡
+  actions:
+    - text: Discover the project
+      link: /en/introduction/fonctionnalites/
+      icon: right-arrow
+    - text: View the architecture
+      link: /en/architecture/structure/
+      variant: minimal
+      icon: open-book
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+## Documentation
+
+This documentation presents the design and development of **Dear Pages**, a personal web application dedicated to tracking reading.
+
+<CardGrid>
+  <a
+    href="/en/architecture/structure/"
+    class="home-card-link"
+    aria-label="Explore the Dear Pages architecture"
+  >
+    <Card title="Architecture">
+      Explore the project organization, routing, and component structure.
+    </Card>
+  </a>
+
+  <a
+    href="/en/data/google-books/"
+    class="home-card-link"
+    aria-label="Explore the APIs and data used by Dear Pages"
+  >
+    <Card title="API & data">
+      Understand how Dear Pages uses Google Books, Open Library, and Firebase to manage books and users' personal data.
+    </Card>
+  </a>
+
+  <a
+    href="/en/development/installation/"
+    class="home-card-link"
+    aria-label="Explore Dear Pages development"
+  >
+    <Card title="Development">
+      Find the project installation steps, environment variables, scripts, tests, and JSDoc documentation.
+    </Card>
+  </a>
+
+  <a
+    href="/en/project/technical-choices/"
+    class="home-card-link"
+    aria-label="Explore the technical choices behind Dear Pages"
+  >
+    <Card title="Project">
+      Review the technical choices, responsive strategy, and evolution of the application.
+    </Card>
+  </a>
+</CardGrid>
+
+## Technical stack
+
+Dear Pages is built with:
+
+- **React** for the user interface
+- **JavaScript** for application logic
+- **Tailwind CSS** for styling and responsive behavior
+- **Vite** for the development environment and build
+- **React Router** for application navigation and routes
+- **i18next** and **react-i18next** for the French / English bilingual interface
+- **Google Books API** to search for and retrieve book information
+- **Open Library** as a complementary source for books, trends, and covers
+- **Google Cloud Translation API** to translate book descriptions into French or English
+- **Firebase Authentication** for user authentication
+- **Firebase Realtime Database** for personal data, the library, collections, and preferences
+- **Vitest** and **React Testing Library** for automated tests
+- **Firebase Hosting** to deploy the application and its documentation
+- **GitHub Actions** to automate builds and deployments
+- **JSDoc** to document important functions and services
+- **Astro + Starlight** for this documentation
+
+## Project status
+
+Dear Pages has reached its first complete version.
+
+The main features are implemented: authentication, onboarding, a French / English bilingual interface, book discovery, personalized recommendations, personal library, reading statuses, collections, notes, reviews, preferences, and annual reading goal.
+
+The application also has automated tests with Vitest and React Testing Library and has been manually checked across its main user flows and display formats.
+
+The application and its documentation are deployed separately with Firebase Hosting and updated automatically through GitHub Actions.

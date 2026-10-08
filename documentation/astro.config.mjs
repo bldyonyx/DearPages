@@ -1,127 +1,158 @@
-// @ts-check
-import { defineConfig } from 'astro/config'
-import starlight from '@astrojs/starlight'
 
-export default defineConfig({
-  integrations: [
-    starlight({
-      title: 'Dear Pages',
+  // @ts-check
+  import { defineConfig } from 'astro/config'
+  import starlight from '@astrojs/starlight'
 
-      locales: {
-        root: {
-          label: 'Français',
-          lang: 'fr',
-        },
-      },
+  export default defineConfig({
+    integrations: [
+      starlight({
+        title: 'Dear Pages',
 
-      customCss: [
-        './src/styles/booktracker.css',
-      ],
+        locales: {
+          root: {
+            label: 'FR',
+            lang: 'fr',
+          },
+          en: {
+            label: 'EN',
+            lang: 'en',
+          },
+        },
 
-      components: {
-        ThemeSelect: './src/components/EmptyThemeSelect.astro',
-      },
+        customCss: [
+          './src/styles/booktracker.css',
+        ],
 
-      social: [
-        {
-          icon: 'github',
-          label: 'GitHub',
-          href: 'https://github.com/bldyonyx/BookTracker',
+        components: {
+          ThemeSelect: './src/components/EmptyThemeSelect.astro',
+          LanguageSelect: './src/components/LanguageSelect.astro',
         },
-      ],
 
-      sidebar: [
-        {
-          label: 'Introduction',
-          items: [
-            { label: 'Présentation', slug: 'index' },
-            {
-              label: 'Fonctionnalités',
-              slug: 'introduction/fonctionnalites',
-            },
-          ],
-        },
-        {
-          label: 'Architecture',
-          items: [
-            {
-              label: 'Structure du projet',
-              slug: 'architecture/structure',
-            },
-            {
-              label: 'Routing',
-              slug: 'architecture/routing',
-            },
-            {
-              label: 'Composants',
-              slug: 'architecture/composants',
-            },
-          ],
-        },
-        {
-          label: 'API & données',
-          items: [
-            {
-              label: 'Sources de livres',
-              slug: 'data/google-books',
-            },
-            {
-              label: 'Modèle de données',
-              slug: 'data/modele',
-            },
-            {
-              label: 'Recommandations',
-              slug: 'data/recommendations',
-            },
-            {
-              label: 'Traduction',
-              slug: 'data/translation',
-            },
-            {
-              label: 'Firebase',
-              slug: 'data/firebase',
-            },
-          ],
-        },
-        {
-          label: 'Développement',
-          items: [
-            {
-              label: 'Installation',
-              slug: 'development/installation',
-            },
-            {
-              label: "Variables d'environnement",
-              slug: 'development/environment',
-            },
-            {
-              label: 'Scripts',
-              slug: 'development/scripts',
-            },
-            {
-              label: 'JSDoc',
-              slug: 'development/jsdoc',
-            },
-          ],
-        },
-        {
-          label: 'Projet',
-          items: [
-            {
-              label: 'Responsive',
-              slug: 'project/responsive',
-            },
-            {
-              label: 'Choix techniques',
-              slug: 'project/technical-choices',
-            },
-            {
-              label: 'Roadmap',
-              slug: 'project/roadmap',
-            },
-          ],
-        },
-      ],
-    }),
-  ],
-})
+        social: [
+          {
+            icon: 'github',
+            label: 'GitHub',
+            href: 'https://github.com/bldyonyx/BookTracker',
+          },
+        ],
+
+        sidebar: [
+          {
+            label: 'Introduction',
+            translations: { en: 'Introduction' },
+            items: [
+              {
+                label: 'Présentation',
+                translations: { en: 'Overview' },
+                slug: 'index',
+              },
+              {
+                label: 'Fonctionnalités',
+                translations: { en: 'Features' },
+                slug: 'introduction/fonctionnalites',
+              },
+            ],
+          },
+          {
+            label: 'Architecture',
+            translations: { en: 'Architecture' },
+            items: [
+              {
+                label: 'Structure du projet',
+                translations: { en: 'Project structure' },
+                slug: 'architecture/structure',
+              },
+              {
+                label: 'Routing',
+                translations: { en: 'Routing' },
+                slug: 'architecture/routing',
+              },
+              {
+                label: 'Composants',
+                translations: { en: 'Components' },
+                slug: 'architecture/composants',
+              },
+            ],
+          },
+          {
+            label: 'API & données',
+            translations: { en: 'API & data' },
+            items: [
+              {
+                label: 'Sources de livres',
+                translations: { en: 'Book sources' },
+                slug: 'data/google-books',
+              },
+              {
+                label: 'Modèle de données',
+                translations: { en: 'Data model' },
+                slug: 'data/modele',
+              },
+              {
+                label: 'Recommandations',
+                translations: { en: 'Recommendations' },
+                slug: 'data/recommendations',
+              },
+              {
+                label: 'Traduction',
+                translations: { en: 'Translation' },
+                slug: 'data/translation',
+              },
+              {
+                label: 'Firebase',
+                translations: { en: 'Firebase' },
+                slug: 'data/firebase',
+              },
+            ],
+          },
+          {
+            label: 'Développement',
+            translations: { en: 'Development' },
+            items: [
+              {
+                label: 'Installation',
+                translations: { en: 'Installation' },
+                slug: 'development/installation',
+              },
+              {
+                label: "Variables d'environnement",
+                translations: { en: 'Environment variables' },
+                slug: 'development/environment',
+              },
+              {
+                label: 'Scripts',
+                translations: { en: 'Scripts' },
+                slug: 'development/scripts',
+              },
+              {
+                label: 'JSDoc',
+                translations: { en: 'JSDoc' },
+                slug: 'development/jsdoc',
+              },
+            ],
+          },
+          {
+            label: 'Projet',
+            translations: { en: 'Project' },
+            items: [
+              {
+                label: 'Responsive',
+                translations: { en: 'Responsive' },
+                slug: 'project/responsive',
+              },
+              {
+                label: 'Choix techniques',
+                translations: { en: 'Technical choices' },
+                slug: 'project/technical-choices',
+              },
+              {
+                label: 'Roadmap',
+                translations: { en: 'Roadmap' },
+                slug: 'project/roadmap',
+              },
+            ],
+          },
+        ],
+      }),
+    ],
+  })

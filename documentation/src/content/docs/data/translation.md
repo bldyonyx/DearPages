@@ -43,6 +43,8 @@ Le changement de langue est disponible à deux endroits principaux :
 - sur les écrans Login et Sign Up, via le sélecteur intégré au layout d'authentification ;
 - dans la page **Paramètres**, via la carte dédiée à la langue de l'application.
 
+Ces deux surfaces réutilisent `LanguageToggle`. Dans le parcours d'authentification, il est rendu par `AuthLayout` et modifie uniquement la langue locale. Dans les paramètres, `LanguageCard` applique le changement puis enregistre la préférence pour l'utilisateur connecté.
+
 Avant authentification, le choix est conservé dans `localStorage` avec la clé :
 
 ```text

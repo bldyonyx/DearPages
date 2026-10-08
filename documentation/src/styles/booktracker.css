@@ -798,3 +798,43 @@ mobile-starlight-toc {
     max-width: 100%;
   }
 }
+
+
+
+
+/* ---------------------------------------------------------
+   LANGUAGE SELECTOR
+   --------------------------------------------------------- */
+
+starlight-lang-select {
+  color: var(--bt-cream);
+}
+
+starlight-lang-select select {
+  color: var(--bt-cream);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  padding: 0.45rem 1.8rem 0.45rem 0.65rem;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+starlight-lang-select select:hover {
+  background-color: rgba(238, 243, 228, 0.12);
+  border-color: rgba(238, 243, 228, 0.2);
+}
+
+starlight-lang-select select:focus-visible {
+  outline: 2px solid var(--bt-lime);
+  outline-offset: 2px;
+}
+
+starlight-lang-select select option {
+  color: var(--bt-darkwood);
+  background-color: var(--bt-cream);
+}

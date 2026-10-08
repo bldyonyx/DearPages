@@ -1,0 +1,227 @@
+
+---
+import type { Props } from '@astrojs/starlight/props';
+
+const { lang, entry } = Astro.props as Props;
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const pathname = Astro.url.pathname;
+
+const relativePath = basePath && pathname.startsWith(`${basePath}/`)
+  ? pathname.slice(basePath.length)
+  : pathname;
+
+const isEnglish = /^\/en(?:\/|$)/.test(relativePath);
+const currentLang = isEnglish ? 'EN' : 'FR';
+
+const pagePath = relativePath
+  .replace(/^\/en(?=\/|$)/, '')
+  .replace(/^\/+|\/+$/g, '');
+
+const getLanguageUrl = (language: 'FR' | 'EN') => {
+  const prefix = language === 'EN' ? '/en' : '';
+  const page = pagePath ? `/${pagePath}/` : '/';
+
+  return `${basePath}${prefix}${page}`;
+};
+
+const frenchUrl = getLanguageUrl('FR');
+const englishUrl = getLanguageUrl('EN');
+---
+
+<div class="dp-language-switcher">
+  <details class="dp-language-dropdown">
+    <summary
+      class="dp-language-trigger"
+      aria-label={isEnglish ? 'Choose language' : 'Choisir la langue'}
+    >
+      <svg
+        class="dp-language-icon"
+        width="17"
+        height="17"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M2 12h20" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10" />
+        <path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10" />
+      </svg>
+
+      <span class="dp-language-label">{currentLang}</span>
+
+      <svg
+        class="dp-language-chevron"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </summary>
+
+    <div class="dp-language-menu">
+      <a
+        href={frenchUrl}
+        lang="fr"
+        aria-current={!isEnglish ? 'page' : undefined}
+      >
+        FR
+      </a>
+
+      <a
+        href={englishUrl}
+        lang="en"
+        aria-current={isEnglish ? 'page' : undefined}
+      >
+        EN
+      </a>
+    </div>
+  </details>
+</div>
+
+<style>
+  .dp-language-switcher {
+    position: relative;
+    z-index: 30;
+    font-family: 'Comfortaa', sans-serif;
+  }
+
+  .dp-language-dropdown {
+    position: relative;
+  }
+
+  .dp-language-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 7rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(238, 243, 228, 0.25);
+    border-radius: 0.7rem;
+    background: rgba(238, 243, 228, 0.08);
+    color: var(--bt-cream);
+    font-size: 0.85rem;
+    cursor: pointer;
+    list-style: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .dp-language-trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .dp-language-trigger::marker {
+    content: '';
+  }
+
+  .dp-language-trigger:hover,
+  .dp-language-dropdown[open] .dp-language-trigger {
+    background: rgba(238, 243, 228, 0.13);
+    border-color: rgba(238, 243, 228, 0.4);
+  }
+
+  .dp-language-trigger:focus-visible {
+    outline: 2px solid var(--bt-lime);
+    outline-offset: 3px;
+  }
+
+  .dp-language-icon {
+    flex-shrink: 0;
+    color: var(--bt-cream);
+  }
+
+  .dp-language-label {
+    color: var(--bt-cream);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .dp-language-chevron {
+    flex-shrink: 0;
+    margin-left: auto;
+    color: var(--bt-cream);
+    transition: transform 160ms ease;
+  }
+
+  .dp-language-dropdown[open] .dp-language-chevron {
+    transform: rotate(180deg);
+  }
+
+  .dp-language-menu {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    width: 100%;
+    min-width: 7rem;
+    padding: 0.3rem;
+    border: 1px solid rgba(69, 50, 40, 0.15);
+    border-radius: 0.7rem;
+    background: var(--bt-cream);
+    box-shadow: 0 8px 24px rgba(44, 48, 49, 0.16);
+  }
+
+  .dp-language-menu a {
+    display: block;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.45rem;
+    color: var(--bt-darkwood) !important;
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-decoration: none;
+    transition: background-color 160ms ease;
+  }
+
+  .dp-language-menu a:hover,
+  .dp-language-menu a:focus-visible {
+    background: var(--bt-parchment);
+    color: var(--bt-darkwood) !important;
+  }
+
+  .dp-language-menu a[aria-current='page'] {
+    background: rgba(229, 212, 196, 0.6);
+    color: var(--bt-darkwood) !important;
+    font-weight: 700;
+  }
+
+  .dp-language-menu a:focus-visible {
+    outline: 2px solid var(--bt-olive);
+    outline-offset: -2px;
+  }
+</style>
+
+<script>
+  document.addEventListener('click', (event) => {
+    document.querySelectorAll<HTMLDetailsElement>(
+      '.dp-language-dropdown[open]'
+    ).forEach((dropdown) => {
+      if (!dropdown.contains(event.target as Node)) {
+        dropdown.open = false;
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      document.querySelectorAll<HTMLDetailsElement>(
+        '.dp-language-dropdown[open]'
+      ).forEach((dropdown) => {
+        dropdown.open = false;
+        dropdown.querySelector<HTMLElement>('summary')?.focus();
+      });
+    }
+  });
+</script>
