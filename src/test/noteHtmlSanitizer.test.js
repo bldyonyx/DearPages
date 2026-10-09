@@ -9,7 +9,8 @@ describe('sanitizeNoteHtml', () => {
       '<div><b>Nested <i>formats</i></b></div>',
       '<font size="2">small</font>',
       '<font size="3">normal</font>',
-      '<font size="5">large</font>',
+      '<font size="4">large</font>',
+      '<font size="5">legacy large</font>',
       'line<br>break',
     ].join('')
 

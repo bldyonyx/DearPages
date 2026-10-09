@@ -73,6 +73,19 @@ describe('BookNotesEditor HTML security', () => {
     expect(onChange).toHaveBeenLastCalledWith('Fresh words')
   })
 
+  it('uses the same rich text style scope for empty and normal content', () => {
+    const { container } = render(
+      <BookNotesEditor
+        value={'<font size="3">Normal words</font>'}
+        onChange={vi.fn()}
+      />
+    )
+
+    expect(getEditor(container)).toHaveClass(
+      'dp-note-rich-text'
+    )
+  })
+
   it('keeps toolbar commands wired to execCommand', () => {
     const onChange = vi.fn()
     const { container } = render(
@@ -116,7 +129,7 @@ describe('BookNotesEditor HTML security', () => {
     expect(document.execCommand).toHaveBeenCalledWith(
       'fontSize',
       false,
-      '5'
+      '4'
     )
   })
 })

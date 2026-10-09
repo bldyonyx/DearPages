@@ -1,6 +1,6 @@
 import createDOMPurify from 'dompurify'
 
-const ALLOWED_FONT_SIZES = new Set(['2', '3', '5'])
+const ALLOWED_FONT_SIZES = new Set(['2', '3', '4', '5'])
 const purifier =
   typeof window === 'undefined'
     ? null

@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +17,7 @@ const TEXT_SIZES = {
   },
   large: {
     labelKey: 'bookPage.editor.sizes.large',
-    value: '5',
+    value: '4',
   },
 }
 
@@ -166,7 +167,7 @@ function BookNotesEditor({
           aria-pressed={isBold}
           className={`
             flex size-9 items-center justify-center
-            rounded-lg font-ui font-bold
+            rounded-lg font-ui text-base font-extrabold
             transition
             disabled:opacity-40
             ${
@@ -332,6 +333,7 @@ function BookNotesEditor({
           onKeyUp={updateActiveFormats}
           onMouseUp={updateActiveFormats}
           className="
+            dp-note-rich-text
             min-h-44
             rounded-b-2xl
             bg-cream/35
