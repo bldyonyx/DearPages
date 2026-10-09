@@ -117,7 +117,7 @@ export function AuthProvider({ children }) {
           preferencesRequestIdRef.current === requestId
         ) {
           setPreferences(null)
-          setIsPreferencesResolved(false)
+          setIsPreferencesResolved(true)
           setOnboardingStatus(ONBOARDING_STATUS.UNKNOWN)
         }
       } finally {
