@@ -1,3 +1,5 @@
+
+import { Lightbulb } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import BookCard from '../books/BookCard'
@@ -11,7 +13,13 @@ function SearchResults({
   error,
   onBackToDiscover,
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+
+  const isFrench = i18n.resolvedLanguage?.startsWith('fr')
+
+  const searchTip = isFrench
+    ? "Tu ne trouves pas le livre que tu cherches ? Vérifie l’orthographe du titre ou ajoute le nom de l’auteur."
+    : "Can't find the book you're looking for? Check the title's spelling or add the author's name."
 
   return (
     <section
@@ -193,6 +201,32 @@ function SearchResults({
               </p>
             </div>
           )}
+
+          {/* Conseil de recherche */}
+          <div
+            className="
+              mt-9 flex items-start gap-2.5
+              border-t border-darkwood/10
+              pt-5
+              text-darkwood/55
+            "
+          >
+            <Lightbulb
+              aria-hidden="true"
+              strokeWidth={1.7}
+              className="mt-0.5 size-4 shrink-0"
+            />
+
+            <p
+              className={`
+                font-ui text-xs leading-relaxed
+                sm:text-sm
+                ${discoverLarge.description}
+              `}
+            >
+              {searchTip}
+            </p>
+          </div>
         </div>
       )}
     </section>

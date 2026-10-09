@@ -1,6 +1,8 @@
+
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
+
 import DiscoverHome from '../components/discover/DiscoverHome'
 import DiscoverSearch from '../components/discover/DiscoverSearch'
 import ForYouRecommendations from '../components/discover/ForYouRecommendations'
@@ -130,13 +132,12 @@ function Discover() {
         </div>
       </header>
 
-      {/* Recherche */}
+      {/* Recherche : même position dans les deux modes */}
       <section
-        className={
-          isSearchMode
-            ? `dp-section-enter relative z-10 mt-6 lg:z-20 ${discoverLarge.sectionGap}`
-            : `dp-section-enter relative z-10 mt-8 lg:z-20 ${discoverLarge.firstSectionGap}`
-        }
+        className={`
+          dp-section-enter relative z-10 mt-8 lg:z-20
+          ${discoverLarge.firstSectionGap}
+        `}
       >
         <DiscoverSearch
           search={search}
@@ -167,7 +168,7 @@ function Discover() {
         />
       )}
 
-      {/* Mode recommandations personnalisees */}
+      {/* Mode recommandations personnalisées */}
       {isForYouMode && (
         <ForYouRecommendations
           userId={user?.uid}
