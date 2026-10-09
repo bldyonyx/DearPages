@@ -117,7 +117,7 @@ Elle est notamment utilisée pour :
 - récupérer des livres par sujet ;
 - alimenter certaines recommandations.
 
-Les données reçues sont normalisées par `booksApi.js` avant d'être utilisées dans les composants.
+Les appels Google Books sont regroupés dans `src/services/books/googleBooksApi.js`, tandis que la normalisation des volumes est isolée dans `src/services/books/googleBooksFormatter.js` avant leur utilisation dans les composants.
 
 Google Books répond donc principalement à la question :
 
@@ -129,13 +129,34 @@ Google Books répond donc principalement à la question :
 
 Elle est notamment utilisée pour :
 
+- compléter la recherche principale de livres ;
 - alimenter l'étagère **Tendances du moment** ;
 - récupérer certaines données publiques de livres ;
 - résoudre certaines couvertures à partir d'un ISBN lorsqu'une meilleure source est disponible.
 
-Les données de tendances sont normalisées dans `trendingBooksApi.js`.
+Les données Open Library sont traitées dans `openLibraryApi.js` pour la recherche et les fiches, puis dans `trendingBooksApi.js` pour les tendances et leur fallback.
 
 Open Library ne remplace pas Google Books : les deux services fournissent des données publiques de livres, mais avec des identifiants et des formats différents.
+
+## Services de livres
+
+`src/services/booksApi.js` sert maintenant de point d'entrée public pour conserver des imports simples dans l'application, tandis que l'implémentation est répartie dans des modules spécialisés sous `src/services/books/`.
+
+- `bookSearchService.js` orchestre la recherche principale, les suggestions, les requêtes Google Books et Open Library, puis transmet les candidats au classement.
+- `bookSubjectService.js` gère les recherches Google Books par sujet, les fenêtres de pagination et les règles de pertinence par genre.
+- `googleBooksApi.js` centralise les URLs Google Books, la clé API, les appels avec retry sur certaines erreurs temporaires, ainsi que la récupération par ISBN ou identifiant Google Books.
+- `googleBooksFormatter.js` transforme les volumes Google Books en objets utilisables par Dear Pages et nettoie les descriptions et couvertures.
+- `openLibraryApi.js` gère les recherches Open Library par titre, auteur ou sujet, ainsi que la récupération d'une fiche Open Library complète.
+- `trendingBooksApi.js` construit l'étagère de tendances à partir d'Open Library, applique les signaux de popularité et fournit un fallback Google Books si nécessaire.
+- `coverUtils.js` regroupe le choix d'ISBN, les couvertures Google Books, les couvertures Open Library et le cache de résolution par ISBN.
+
+Cette séparation évite de concentrer toute la logique dans `booksApi.js`. Elle rend les responsabilités plus lisibles, facilite les tests ciblés sur chaque type de comportement et limite les effets de bord lorsqu'une API externe ou une règle de normalisation évolue.
+
+La recherche principale de Découvrir combine aujourd'hui plusieurs groupes de candidats : requêtes Google Books par titre, requête Google Books générale, recherche Open Library par titre, puis recherches complémentaires par auteur ou titre + auteur lorsque la requête le suggère. Les résultats sont ensuite fusionnés, classés et dédupliqués dans `bookSearchRelevance.js` à partir de la pertinence du titre, de l'auteur, de la qualité des métadonnées, des ISBN, des identifiants source et du couple titre/auteur.
+
+Cette recherche ne joue pas le même rôle que le système de recommandations personnalisées : la recherche répond directement à une requête utilisateur, alors que les recommandations s'appuient sur les préférences, les étagères et la persistance de session pour renouveler des sélections.
+
+La déduplication regroupe des résultats similaires ou des éditions proches lorsqu'ils représentent le même livre dans les API. Elle ne correspond pas à une interface permettant de choisir explicitement une édition particulière d'un même ouvrage.
 
 ## Google Cloud Translation API
 
@@ -235,6 +256,18 @@ Les workflows du projet permettent notamment de :
 
 Le déploiement depuis la branche principale peut ainsi être effectué automatiquement après les modifications validées du projet.
 
+## Oxlint
+
+**Oxlint** est utilisé pour l'analyse statique du code JavaScript et React.
+
+Il est lancé avec :
+
+```bash
+npm run lint
+```
+
+Ce script exécute `oxlint` et signale les erreurs ou avertissements potentiels sans remplacer les tests automatisés.
+
 ## Vitest et React Testing Library
 
 **Vitest** est utilisé pour les tests automatisés de Dear Pages.
@@ -250,6 +283,8 @@ Il s'intègre naturellement à l'environnement Vite du projet et permet de teste
 **React Testing Library** complète Vitest pour tester les composants React à travers leur comportement observable plutôt que leur implémentation interne.
 
 Les tests automatisés complètent les vérifications manuelles réalisées sur les principaux parcours de l'application.
+
+Lors de la vérification finale du 9 octobre 2026, `npm run test:run` a validé 28 fichiers de tests et 246 tests sur 246. `npm run lint` a signalé 0 erreur et 11 avertissements non bloquants, et `npm run build` a produit une version de production avec succès.
 
 ## JSDoc
 
@@ -302,6 +337,7 @@ L'ensemble de ces choix peut être résumé ainsi :
 | Firebase Realtime Database | Données personnelles persistantes |
 | Firebase Hosting | Hébergement de l'application et de la documentation |
 | GitHub Actions | Automatisation du déploiement |
+| Oxlint | Analyse statique du code avec `npm run lint` |
 | Vitest | Tests automatisés |
 | React Testing Library | Tests des composants React |
 | JSDoc | Documentation technique du code |

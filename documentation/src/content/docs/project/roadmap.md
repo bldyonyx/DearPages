@@ -51,7 +51,11 @@ L'application utilise plusieurs services externes pour récupérer les données 
 
 - [x] Configuration de Google Books API
 - [x] Création de `booksApi.js`
+- [x] Refactorisation des services de livres en modules spécialisés dans `src/services/books/`
 - [x] Recherche de livres avec `searchBooks`
+- [x] Recherche multi-source combinant Google Books et Open Library
+- [x] Amélioration de la pertinence des recherches par titre et auteur
+- [x] Classement et déduplication des résultats de recherche
 - [x] Suggestions de recherche avec `getBookSuggestions`
 - [x] Recherche par sujet avec `getBooksBySubject`
 - [x] Utilisation de `maxResults` et `startIndex`
@@ -76,6 +80,7 @@ La page Découvrir est fonctionnelle et utilise les données réelles des API.
 - [x] Autocomplétion avec suggestions
 - [x] Affichage des résultats de recherche
 - [x] État sans résultat
+- [x] Conseil de recherche affiché dans Découvrir et les résultats de recherche
 - [x] Navigation des cartes et suggestions vers `/books/:id`
 - [x] Composant réutilisable `BookCard`
 - [x] Vue de découverte par défaut
@@ -251,6 +256,9 @@ Dear Pages dispose de tests automatisés ainsi que d'une phase de vérification 
 - [x] Vérification avec `npm run test`
 - [x] Vérification avec `npm run lint`
 - [x] Vérification avec `npm run build`
+- [x] Vérification finale du 9 octobre 2026 : 28 fichiers de tests passés, 246 tests passés sur 246
+- [x] Vérification finale du 9 octobre 2026 : `npm run lint` avec 0 erreur et 11 avertissements non bloquants
+- [x] Vérification finale du 9 octobre 2026 : `npm run build` réussi
 
 ## Documentation
 
@@ -319,6 +327,7 @@ L'application réunit désormais les fonctionnalités principales prévues pour 
 Dear Pages peut continuer à évoluer après cette première version sans que ces améliorations soient nécessaires à son fonctionnement actuel.
 
 - [ ] Affiner les recommandations à partir de davantage de données de lecture personnelles
+- [ ] Permettre de consulter et de choisir différentes éditions d'un même livre, selon les données disponibles dans les API.
 - [ ] Ajouter de nouvelles statistiques de lecture
 - [ ] Enrichir certaines micro-interactions
 - [ ] Continuer à améliorer la qualité et la disponibilité des couvertures

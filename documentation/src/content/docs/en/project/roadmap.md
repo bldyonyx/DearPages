@@ -40,9 +40,9 @@ Dear Pages uses public book APIs to retrieve information used in the interface.
 Implemented sources include:
 
 - Google Books for search, suggestions, detailed book information, subject selections, and some recommendations;
-- Open Library for trends and some cover fallbacks.
+- Open Library for the main search, trends, some public book data, and some cover fallbacks.
 
-Data is normalized before being passed to React components.
+The book services have been refactored into specialized modules under `src/services/books/`, with `booksApi.js` kept as the public entry point. The main search now combines Google Books and Open Library candidates, improves title and author relevance, then ranks and deduplicates results before they are displayed.
 
 ## Discover
 
@@ -51,6 +51,7 @@ The Discover page supports several flows:
 - default discovery shelves;
 - search with `?q=`;
 - suggestions while typing;
+- search guidance in the default view and search results;
 - an expanded personalized recommendations view with `?view=for-you`.
 
 Shelves can load and refresh independently so one source does not block the entire page.
@@ -167,6 +168,8 @@ The project uses Vitest and React Testing Library for automated tests.
 
 Tests cover important services, utilities, hooks, and interactive behaviors, including i18n consistency and description translation behavior.
 
+The final verification on October 9, 2026 passed 28 test files and 246 out of 246 tests. On the same date, `npm run lint` reported 0 errors and 11 non-blocking warnings, and `npm run build` completed successfully.
+
 Manual checks complete the automated tests on the main user flows.
 
 ## Documentation
@@ -213,6 +216,7 @@ The current version provides a complete personal reading tracker:
 Future evolutions could include:
 
 - deeper recommendation personalization based on reading history;
+- [ ] Allow users to browse and select different editions of the same book, depending on the metadata available from the APIs.
 - richer collection organization;
 - more advanced statistics;
 - improved import/export flows;

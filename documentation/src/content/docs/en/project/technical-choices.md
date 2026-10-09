@@ -117,7 +117,7 @@ It is used to:
 - retrieve books by subject;
 - power some recommendations.
 
-Received data is normalized by `booksApi.js` before being used in components.
+Google Books calls are grouped in `src/services/books/googleBooksApi.js`, while volume normalization is isolated in `src/services/books/googleBooksFormatter.js` before data is used in components.
 
 Google Books mainly answers:
 
@@ -129,13 +129,34 @@ Google Books mainly answers:
 
 It is used to:
 
+- complement the main book search;
 - power the **Trending now** shelf;
 - retrieve some public book data;
 - resolve some covers from an ISBN when a better source is available.
 
-Trend data is normalized in `trendingBooksApi.js`.
+Open Library data is handled in `openLibraryApi.js` for search and book pages, then in `trendingBooksApi.js` for trends and their fallback.
 
 Open Library does not replace Google Books: both services provide public book data, but with different identifiers and formats.
+
+## Book services
+
+`src/services/booksApi.js` now acts as the public entry point that keeps application imports simple, while the implementation is split into specialized modules under `src/services/books/`.
+
+- `bookSearchService.js` orchestrates the main search, suggestions, Google Books and Open Library requests, then sends candidates to the ranking step.
+- `bookSubjectService.js` handles Google Books subject searches, pagination windows, and subject relevance rules.
+- `googleBooksApi.js` centralizes Google Books URLs, the API key, calls with retry behavior for some temporary errors, and retrieval by ISBN or Google Books ID.
+- `googleBooksFormatter.js` converts Google Books volumes into Dear Pages book objects and cleans descriptions and covers.
+- `openLibraryApi.js` handles Open Library searches by title, author, or subject, as well as retrieval of a complete Open Library work.
+- `trendingBooksApi.js` builds the trends shelf from Open Library, applies popularity signals, and provides a Google Books fallback when needed.
+- `coverUtils.js` groups ISBN selection, Google Books covers, Open Library covers, and the ISBN cover-resolution cache.
+
+This separation keeps the full implementation out of `booksApi.js`. It makes responsibilities easier to read, supports more focused tests for each behavior, and limits side effects when an external API or normalization rule changes.
+
+The main Discover search now combines several candidate groups: Google Books title queries, a general Google Books query, an Open Library title search, then additional author or title + author searches when the query suggests them. Results are then merged, ranked, and deduplicated in `bookSearchRelevance.js` using title relevance, author relevance, metadata quality, ISBNs, source identifiers, and the title/author pair.
+
+This search is separate from personalized recommendations: search responds directly to a user query, while recommendations use preferences, shelves, and session persistence to refresh selections.
+
+Deduplication groups similar results or nearby editions when they represent the same book across APIs. It is not an interface for explicitly choosing one edition of the same work.
 
 ## Google Cloud Translation API
 
@@ -235,6 +256,18 @@ Project workflows can:
 
 Deployment from the main branch can therefore be performed automatically after committed project changes.
 
+## Oxlint
+
+**Oxlint** is used for static analysis of the JavaScript and React code.
+
+It is run with:
+
+```bash
+npm run lint
+```
+
+This script executes `oxlint` and reports potential errors or warnings without replacing automated tests.
+
 ## Vitest and React Testing Library
 
 **Vitest** is used for Dear Pages automated tests.
@@ -250,6 +283,8 @@ It integrates naturally with the Vite environment and can test:
 **React Testing Library** complements Vitest by testing React components through observable behavior rather than internal implementation.
 
 Automated tests complement manual checks performed on the main application flows.
+
+During the final verification on October 9, 2026, `npm run test:run` passed 28 test files and 246 out of 246 tests. `npm run lint` reported 0 errors and 11 non-blocking warnings, and `npm run build` produced a successful production build.
 
 ## JSDoc
 
@@ -302,6 +337,7 @@ These choices can be summarized as:
 | Firebase Realtime Database | Persistent personal data |
 | Firebase Hosting | Application and documentation hosting |
 | GitHub Actions | Deployment automation |
+| Oxlint | Static code analysis with `npm run lint` |
 | Vitest | Automated tests |
 | React Testing Library | React component tests |
 | JSDoc | Technical code documentation |
