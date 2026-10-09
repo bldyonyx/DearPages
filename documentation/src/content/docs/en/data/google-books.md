@@ -1,90 +1,85 @@
 ---
-title: Book sources
-description: How Google Books and Open Library are used in Dear Pages.
+title: Book data sources
+description: Searching and retrieving books with Google Books and Open Library.
 ---
 
-Dear Pages uses two main external sources to retrieve public book information:
-
-- **Google Books API**, for search, suggestions, and several book selections;
-- **Open Library**, as a complementary source for trends, some book information, and covers.
-
-Calls to these APIs are isolated in services so requests are not made directly from React components.
+Dear Pages uses two public book data sources: **Google Books API** and **Open Library**. Book services normalize their responses before passing them to React components.
 
 ## Google Books API
 
-Google Books is the main source used by Dear Pages to search for and discover books.
+Google Books provides book metadata, subject-based queries, and many of the candidates used for recommendations.
 
-The API key is read from a Vite environment variable:
-
-```js
-const API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
-```
-
-The expected variable is:
+The API key is provided to the frontend through:
 
 ```text
 VITE_GOOGLE_BOOKS_API_KEY=...
 ```
 
 :::note
-This key is used on the frontend. It can therefore be visible from the browser and should not be treated as a server secret.
-
-In production, it is provided to the build by GitHub Actions and its restrictions are configured in Google Cloud.
+A `VITE_` environment variable is bundled into frontend code and is not a server-side secret. The Google Books key must therefore be appropriately restricted.
 :::
 
-## Search
+## Main search: Google Books and Open Library
 
-The main search on the Discover page uses Google Books.
+The **Discover** search now combines candidates from **Google Books and Open Library**.
 
-It searches for books from the text entered by the user and displays the results in Dear Pages.
-
-Search is represented in the URL with:
+The query is represented in the URL as:
 
 ```text
 /discover?q=...
 ```
 
-The `useDiscoverSearch` hook synchronizes search state with this parameter and coordinates result loading.
+The `useDiscoverSearch` hook synchronizes the URL parameter with the interface. The `bookSearchService.js` module coordinates requests and result selection.
 
-## Suggestions
+The general flow is:
 
-Google Books is also used to provide suggestions while typing.
+```text
+User query
+    ↓
+Title / author query variants
+    ↓
+Google Books + Open Library
+    ↓
+Candidate normalization
+    ↓
+Merging, deduplication, and relevance ranking
+    ↓
+Results displayed in Discover
+```
 
-When the user starts searching for a book, Dear Pages can display a small selection of results before the full search is submitted.
+The service can run complementary searches for title, author, and combined title/author queries. It uses `Promise.allSettled` so useful responses can still be displayed when one provider fails.
 
-A debounce limits calls made while typing.
+Relevance logic is located in `src/utils/bookSearchRelevance.js`. It aims to rank results matching the user's search intent and reduce duplicates or weak matches.
 
-Each suggestion can then lead directly to:
+The service limits the number of displayed results to keep the interface readable.
+
+## Suggestions while typing
+
+Search suggestions are shown before the user submits a query.
+
+A *debounce* limits unnecessary network requests. Suggestions can lead directly to a book details page:
 
 ```text
 /books/:id
 ```
 
-## Subject selections
+When no results are found, the interface displays an empty state and a tip suggesting that users check the title spelling or search by author. The tip also appears in the default Discover view.
 
-Dear Pages also uses Google Books categories to build different selections.
+## Subject-based selections
 
-A subject search uses:
+Personalized recommendations use subject queries, mainly through Google Books:
 
 ```text
 q=subject:<subject>
 ```
 
-This logic is used in:
+These queries support **Maybe for you**, **Trending and curated selections**, and the extended `/discover?view=for-you` view, depending on the shelf's source.
 
-- **Maybe for you** recommendations;
-- **Must-reads**;
-- the expanded `/discover?view=for-you` view.
+The `bookSubjectService.js` module handles subject queries and result windows used to refresh recommendation candidates.
 
-Personalized recommendations use the user's stored favorite genres to choose the corresponding subjects.
+## Google Books normalization
 
-Different result windows can be fetched to refresh selections without always showing the same books.
-
-## Google Books data normalization
-
-Google Books responses are transformed before they are used in the interface.
-
-Dear Pages normalizes information such as:
+The `googleBooksFormatter.js` module transforms Google Books responses into a shared structure, including fields such as:
 
 ```js
 {
@@ -101,49 +96,18 @@ Dear Pages normalizes information such as:
 }
 ```
 
-This normalization lets React components work with a consistent structure without depending directly on the raw API format.
-
-When some information is missing, Dear Pages can use replacement values suited to the interface.
-
-## Google Books covers
-
-Google Books can provide several cover sizes.
-
-Dear Pages prefers the best available versions before falling back to smaller formats when necessary.
-
-The Google Books cover can also be used as a fallback when another source does not provide a usable image.
+Missing information can be replaced with interface-appropriate fallback values.
 
 ## Open Library
 
-Open Library is the second external source used by Dear Pages.
+Open Library complements Google Books through:
 
-It notably powers the shelf:
+- the **Trending** shelf;
+- additional candidates for the main search;
+- selected public book metadata;
+- cover resolution when complementary data is available.
 
-**Trending now**
-
-from Open Library public data.
-
-Unlike Google Books, this use does not require an API key in Dear Pages.
-
-## Trends
-
-For trends, Dear Pages retrieves a set of books from Open Library before normalizing them for the interface.
-
-Useful data can include:
-
-- the Open Library identifier;
-- the title;
-- authors;
-- ISBNs;
-- the cover identifier.
-
-Results are then filtered and adapted before display in the matching shelf.
-
-## Open Library data normalization
-
-Books from Open Library are also transformed into a structure compatible with Dear Pages.
-
-It can include:
+Open Library results are normalized into a structure compatible with Dear Pages components:
 
 ```js
 {
@@ -157,60 +121,29 @@ It can include:
 }
 ```
 
-This structure lets Open Library books use the same general components as Google Books results.
+The public Open Library endpoints used here do not require an API key.
 
-## Open Library covers
+## Covers and fallbacks
 
-Open Library also provides a cover service used as a complementary source by Dear Pages.
+Dear Pages can use several Google Books cover sizes and Open Library covers.
 
-When a better-quality Open Library cover is available, it can be preferred.
+When a better-quality Open Library cover is actually available, it can be preferred. Otherwise, the application keeps or falls back to an available Google Books cover to avoid reducing image quality.
 
-Otherwise, Dear Pages keeps or uses the available Google Books cover to avoid unnecessarily degrading image quality.
+Cover handling includes fallbacks and mechanisms intended to reduce unnecessary requests.
 
-Cover management therefore supports several sources and fallbacks instead of depending on a single image.
+## Identifiers and duplicates
 
-## Identifiers from several sources
+The two providers use different identifiers. Dear Pages preserves source IDs (`googleBooksId`, `openLibraryId`) and can compare ISBNs, titles, and authors to identify similar results.
 
-Google Books and Open Library do not use the same identifiers.
+Result deduplication does not mean that every edition of a work is grouped into an edition-picker interface. Such a feature is not documented as available in the current version.
 
-A book from Google Books can include:
+## Public and personal data
 
-```text
-id
-googleBooksId
-```
+External APIs provide **public** book information. **Personal** data remains separate and is associated with the user's Firebase account:
 
-A book from Open Library can include:
-
-```text
-id
-openLibraryId
-```
-
-Dear Pages keeps this information to know where a book comes from and retrieve data suited to its source.
-
-To limit duplicates between editions or APIs, the logic can also use:
-
-- ISBN;
-- title;
-- main author.
-
-## Public data and personal data
-
-Google Books and Open Library provide only the public information used to represent and discover books.
-
-The user's personal data does not come from these APIs.
-
-This includes:
-
-- reading status;
-- presence in the library;
+- reading status and library membership;
 - collections;
-- personal notes;
-- star rating;
-- review;
-- finish date.
+- notes, reviews, and ratings;
+- dates and other personal reading information.
 
-This information is stored separately in **Firebase** and associated with the user's account.
-
-This separation lets Dear Pages use external APIs as book sources while keeping personal data independent.
+This separation lets public data sources evolve independently from each user's private information.

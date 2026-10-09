@@ -3,9 +3,7 @@ title: Scripts
 description: Commandes npm utilisées pour développer, tester, construire et documenter Dear Pages.
 ---
 
-Dear Pages utilise plusieurs scripts **npm** pour simplifier les tâches courantes de développement, de vérification et de documentation.
-
-Les scripts de l'application principale sont définis dans le `package.json` situé à la racine du projet.
+Dear Pages utilise plusieurs scripts **npm** pour le développement, les vérifications et la documentation. Les commandes de l'application principale sont définies dans le `package.json` à la racine du dépôt.
 
 ## Lancer le serveur de développement
 
@@ -13,9 +11,7 @@ Les scripts de l'application principale sont définis dans le `package.json` sit
 npm run dev
 ```
 
-Cette commande démarre le serveur de développement Vite.
-
-Elle permet de travailler sur l'application localement avec le rechargement automatique lorsque le code est modifié.
+Démarre Vite en mode développement, avec rechargement automatique lors des modifications du code.
 
 ## Construire l'application
 
@@ -23,11 +19,7 @@ Elle permet de travailler sur l'application localement avec le rechargement auto
 npm run build
 ```
 
-Cette commande génère une version optimisée de Dear Pages destinée à la production.
-
-Vite crée alors les fichiers nécessaires au déploiement.
-
-Cette commande est également utilisée pour vérifier que l'application peut être construite correctement avant son déploiement.
+Génère la version de production dans `dist/`. Cette commande permet également de vérifier que l'application peut être construite sans erreur bloquante.
 
 ## Prévisualiser le build
 
@@ -35,137 +27,102 @@ Cette commande est également utilisée pour vérifier que l'application peut ê
 npm run preview
 ```
 
-Cette commande permet de lancer localement la version générée par `npm run build`.
+Lance localement la version de production générée par `npm run build`.
 
-Elle est utile pour vérifier le comportement de la version de production avant son déploiement.
-
-## Vérifier le code avec ESLint
+## Vérifier le code avec Oxlint
 
 ```bash
 npm run lint
 ```
 
-Cette commande analyse le code source avec ESLint.
+Exécute **Oxlint**, l'outil d'analyse statique utilisé par Dear Pages. Il signale des erreurs et avertissements potentiels, notamment sur certaines pratiques React.
 
-Elle permet notamment de détecter certaines erreurs, incohérences ou utilisations problématiques avant le build ou le déploiement.
+Le script défini à la racine est :
 
-## Lancer les tests
+```json
+"lint": "oxlint"
+```
 
-Dear Pages utilise Vitest pour ses tests automatisés.
+Un avertissement n'est pas nécessairement une erreur bloquante. Les résultats doivent être examinés selon leur impact réel.
+
+## Lancer les tests automatisés
+
+Dear Pages utilise **Vitest** et **React Testing Library** pour tester les services, les utilitaires, certains composants React et les comportements importants.
+
+Pour lancer Vitest en mode interactif :
 
 ```bash
 npm run test
 ```
 
-Cette commande exécute la suite de tests du projet.
+Pour exécuter tous les tests une seule fois, notamment avant un déploiement :
 
-Les tests couvrent notamment certaines parties importantes de l'application comme :
+```bash
+npm run test:run
+```
 
-- les services ;
-- les utilitaires ;
-- les hooks ;
-- les composants ;
-- certains comportements interactifs.
+Ce dernier script correspond à `vitest run`.
 
-Ils complètent les vérifications manuelles réalisées sur les principaux parcours utilisateur.
+Les tests automatisés complètent les vérifications manuelles des parcours utilisateurs ; ils ne les remplacent pas.
+
+### Bilan de vérification du 9 octobre 2026
+
+Sur la version vérifiée avant la présentation :
+
+- **Oxlint :** 0 erreur et 11 avertissements non bloquants ;
+- **Vitest :** 28 fichiers de tests validés, soit **246 tests réussis sur 246** ;
+- **Vite :** build de production réussi.
+
+Ces résultats correspondent à une exécution ponctuelle et ne garantissent pas, à eux seuls, l'absence de bugs.
 
 ## Générer la documentation JSDoc
-
-Dear Pages possède également un script permettant de générer automatiquement la documentation technique à partir des commentaires JSDoc présents dans le code.
 
 ```bash
 npm run docs
 ```
 
-Le script correspondant est :
+Le script `jsdoc src -r -d docs` analyse les commentaires JSDoc du dossier `src/` et génère une documentation technique dans `docs/`.
 
-```json
-"docs": "jsdoc src -r -d docs"
-```
+Ce dossier généré est distinct du site de documentation Astro/Starlight.
 
-JSDoc analyse récursivement le dossier `src` et génère la documentation dans :
+## Documentation Astro et Starlight
 
-```text
-docs/
-```
-
-Ce dossier est généré automatiquement et est différent de la documentation Astro/Starlight.
-
-## Documentation Astro
-
-La documentation du projet possède son propre `package.json` dans :
-
-```text
-documentation/
-```
-
-Pour installer ses dépendances :
+La documentation possède son propre projet npm dans `documentation/`.
 
 ```bash
 cd documentation
 npm install
-```
-
-Pour lancer la documentation localement :
-
-```bash
 npm run dev
 ```
 
-Cette commande démarre le serveur Astro utilisé pour consulter et modifier la documentation pendant son développement.
-
-## Construire la documentation Astro
-
-Depuis le dossier `documentation/` :
+Pour produire la version statique du site, depuis `documentation/` :
 
 ```bash
 npm run build
 ```
 
-Cette commande génère la version statique de la documentation dans :
-
-```text
-documentation/dist/
-```
-
-Cette version est utilisée lors du déploiement sur Firebase Hosting.
+Le résultat se trouve dans `documentation/dist/` et peut être déployé sur Firebase Hosting.
 
 ## Déploiement automatique
 
-Le déploiement de l'application et de la documentation est automatisé avec GitHub Actions.
-
-Lorsqu'une modification concernée est poussée sur `main`, les workflows configurés peuvent notamment :
-
-1. installer les dépendances ;
-2. construire le projet concerné ;
-3. récupérer les fichiers générés ;
-4. les déployer sur la cible Firebase Hosting correspondante.
-
-Dear Pages utilise deux cibles Firebase Hosting distinctes :
+Les workflows GitHub Actions construisent et déploient l'application et la documentation sur deux cibles Firebase Hosting distinctes :
 
 ```text
 app  → application React
 docs → documentation Astro + Starlight
 ```
 
-L'application et la documentation peuvent ainsi être déployées séparément.
+Les workflows concernés peuvent installer les dépendances, construire le projet puis publier les fichiers générés lorsque les modifications sont poussées sur `main`.
 
-## Deux projets npm
-
-Dear Pages contient deux environnements npm distincts :
+## Deux environnements npm
 
 ```text
 DearPages/
-├── package.json
-│   └── application React + Vite
-│
+├── package.json           → application React + Vite
 └── documentation/
-    └── package.json
-        └── documentation Astro + Starlight
+    └── package.json       → documentation Astro + Starlight
 ```
 
-Les commandes doivent être exécutées depuis le dossier correspondant au projet que l'on souhaite utiliser.
-
 :::tip
-Avant d'exécuter une commande npm, vérifier le dossier courant permet d'éviter de lancer un script de la documentation dans l'application principale, ou inversement.
+Vérifie toujours le dossier courant avant de lancer une commande npm : les scripts de l'application et ceux de la documentation sont indépendants.
 :::

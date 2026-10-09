@@ -1,57 +1,41 @@
 ---
 title: Project structure
-description: Organization of the main Dear Pages files and folders.
+description: Organization of Dear Pages files and main directories.
 ---
 
-Dear Pages is organized into several folders to separate the interface, pages, services, hooks, global context, constants, utilities, and application assets.
-
-This structure keeps the project readable and separates responsibilities between display, data management, and external integrations.
+Dear Pages separates **pages**, **components**, **hooks**, **services**, **utilities**, and application assets. This structure keeps rendering, application logic, and external data access independent.
 
 ## Main structure
 
-The project lives in the `DearPages` folder.
-
 ```text
 DearPages/
-├── .github/
-│   └── workflows/
-├── documentation/
+├── .github/workflows/          → CI/CD and deployments
+├── documentation/              → Astro + Starlight documentation
 ├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── constants/
-│   ├── context/
-│   ├── hooks/
-│   ├── i18n/
-│   ├── pages/
-│   ├── services/
-│   ├── utils/
+│   ├── assets/                → images, fonts, and textures
+│   ├── components/            → React components grouped by feature
+│   ├── constants/             → shared values
+│   ├── context/               → React contexts
+│   ├── hooks/                 → custom hooks
+│   ├── i18n/                  → FR/EN setup and translations
+│   ├── pages/                 → route-level pages
+│   ├── services/              → APIs and data access
+│   ├── test/                  → automated tests
+│   ├── utils/                 → reusable logic
 │   ├── App.jsx
 │   ├── index.css
 │   └── main.jsx
-├── .env
 ├── .firebaserc
 ├── firebase.json
 ├── package.json
 └── vite.config.js
 ```
 
-## `src/assets`
-
-This folder contains visual assets used by the application:
-
-- local fonts;
-- images;
-- textures;
-- illustrations used in the interface.
+Local environment variables belong in appropriate `.env` files. Secrets should not be committed to Git.
 
 ## `src/components`
 
-This folder gathers the application's React components.
-
-They are organized by feature to avoid placing every component in a single folder.
-
-It includes components related to:
+React components are grouped by feature:
 
 ```text
 components/
@@ -65,42 +49,76 @@ components/
 └── ui/
 ```
 
-This organization distinguishes feature-specific components from structural or reusable components.
+Components in `ui/` are reusable, while the other folders group feature-specific interface elements.
 
-## `src/constants`
+## `src/pages`
 
-This folder contains shared values used in several places in the application.
+Main pages include `Dashboard.jsx`, `Discover.jsx`, `MyLibrary.jsx`, `BookPage.jsx`, `Collections.jsx`, `CollectionPage.jsx`, `Settings.jsx`, `Login.jsx`, `SignUp.jsx`, and `Onboarding.jsx`.
 
-It includes static data required by some features, such as the genres available for reading preferences.
+`App.jsx` defines the routes, including protected pages, authentication screens, and onboarding. The main application pages share a layout, while authentication has a separate presentation.
 
-User-specific preferences are not stored here: they are stored in Firebase.
+## `src/context` and `src/hooks`
 
-## `src/context`
+The authentication context centralizes the signed-in user and their preferences. Custom hooks encapsulate complex state and data loading, including search, recommendations, Discover shelves, and book-description translation.
 
-This folder contains React contexts used to share certain data throughout the application.
+## `src/services`: separation of responsibilities
 
-It includes the authentication context, which centralizes the signed-in user state and preferences.
+Services isolate Firebase and external API calls so that React components do not communicate directly with those providers.
 
-Routes and components can access that information without manually passing it through several component levels.
+Important services include:
 
-## `src/hooks`
+- `authService.js` for authentication operations;
+- `firebase.js` for Firebase configuration;
+- `preferencesService.js` for user preferences;
+- `libraryService.js` for the library and personal book data;
+- `collectionsService.js` for collections;
+- `translationService.js` for description translation;
+- `booksApi.js` and `books/` for public book information.
 
-This folder groups custom hooks.
+### Book service organization
 
-They extract complex React logic from components and centralize some state or data-loading behavior.
+Book-related logic is split into specialized modules:
 
-The Discover features use dedicated hooks for:
+```text
+src/services/
+├── booksApi.js
+└── books/
+    ├── bookSearchService.js
+    ├── bookSubjectService.js
+    ├── googleBooksApi.js
+    ├── googleBooksFormatter.js
+    ├── openLibraryApi.js
+    ├── trendingBooksApi.js
+    └── coverUtils.js
+```
 
-- search;
-- loading the different shelves;
-- personalized recommendations;
-- managing displayed data.
+**`booksApi.js` remains the public entry point**: it re-exports the functions used elsewhere in the application while preserving existing imports.
 
-The book page also uses a dedicated hook to manage description translation state, target language, and the related session cache.
+Each module has a distinct role:
+
+| Module | Responsibility |
+| --- | --- |
+| `bookSearchService.js` | Main search, suggestions, and combined results |
+| `bookSubjectService.js` | Subject-based queries and recommendation candidates |
+| `googleBooksApi.js` | Google Books requests and data retrieval |
+| `googleBooksFormatter.js` | Normalization of Google Books responses |
+| `openLibraryApi.js` | Open Library requests and data retrieval |
+| `trendingBooksApi.js` | Trending books and complementary Open Library search functions |
+| `coverUtils.js` | Cover processing and resolution |
+
+This separation makes testing and maintenance easier without concentrating all search logic in one file.
+
+## `src/utils`
+
+Utilities contain presentation-independent functions, including:
+
+- search result relevance;
+- recommendation selection and deduplication;
+- cover handling and fallbacks;
+- data normalization and transformation;
+- date and translation helpers.
 
 ## `src/i18n`
-
-This folder contains the application's bilingual configuration.
 
 ```text
 i18n/
@@ -110,141 +128,32 @@ i18n/
     └── fr.json
 ```
 
-`index.js` initializes i18next with react-i18next, declares the supported languages, and loads the translation resources.
+The i18next configuration loads French and English resources. Components use `useTranslation` to display labels in the active language.
 
-The `fr.json` and `en.json` files contain interface labels. They follow the same key structure so components can use the same `t(...)` calls regardless of the active language.
+## `src/test`
 
-## `src/pages`
+Vitest tests cover services, utilities, authentication behavior, search, recommendations, components, and selected security cases. React Testing Library helps test observable component interactions.
 
-This folder contains the components used directly by React Router to represent application pages.
+## Firebase and personal data
 
-It includes:
+Firebase Authentication manages accounts and sessions. Firebase Realtime Database stores libraries, collections, preferences, and personal reading information, organized by user.
 
-- `Dashboard.jsx`
-- `Discover.jsx`
-- `MyLibrary.jsx`
-- `BookPage.jsx`
-- `Collections.jsx`
-- `CollectionPage.jsx`
-- `Settings.jsx`
-- `Login.jsx`
-- `SignUp.jsx`
-- `Onboarding.jsx`
-
-These pages now use the user's real data when the related feature depends on Firebase.
-
-## `src/services`
-
-This folder isolates communication with external services and data-access logic.
-
-Services manage:
-
-- Google Books;
-- Open Library;
-- Firebase Authentication;
-- user preferences;
-- the personal library;
-- collections;
-- personal data associated with books;
-- translations used by the application.
-
-This separation avoids placing API or Firebase calls directly in interface components.
-
-## `src/utils`
-
-This folder contains reusable logic that is not directly tied to display.
-
-Utilities are used to:
-
-- normalize some data from APIs;
-- select and deduplicate recommendations;
-- manage covers and fallbacks;
-- avoid or share identical requests;
-- detect description language and build translation cache keys;
-- transform data before it is used in the interface.
-
-They keep components and services simpler.
-
-## Routing
-
-`App.jsx` centralizes the main Dear Pages routes.
-
-The application distinguishes:
-
-- routes accessible only to signed-in users;
-- public authentication routes;
-- onboarding;
-- pages displayed in the main layout.
-
-Dedicated components control access to routes according to authentication state and user preferences.
-
-## Firebase
-
-The Firebase configuration lets Dear Pages use:
-
-- Firebase Authentication;
-- Firebase Realtime Database;
-- Firebase Hosting.
-
-Personal data is organized by user to isolate libraries, collections, preferences, and reading information.
-
-The files:
-
-```text
-.firebaserc
-firebase.json
-```
-
-also configure two Firebase Hosting targets:
+The `.firebaserc` and `firebase.json` files configure the Firebase Hosting targets:
 
 ```text
 app  → Dear Pages application
 docs → Astro + Starlight documentation
 ```
 
-## GitHub Actions
+## GitHub Actions and documentation
 
-The folder:
+Workflows in `.github/workflows/` automate application and documentation builds and deployments.
 
-```text
-.github/workflows/
-```
-
-contains the project's CI/CD workflows.
-
-They automate:
-
-- dependency installation;
-- application build;
-- Dear Pages deployment to Firebase Hosting;
-- Firebase previews for Pull Requests;
-- documentation build and deployment.
-
-The application and documentation use two separate Firebase Hosting targets.
-
-## Documentation
-
-The project has two forms of documentation.
+The project has two forms of documentation:
 
 ```text
-docs/              → generated JSDoc documentation
-documentation/     → Astro + Starlight documentation
+docs/              → JSDoc generated with npm run docs
+documentation/     → version-controlled Astro + Starlight site
 ```
 
-The `docs/` folder is generated with:
-
-```bash
-npm run docs
-```
-
-It contains technical documentation generated from JSDoc comments in the code and remains ignored by Git.
-
-The folder:
-
-```text
-documentation/src/content/docs/
-```
-
-contains the hand-written Astro/Starlight pages versioned with the project.
-
-The documentation has its own Astro environment, build, and Firebase Hosting deployment.
+The Astro website has its own `package.json`, build, and Firebase Hosting target.
