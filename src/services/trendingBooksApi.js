@@ -1,18 +1,19 @@
+
 import { fetchJsonOnce } from '../utils/inFlightRequest'
-import { getPreferredIsbn } from './coverUtils.js'
 import { isExplicitDiscoveryBook } from '../utils/discoveryContentSafety.js'
+import { getPreferredIsbn } from './coverUtils.js'
+
+// Keep existing imports working during the refactor.
+export {
+  formatOpenLibrarySearchBook,
+  getOpenLibraryBooksBySearch,
+  getOpenLibraryBooksBySubject,
+  getOpenLibraryBookById,
+} from './openLibraryApi.js'
 
 const OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json'
-const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org'
 const OPEN_LIBRARY_COVERS_URL = 'https://covers.openlibrary.org/b/id'
-const OPEN_LIBRARY_SUBJECT_QUERIES = {
-  classics: 'classics',
-  crime: 'crime fiction',
-  comics: 'comics',
-  'science fiction': 'science fiction',
-  'self help': 'self help',
-  'young adult': 'young adult fiction',
-}
+
 const MIN_TRENDING_EDITION_COUNT = 5
 const MIN_TRENDING_RATINGS_COUNT = 2
 const MIN_TRENDING_READING_LOG_COUNT = 100
@@ -49,39 +50,10 @@ export function isEligibleTrendingBook(book) {
 }
 
 /**
- * Extrait une description Open Library.
- *
- * Selon le livre, Open Library retourne soit une chaîne,
- * soit un objet contenant la description dans `value`.
- *
- * @param {string|Object|undefined} description - Description Open Library.
- * @returns {string} Description normalisée.
- */
-function getDescription(description) {
-  if (Array.isArray(description)) {
-    return description.find((item) => typeof item === 'string') || ''
-  }
-
-  if (typeof description === 'string') {
-    return description
-  }
-
-  if (
-    description &&
-    typeof description === 'object' &&
-    typeof description.value === 'string'
-  ) {
-    return description.value
-  }
-
-  return ''
-}
-
-/**
  * Recupere les livres actuellement tendance sur Open Library.
  *
- * @param {number} [limit=10] - Nombre maximum de livres tendance a retourner.
- * @returns {Promise<Array>} Livres tendance formates pour Dear Pages.
+ * @param {number} [limit=10] - Nombre maximum de livres tendance.
+ * @returns {Promise<Array>} Livres formates pour Dear Pages.
  * @throws {Error} Si la requete Open Library echoue.
  */
 export async function getTrendingBooksDetails(limit = 10) {
@@ -131,199 +103,4 @@ export async function getTrendingBooksDetails(limit = 10) {
       source: 'open-library',
     }
   })
-}
-
-export function formatOpenLibrarySearchBook(book) {
-  const isbns = book.isbn || []
-  const normalizedId = book.key.replace('/works/', '')
-  const subjects = book.subject || []
-  const subjectKeys = book.subject_key || []
-
-  return {
-    id: normalizedId,
-    openLibraryId: book.key,
-    title: book.title || 'Titre inconnu',
-    authors: book.author_name || ['Auteur inconnu'],
-    isbn: getPreferredIsbn(isbns),
-    isbns,
-    cover: book.cover_i
-      ? `${OPEN_LIBRARY_COVERS_URL}/${book.cover_i}-L.jpg?default=false`
-      : null,
-    subjects,
-    subjectKeys,
-    categories: subjects,
-    description: getDescription(book.first_sentence),
-    publishedDate: book.first_publish_year
-      ? String(book.first_publish_year)
-      : '',
-    source: 'open-library',
-  }
-}
-
-export async function getOpenLibraryBooksBySearch({
-  title = '',
-  author = '',
-  limit = 20,
-} = {}) {
-  const normalizedTitle = String(title || '').trim()
-  const normalizedAuthor = String(author || '').trim()
-
-  if (!normalizedTitle && !normalizedAuthor) {
-    return []
-  }
-
-  const params = new URLSearchParams({
-    limit: String(limit),
-    fields:
-      'key,title,author_name,isbn,cover_i,subject,subject_key,first_publish_year,first_sentence',
-  })
-
-  if (normalizedTitle) {
-    params.set('title', normalizedTitle)
-  }
-
-  if (normalizedAuthor) {
-    params.set('author', normalizedAuthor)
-  }
-
-  let data
-
-  try {
-    data = await fetchJsonOnce(
-      `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`
-    )
-  } catch {
-    throw new Error('Impossible de recuperer ces suggestions.')
-  }
-
-  return (data.docs || [])
-    .filter((book) => book.key && book.key.startsWith('/works/'))
-    .map(formatOpenLibrarySearchBook)
-}
-
-/**
- * Recherche des livres Open Library par sujet.
- *
- * Cette source sert de secours borne lorsque les fenetres Google Books
- * d'un rayon Discover ne fournissent plus assez d'alternatives.
- *
- * @param {string} subject - Sujet Dear Pages ou sujet Open Library.
- * @param {number} [limit=40] - Nombre maximum de resultats.
- * @param {number} [page=1] - Page Open Library a recuperer.
- * @returns {Promise<Array>} Livres Open Library formates pour Dear Pages.
- * @throws {Error} Si la requete Open Library echoue.
- */
-export async function getOpenLibraryBooksBySubject(
-  subject,
-  limit = 40,
-  page = 1
-) {
-  const normalizedSubject = String(subject || '').trim()
-  const params = new URLSearchParams({
-    subject:
-      OPEN_LIBRARY_SUBJECT_QUERIES[normalizedSubject] ||
-      normalizedSubject,
-    limit: String(limit),
-    page: String(page),
-    fields:
-      'key,title,author_name,isbn,cover_i,subject,subject_key,first_publish_year,first_sentence',
-  })
-
-  let data
-
-  try {
-    data = await fetchJsonOnce(
-      `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`
-    )
-  } catch {
-    throw new Error('Impossible de recuperer ces suggestions.')
-  }
-
-  return (data.docs || []).map(formatOpenLibrarySearchBook)
-}
-
-/**
- * Recupere la fiche complete d'un livre Open Library.
- *
- * Les identifiants de type `OL...W` correspondent aux Works
- * utilises notamment par le rayon "Tendances du moment".
- *
- * @param {string} workId - Identifiant Open Library du livre.
- * @returns {Promise<Object|null>} Livre formate pour Dear Pages.
- * @throws {Error} Si la requete Open Library echoue.
- */
-export async function getOpenLibraryBookById(workId) {
-  if (!workId) {
-    return null
-  }
-
-  const normalizedId = workId.replace('/works/', '')
-
-  let work
-
-  try {
-    work = await fetchJsonOnce(
-      `${OPEN_LIBRARY_BASE_URL}/works/${encodeURIComponent(
-        normalizedId
-      )}.json`
-    )
-  } catch {
-    throw new Error('Impossible de recuperer ce livre.')
-  }
-
-  const authorKeys =
-    work.authors
-      ?.map((author) => author.author?.key)
-      .filter(Boolean) || []
-
-  let authors = ['Auteur inconnu']
-
-  if (authorKeys.length > 0) {
-    const authorResults = await Promise.allSettled(
-      authorKeys.map((authorKey) =>
-        fetchJsonOnce(
-          `${OPEN_LIBRARY_BASE_URL}${authorKey}.json`
-        )
-      )
-    )
-
-    const authorNames = authorResults
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value?.name)
-      .filter(Boolean)
-
-    if (authorNames.length > 0) {
-      authors = authorNames
-    }
-  }
-
-  const coverId = work.covers?.[0]
-
-  return {
-    id: normalizedId,
-
-    openLibraryId: `/works/${normalizedId}`,
-
-    title: work.title || 'Titre inconnu',
-    authors,
-
-    isbn: null,
-    isbns: [],
-
-    cover: coverId
-      ? `${OPEN_LIBRARY_COVERS_URL}/${coverId}-L.jpg?default=false`
-      : null,
-
-    description: getDescription(work.description),
-
-    categories: work.subjects || [],
-
-    publishedDate:
-      work.first_publish_date ||
-      work.created?.value?.slice(0, 4) ||
-      '',
-
-    language: '',
-    source: 'open-library',
-  }
 }
