@@ -134,6 +134,8 @@
       "resultsCount_other": "{{count}} livres trouvés",
       "emptyTitle": "Aucun livre trouvé",
       "emptySubtitle": "Essaie avec un autre titre, auteur ou mot-clé.",
+      "tipTitle": "Une petite astuce ♡",
+      "tipBody": "Tu ne trouves pas le livre que tu cherches ? Vérifie l’orthographe du titre ou essaie une recherche avec le nom de l’auteur.",
       "error": "Impossible de récupérer les livres."
     },
     "forYou": {

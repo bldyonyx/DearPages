@@ -134,6 +134,8 @@
       "resultsCount_other": "{{count}} books found",
       "emptyTitle": "No books found",
       "emptySubtitle": "Try another title, author, or keyword.",
+      "tipTitle": "A little tip ♡",
+      "tipBody": "Can't find the book you're looking for? Check the title's spelling or try searching for the author's name.",
       "error": "We couldn't fetch books right now."
     },
     "forYou": {

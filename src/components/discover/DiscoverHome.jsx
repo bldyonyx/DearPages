@@ -1,5 +1,7 @@
+
 import { useTranslation } from 'react-i18next'
 
+import DiscoverSearchTip from './DiscoverSearchTip'
 import DiscoverShelf from './DiscoverShelf'
 import ForYouSection from './ForYouSection'
 import { discoverLarge } from './discoverResponsive'
@@ -77,6 +79,8 @@ function DiscoverHome({
             isRefreshing={isMustReadRefreshing}
             onRefresh={onRefreshMustReads}
           />
+
+          <DiscoverSearchTip />
         </>
       )}
     </div>
