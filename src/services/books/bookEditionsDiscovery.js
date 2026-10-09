@@ -47,8 +47,6 @@ function hasDescription(edition) {
 function getEditionScore(edition) {
   let score = 0
 
-  // Une couverture est particulièrement importante
-  // pour l'affichage dans Dear Pages.
   if (edition.cover || edition.coverId) {
     score += 5
   }
@@ -147,11 +145,11 @@ function selectBestEditions(editions) {
 /**
  * Découvre une sélection d'éditions FR/EN.
  *
- * Open Library : éditions liées à une œuvre commune.
- * Google Books : fallback avec validation du titre
- * et de l'auteur dans bookEditionsService.
+ * - Open Library : éditions reliées à une œuvre.
+ * - Google Books : complète les langues manquantes.
+ * - Privilégie les éditions avec des métadonnées riches.
+ * - Limite les résultats à 12 éditions par langue.
  *
- * Favorise les métadonnées de qualité.
  * Ne modifie aucune donnée utilisateur.
  */
 export async function discoverBookEditions(book) {
@@ -173,35 +171,55 @@ export async function discoverBookEditions(book) {
     }
   }
 
+  let openLibraryEditions = []
+
   if (workId) {
     try {
-      const editions = await getOpenLibraryWorkEditions(workId)
-
-      if (editions.length > 0) {
-        return {
-          workId,
-          source: 'open-library',
-          editions: selectBestEditions(editions),
-        }
-      }
+      openLibraryEditions =
+        await getOpenLibraryWorkEditions(workId)
     } catch {
       // Google Books reste disponible en fallback.
     }
   }
 
-  try {
-    const editions = await getBookEditions(book)
+  const availableLanguages = new Set(
+    openLibraryEditions.map((edition) =>
+      normalizeLanguage(edition.language)
+    )
+  )
 
-    return {
-      workId,
-      source: 'google-books',
-      editions: selectBestEditions(editions),
+  const hasMissingLanguage = SUPPORTED_LANGUAGES.some(
+    (language) => !availableLanguages.has(language)
+  )
+
+  let googleEditions = []
+
+  // Si Open Library ne couvre pas toutes les langues,
+  // on complète les résultats avec Google Books.
+  if (
+    openLibraryEditions.length === 0 ||
+    hasMissingLanguage
+  ) {
+    try {
+      googleEditions = await getBookEditions(book)
+    } catch {
+      // On conserve les éditions déjà récupérées.
     }
-  } catch {
-    return {
-      workId,
-      source: null,
-      editions: [],
-    }
+  }
+
+  const editions = selectBestEditions([
+    ...openLibraryEditions,
+    ...googleEditions,
+  ])
+
+  return {
+    workId,
+    source:
+      openLibraryEditions.length > 0
+        ? 'open-library'
+        : googleEditions.length > 0
+          ? 'google-books'
+          : null,
+    editions,
   }
 }

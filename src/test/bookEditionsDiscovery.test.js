@@ -84,7 +84,10 @@ describe('discoverBookEditions', () => {
     expect(result.source).toBe('open-library')
 
     expect(resolveOpenLibraryWorkId).not.toHaveBeenCalled()
-    expect(getBookEditions).not.toHaveBeenCalled()
+    expect(getBookEditions).toHaveBeenCalledWith({
+        id: 'OL123W',
+        source: 'open-library',
+    })
   })
 
   it('resolves Google Books ISBNs to an Open Library work', async () => {
