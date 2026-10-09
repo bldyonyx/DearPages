@@ -1,48 +1,57 @@
+
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import PublicOnlyRoute from './components/auth/PublicOnlyRoute'
 import PageLayout from './components/layout/PageLayout'
 import CustomCursor from './components/ui/CustomCursor'
-import BookPage from './pages/BookPage'
-import CollectionPage from './pages/CollectionPage'
-import Collections from './pages/Collections'
-import Dashboard from './pages/Dashboard'
-import Discover from './pages/Discover'
-import Login from './pages/Login'
-import MyLibrary from './pages/MyLibrary'
-import Onboarding from './pages/Onboarding'
-import Settings from './pages/Settings'
-import SignUp from './pages/SignUp'
+
+// Pages chargées uniquement lorsqu'elles sont nécessaires
+const BookPage = lazy(() => import('./pages/BookPage'))
+const CollectionPage = lazy(() => import('./pages/CollectionPage'))
+const Collections = lazy(() => import('./pages/Collections'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Discover = lazy(() => import('./pages/Discover'))
+const Login = lazy(() => import('./pages/Login'))
+const MyLibrary = lazy(() => import('./pages/MyLibrary'))
+const Onboarding = lazy(() => import('./pages/Onboarding'))
+const Settings = lazy(() => import('./pages/Settings'))
+const SignUp = lazy(() => import('./pages/SignUp'))
 
 function App() {
   return (
     <>
       <CustomCursor />
 
-      <Routes>
-        <Route element={<ProtectedRoute />}>
-          <Route element={<PageLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/discover" element={<Discover />} />
-            <Route path="/library" element={<MyLibrary />} />
-            <Route path="/books/:id" element={<BookPage />} />
-            <Route path="/collections" element={<Collections />} />
+      <Suspense fallback={null}>
+        <Routes>
+          <Route element={<ProtectedRoute />}>
+            <Route element={<PageLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/discover" element={<Discover />} />
+              <Route path="/library" element={<MyLibrary />} />
+              <Route path="/books/:id" element={<BookPage />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route
+                path="/collections/:id"
+                element={<CollectionPage />}
+              />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
             <Route
-              path="/collections/:id"
-              element={<CollectionPage />}
+              path="/onboarding"
+              element={<Onboarding />}
             />
-            <Route path="/settings" element={<Settings />} />
           </Route>
 
-          <Route path="/onboarding" element={<Onboarding />} />
-        </Route>
-
-        <Route element={<PublicOnlyRoute />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-        </Route>
-      </Routes>
+          <Route element={<PublicOnlyRoute />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </>
   )
 }
