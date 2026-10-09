@@ -18,8 +18,8 @@ function book({
   isbn = '',
   isbns = [],
   language = 'en',
-  cover = null,
-  description = '',
+  cover = 'https://example.com/cover.jpg',
+  description = 'Useful search metadata.',
 }) {
   return {
     id,
@@ -51,6 +51,11 @@ function googleItem(
       industryIdentifiers: [],
       language: 'en',
       printType: 'BOOK',
+      description: 'Useful search metadata.',
+      imageLinks: {
+        thumbnail:
+          'https://books.google.com/books/content?id=cover&printsec=frontcover&img=1&zoom=1',
+      },
       categories,
       ...overrides,
     },
@@ -69,6 +74,8 @@ function openLibraryDoc(id, title, authors = ['Auteur inconnu'], overrides = {})
     key: `/works/${id}`,
     title,
     author_name: authors,
+    cover_i: 12345,
+    first_sentence: ['Useful search metadata.'],
     ...overrides,
   }
 }
@@ -306,16 +313,20 @@ describe('book search merge and ranking', () => {
     ])
   })
 
-  it('excludes records with no cover, description, or identified author', () => {
+  it('excludes records with neither a cover nor description', () => {
     const candidates = [
       book({
         id: 'empty-record',
         title: 'The Housemaid',
+        cover: null,
+        description: '',
       }),
       book({
         id: 'known-author',
         title: 'The Housemaid',
         authors: ['Freida McFadden'],
+        cover: null,
+        description: 'A domestic thriller.',
       }),
     ]
 
@@ -361,6 +372,8 @@ describe('book search merge and ranking', () => {
         id: 'exact-with-author',
         title: 'The Housemaid',
         authors: ['Freida McFadden'],
+        cover: null,
+        description: 'A domestic thriller.',
       }),
     ]
 
@@ -382,6 +395,8 @@ describe('book search merge and ranking', () => {
         id: 'exact-sparse',
         title: 'The Housemaid',
         authors: ['Freida McFadden'],
+        cover: null,
+        description: 'A sparse but usable record.',
       }),
       book({
         id: 'exact-rich',
@@ -408,7 +423,7 @@ describe('book search merge and ranking', () => {
 })
 
 describe('booksApi search request behavior', () => {
-  it('uses only broad and title requests when strong title matches are present', async () => {
+  it('uses title, broad, Open Library title, and author requests for two-token searches', async () => {
     const fetchMock = vi
       .fn()
       .mockImplementationOnce(() =>
@@ -430,6 +445,8 @@ describe('booksApi search request behavior', () => {
         ])
       )
       .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -437,7 +454,7 @@ describe('booksApi search request behavior', () => {
     const results = await searchBooks('Harry Potter')
 
     expect(results).toHaveLength(2)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(5)
     expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
       'intitle:"Harry Potter"'
     )
@@ -445,10 +462,16 @@ describe('booksApi search request behavior', () => {
     expect(getRequestParam(fetchMock.mock.calls[2], 'title')).toBe(
       'Harry Potter'
     )
+    expect(getRequestQuery(fetchMock.mock.calls[3])).toBe(
+      'harry potter inauthor:potter'
+    )
+    expect(getRequestParam(fetchMock.mock.calls[4], 'author')).toBe(
+      'Harry Potter'
+    )
     expect(fetchMock.mock.calls[0][0]).not.toContain('langRestrict')
   })
 
-  it('adds an author request when broad and title candidates are insufficient', async () => {
+  it('includes author requests for possible author searches', async () => {
     const fetchMock = vi
       .fn()
       .mockImplementationOnce(() =>
@@ -475,14 +498,14 @@ describe('booksApi search request behavior', () => {
 
     const results = await searchBooks('George Martin')
 
-    expect(fetchMock).toHaveBeenCalledTimes(6)
+    expect(fetchMock).toHaveBeenCalledTimes(5)
     expect(getRequestQuery(fetchMock.mock.calls[3])).toBe(
       'george martin inauthor:martin'
     )
     expect(results[0].id).toBe('grrm')
   })
 
-  it('keeps autocomplete to one broad request and returns five ranked suggestions', async () => {
+  it('keeps single-token autocomplete to one broad request and returns five ranked suggestions', async () => {
     const fetchMock = vi.fn().mockImplementationOnce(() =>
       successfulResponse(
         Array.from({ length: 10 }, (_, index) =>
@@ -519,6 +542,8 @@ describe('booksApi search request behavior', () => {
       .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
       .mockImplementationOnce(() => successfulResponse([]))
       .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -547,6 +572,12 @@ describe('booksApi search request behavior', () => {
           googleItem('retry-title', 'Retry Success', ['Author']),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('retry-title-retry', 'Retry Success', ['Author']),
+        ])
+      )
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -556,12 +587,18 @@ describe('booksApi search request behavior', () => {
     const results = await promise
 
     expect(results).toHaveLength(1)
-    expect(fetchMock).toHaveBeenCalledTimes(4)
+    expect(fetchMock).toHaveBeenCalledTimes(6)
     expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
       'intitle:"Retry Success"'
     )
     expect(getRequestQuery(fetchMock.mock.calls[1])).toBe('Retry Success')
+    expect(getRequestParam(fetchMock.mock.calls[2], 'title')).toBe(
+      'Retry Success'
+    )
     expect(getRequestQuery(fetchMock.mock.calls[3])).toBe(
+      'retry success inauthor:success'
+    )
+    expect(getRequestQuery(fetchMock.mock.calls[5])).toBe(
       'intitle:"Retry Success"'
     )
   })
@@ -571,6 +608,9 @@ describe('booksApi search request behavior', () => {
 
     const fetchMock = vi
       .fn()
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() => failedResponse(503))
       .mockImplementationOnce(() => failedResponse(503))
       .mockImplementationOnce(() => failedResponse(503))
       .mockImplementationOnce(() => failedResponse(503))
@@ -590,7 +630,7 @@ describe('booksApi search request behavior', () => {
     })
     await vi.advanceTimersByTimeAsync(250)
     await promise
-    expect(fetchMock).toHaveBeenCalledTimes(5)
+    expect(fetchMock).toHaveBeenCalledTimes(8)
   })
 
   it.each([400, 403])(
@@ -598,6 +638,8 @@ describe('booksApi search request behavior', () => {
     async (status) => {
       const fetchMock = vi
         .fn()
+        .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
+        .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
         .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
         .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
         .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
@@ -609,7 +651,7 @@ describe('booksApi search request behavior', () => {
         message: 'Impossible de récupérer les livres.',
         status,
       })
-      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(fetchMock).toHaveBeenCalledTimes(5)
     }
   )
 
@@ -627,6 +669,8 @@ describe('booksApi search request behavior', () => {
         ])
       )
       .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -634,7 +678,7 @@ describe('booksApi search request behavior', () => {
     const results = await searchBooks('Normal Success')
 
     expect(results).toHaveLength(1)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(5)
   })
 
   it('keeps distinct works that share The Housemaid title', async () => {
