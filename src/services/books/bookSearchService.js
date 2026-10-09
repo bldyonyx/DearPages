@@ -1,7 +1,7 @@
 
 import {
   buildAuthorSearchQuery,
-  buildTitleSearchQuery,
+  buildTitleSearchQueries,
   getConfirmedTitleAuthorParts,
   isConfirmedAuthorSearch,
   mergeAndRankSearchBooks,
@@ -83,10 +83,12 @@ export async function searchBooks(query) {
   const titlePart = tokens.slice(0, -2).join(' ')
 
   const requests = [
-    searchGoogleBooksCandidates(
-      buildTitleSearchQuery(trimmedQuery),
-      TITLE_SEARCH_CANDIDATE_LIMIT,
-      errorMessage
+    ...buildTitleSearchQueries(trimmedQuery).map((titleQuery) =>
+      searchGoogleBooksCandidates(
+        titleQuery,
+        TITLE_SEARCH_CANDIDATE_LIMIT,
+        errorMessage
+      )
     ),
 
     searchGoogleBooksCandidates(
@@ -167,11 +169,13 @@ export async function searchBooks(query) {
 
   if (!ranked.length && !getIntent().authorOnly) {
     const extra = await Promise.allSettled([
-      searchGoogleBooksCandidates(
-        buildTitleSearchQuery(trimmedQuery),
-        TITLE_SEARCH_CANDIDATE_LIMIT,
-        errorMessage,
-        TITLE_SEARCH_CANDIDATE_LIMIT
+      ...buildTitleSearchQueries(trimmedQuery).map((titleQuery) =>
+        searchGoogleBooksCandidates(
+          titleQuery,
+          TITLE_SEARCH_CANDIDATE_LIMIT,
+          errorMessage,
+          TITLE_SEARCH_CANDIDATE_LIMIT
+        )
       ),
     ])
 

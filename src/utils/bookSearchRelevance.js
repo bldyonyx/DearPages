@@ -3,6 +3,7 @@ const STRONG_TITLE_SCORE = 75
 const STRONG_AUTHOR_SCORE = 85
 const MIN_TITLE_SCORE = 55
 const MIN_AUTHOR_SCORE = 85
+const UNKNOWN_AUTHOR_TITLE_MATCH_PENALTY = 20
 
 function normalizeIsbn(value) {
   return String(value || '').replace(/[^0-9xX]/g, '').toUpperCase()
@@ -137,6 +138,21 @@ export function buildTitleSearchQuery(query) {
   return trimmed ? `intitle:"${trimmed}"` : ''
 }
 
+export function buildTitleSearchQueries(query) {
+  const trimmed = String(query || '').trim()
+  const primaryQuery = buildTitleSearchQuery(trimmed)
+  const normalizedQuery = normalizeSearchText(query)
+  const shouldAddNormalizedQuery =
+    normalizedQuery && normalizedQuery !== trimmed.toLowerCase()
+  const normalizedTitleQuery = shouldAddNormalizedQuery
+    ? buildTitleSearchQuery(normalizedQuery)
+    : ''
+
+  return Array.from(
+    new Set([primaryQuery, normalizedTitleQuery].filter(Boolean))
+  )
+}
+
 export function buildAuthorSearchQuery(query) {
   const terms = getNonInitialTokens(tokenizeSearchText(query))
   const surname = terms.at(-1)
@@ -252,6 +268,9 @@ export function scoreAuthorRelevance(book, query) {
 
 function scoreCandidate(book, query, intent = null) {
   const combined = intent?.combined || splitTitleAndAuthor(query)
+  const unknownAuthorTitlePenalty = hasKnownAuthor(book)
+    ? 0
+    : UNKNOWN_AUTHOR_TITLE_MATCH_PENALTY
 
   if (combined) {
     const title = scoreTitleRelevance(book, combined.title)
@@ -273,7 +292,11 @@ function scoreCandidate(book, query, intent = null) {
       return {
         titleScore: fullTitleScore,
         authorScore: author,
-        score: fullTitleScore + 100 + getMetadataQualityBonus(book),
+        score:
+          fullTitleScore +
+          100 +
+          getMetadataQualityBonus(book) -
+          unknownAuthorTitlePenalty,
         isQualified: true,
       }
     }
@@ -320,7 +343,8 @@ function scoreCandidate(book, query, intent = null) {
       authorPriority +
       languageBonus +
       coverBonus +
-      getMetadataQualityBonus(book),
+      getMetadataQualityBonus(book) -
+      (!authorSearch && isTitleMatch ? unknownAuthorTitlePenalty : 0),
     isQualified: authorSearch
       ? isAuthorMatch
       : isTitleMatch || isAuthorMatch,

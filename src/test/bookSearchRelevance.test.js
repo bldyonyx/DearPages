@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   buildAuthorSearchQuery,
+  buildTitleSearchQueries,
   buildTitleSearchQuery,
   getSearchBookIdentityKeys,
   mergeAndRankSearchBooks,
@@ -137,6 +138,12 @@ describe('book search normalization', () => {
     expect(buildTitleSearchQuery('Harry Potter')).toBe(
       'intitle:"Harry Potter"'
     )
+    expect(
+      buildTitleSearchQueries("Le Crime de l'Orient-Express")
+    ).toEqual([
+      'intitle:"Le Crime de l\'Orient-Express"',
+      'intitle:"le crime de l orient express"',
+    ])
     expect(buildAuthorSearchQuery('George Martin')).toBe(
       'george martin inauthor:martin'
     )
@@ -420,9 +427,108 @@ describe('book search merge and ranking', () => {
     expect(result[0].cover).toBe('https://example.com/cover.jpg')
     expect(result[0].description).toBe('A complete search record.')
   })
+
+  it('keeps known-author exact title matches above unknown-author records', () => {
+    const candidates = [
+      book({
+        id: 'unknown-cover-rich',
+        title: "Le Crime de l'Orient-Express",
+        authors: ['Auteur inconnu'],
+        language: 'fr',
+        cover: 'https://example.com/cover.jpg',
+        description: 'Useful search metadata.',
+      }),
+      book({
+        id: 'agatha-sparse',
+        title: "Le Crime de l'Orient-Express",
+        authors: ['Agatha Christie'],
+        language: 'fr',
+        cover: null,
+        description: 'Useful search metadata.',
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      "Le Crime de l'Orient-Express",
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual([
+      'agatha-sparse',
+      'unknown-cover-rich',
+    ])
+    expect(result[1].authors).toEqual(['Auteur inconnu'])
+  })
 })
 
 describe('booksApi search request behavior', () => {
+  it('keeps exact title results with normalized punctuation variants', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem(
+            'orient-express',
+            "Le Crime de l'Orient-Express",
+            ['Agatha Christie'],
+            [],
+            { language: 'fr' }
+          ),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks("Le Crime de l'Orient-Express")
+
+    expect(results[0].id).toBe('orient-express')
+    expect(fetchMock).toHaveBeenCalledTimes(6)
+    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
+      'intitle:"Le Crime de l\'Orient-Express"'
+    )
+    expect(getRequestQuery(fetchMock.mock.calls[1])).toBe(
+      'intitle:"le crime de l orient express"'
+    )
+  })
+
+  it('keeps punctuation-normalized title results', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem(
+            'orient-express',
+            "Le Crime de l'Orient-Express",
+            ['Agatha Christie'],
+            [],
+            { language: 'fr' }
+          ),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Le Crime de l Orient Express')
+
+    expect(results[0].id).toBe('orient-express')
+    expect(fetchMock).toHaveBeenCalledTimes(5)
+    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
+      'intitle:"Le Crime de l Orient Express"'
+    )
+  })
+
   it('uses title, broad, Open Library title, and author requests for two-token searches', async () => {
     const fetchMock = vi
       .fn()
