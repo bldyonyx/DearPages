@@ -9,12 +9,7 @@ import {
   mergeAndRankSearchBooks,
 } from '../utils/bookSearchRelevance.js'
 
-import {
-  getBestGoogleCover,
-  getIndustryIdentifierIsbns,
-  getPreferredIsbn,
-} from './coverUtils.js'
-
+import { formatGoogleBook } from './googleBooksFormatter.js'
 import { getOpenLibraryBooksBySearch } from './trendingBooksApi.js'
 
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes'
@@ -343,104 +338,6 @@ function isRelevantSubjectBook(item, subject) {
   return false
 }
 
-function isGoogleBooksImageHost(hostname) {
-  return (
-    hostname === 'books.googleusercontent.com' ||
-    /^books\.google\./.test(hostname) ||
-    /^www\.google\./.test(hostname) ||
-    /^google\./.test(hostname)
-  )
-}
-
-/**
- * Normalise les URLs des couvertures Google Books.
- */
-function normalizeGoogleBooksCoverUrl(coverUrl) {
-  if (!coverUrl) {
-    return coverUrl
-  }
-
-  try {
-    const url = new URL(coverUrl)
-    const hostname = url.hostname.toLowerCase()
-
-    if (!isGoogleBooksImageHost(hostname)) {
-      return coverUrl
-    }
-
-    const urlText = url.toString().toLowerCase()
-
-    if (
-      urlText.includes('/googlebooks/images/no_cover') ||
-      urlText.includes('no_cover_thumb') ||
-      urlText.includes('image_not_available')
-    ) {
-      return null
-    }
-
-    if (url.protocol === 'http:') {
-      url.protocol = 'https:'
-    }
-
-    return url.toString()
-  } catch {
-    return coverUrl
-  }
-}
-
-/**
- * Nettoie les descriptions Google Books.
- */
-function cleanBookDescription(description = '') {
-  return description
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/**
- * Formate un livre Google Books pour Dear Pages.
- */
-function formatBook(item) {
-  const volumeInfo = item.volumeInfo || {}
-
-  const isbns = getIndustryIdentifierIsbns(
-    volumeInfo.industryIdentifiers || []
-  )
-
-  const isbn = getPreferredIsbn(isbns)
-
-  return {
-    id: item.id,
-    googleBooksId: item.id,
-    title: volumeInfo.title || 'Titre inconnu',
-    subtitle: volumeInfo.subtitle || '',
-    authors: volumeInfo.authors || ['Auteur inconnu'],
-    isbn,
-    isbns,
-
-    cover: normalizeGoogleBooksCoverUrl(
-      getBestGoogleCover(volumeInfo.imageLinks || {})
-    ),
-
-    description: cleanBookDescription(
-      volumeInfo.description || ''
-    ),
-
-    categories: volumeInfo.categories || [],
-    publishedDate: volumeInfo.publishedDate || '',
-    language: volumeInfo.language || '',
-    printType: volumeInfo.printType || '',
-    source: 'google-books',
-  }
-}
-
 /**
  * Gestion des requêtes Google Books.
  */
@@ -528,7 +425,7 @@ async function searchGoogleBooksCandidates(
     message
   )
 
-  return data.items?.map(formatBook) || []
+  return data.items?.map(formatGoogleBook) || []
 }
 
 function getFulfilledCandidateGroups(results) {
@@ -691,7 +588,6 @@ export async function searchBooks(query) {
 /**
  * Suggestions pendant la saisie.
  */
-
 export async function getBookSuggestions(query) {
   const trimmedQuery = query.trim()
 
@@ -723,7 +619,6 @@ export async function getBookSuggestions(query) {
     SUGGESTION_RESULTS_LIMIT
   )
 }
-
 
 /**
  * Livres d'une catégorie Google Books.
@@ -761,7 +656,7 @@ export async function getBooksBySubjectWindow(
       .filter((item) =>
         isRelevantSubjectBook(item, subject)
       )
-      .map(formatBook),
+      .map(formatGoogleBook),
 
     returnedCount: items.length,
     nextStartIndex: startIndex + items.length,
@@ -785,7 +680,7 @@ export async function getBookByIsbn(isbn) {
 
   const item = data.items?.[0]
 
-  return item ? formatBook(item) : null
+  return item ? formatGoogleBook(item) : null
 }
 
 /**
@@ -803,5 +698,5 @@ export async function getBookById(bookId) {
     'Impossible de récupérer ce livre.'
   )
 
-  return formatBook(data)
+  return formatGoogleBook(data)
 }
