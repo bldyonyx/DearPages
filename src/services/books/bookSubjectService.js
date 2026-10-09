@@ -334,10 +334,14 @@ export async function getBooksBySubjectWindow(
   maxResults = 10,
   startIndex = 0
 ) {
+  const keyParam = API_KEY
+    ? `&key=${encodeURIComponent(API_KEY)}`
+    : ''
+
   const data = await getGoogleBooksData(
     `${BASE_URL}?q=${createSubjectQuery(
       subject
-    )}&langRestrict=fr&maxResults=${maxResults}&startIndex=${startIndex}&key=${API_KEY}`,
+    )}&langRestrict=fr&maxResults=${maxResults}&startIndex=${startIndex}${keyParam}`,
     'Impossible de récupérer cette sélection de livres.'
   )
 

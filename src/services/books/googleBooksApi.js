@@ -75,10 +75,14 @@ export async function getBookByIsbn(isbn) {
     return null
   }
 
+  const keyParam = API_KEY
+    ? `&key=${encodeURIComponent(API_KEY)}`
+    : ''
+
   const data = await getGoogleBooksData(
     `${BASE_URL}?q=isbn:${encodeURIComponent(
       isbn
-    )}&langRestrict=fr&maxResults=1&key=${API_KEY}`,
+    )}&langRestrict=fr&maxResults=1${keyParam}`,
     'Impossible de récupérer les informations du livre.'
   )
 
@@ -95,10 +99,14 @@ export async function getBookById(bookId) {
     return null
   }
 
+  const keyParam = API_KEY
+    ? `?key=${encodeURIComponent(API_KEY)}`
+    : ''
+
   const data = await getGoogleBooksData(
     `${BASE_URL}/${encodeURIComponent(
       bookId
-    )}?key=${API_KEY}`,
+    )}${keyParam}`,
     'Impossible de récupérer ce livre.'
   )
 
