@@ -4,6 +4,7 @@ import { getPreferredIsbn } from './coverUtils.js'
 
 const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org'
 const EDITIONS_LIMIT = 100
+const MAX_PAGES = 5
 
 const LANGUAGE_CODES = {
   fre: 'fr',
@@ -39,9 +40,7 @@ function getEditionLanguage(edition) {
 function formatOpenLibraryEdition(edition) {
   const language = getEditionLanguage(edition)
 
-  if (!language) {
-    return null
-  }
+  if (!language) return null
 
   const isbns = [
     ...(edition.isbn_13 || []),
@@ -71,39 +70,59 @@ function formatOpenLibraryEdition(edition) {
 /**
  * Récupère les éditions FR/EN d'une œuvre Open Library.
  *
- * Cette fonction ne modifie aucune donnée utilisateur.
- * Elle retourne les éditions Open Library, sans les
- * confondre avec des volumes Google Books.
+ * Parcourt jusqu'à 5 pages de 100 éditions.
+ * Les résultats conservent leurs identifiants propres.
+ * Aucune donnée utilisateur n'est modifiée.
  */
 export async function getOpenLibraryWorkEditions(workId) {
   const normalizedId = normalizeWorkId(workId)
 
-  if (!normalizedId) {
-    return []
-  }
+  if (!normalizedId) return []
 
-  const params = new URLSearchParams({
-    limit: String(EDITIONS_LIMIT),
-  })
-
-  const url =
-    `${OPEN_LIBRARY_BASE_URL}/works/${normalizedId}/editions.json` +
-    `?${params.toString()}`
-
-  const data = await fetchJsonOnce(url)
-
-  const editions = (data.entries || [])
-    .map(formatOpenLibraryEdition)
-    .filter(Boolean)
-
+  const editions = []
   const seen = new Set()
 
-  return editions.filter((edition) => {
-    if (seen.has(edition.id)) {
-      return false
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const params = new URLSearchParams({
+      limit: String(EDITIONS_LIMIT),
+      offset: String(page * EDITIONS_LIMIT),
+    })
+
+    const url =
+      `${OPEN_LIBRARY_BASE_URL}/works/${normalizedId}/editions.json` +
+      `?${params.toString()}`
+
+    let data
+
+    try {
+      data = await fetchJsonOnce(url)
+    } catch (error) {
+      if (page === 0) throw error
+      break
     }
 
-    seen.add(edition.id)
-    return true
-  })
+    const entries = Array.isArray(data?.entries)
+      ? data.entries
+      : []
+
+    for (const entry of entries) {
+      const edition = formatOpenLibraryEdition(entry)
+
+      if (!edition || seen.has(edition.id)) continue
+
+      seen.add(edition.id)
+      editions.push(edition)
+    }
+
+    // La dernière page est atteinte.
+    if (
+      entries.length < EDITIONS_LIMIT ||
+      (typeof data.size === 'number' &&
+        (page + 1) * EDITIONS_LIMIT >= data.size)
+    ) {
+      break
+    }
+  }
+
+  return editions
 }

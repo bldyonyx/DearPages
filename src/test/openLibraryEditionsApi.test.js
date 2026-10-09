@@ -59,7 +59,7 @@ describe('getOpenLibraryWorkEditions', () => {
     expect(fetchJsonOnce).toHaveBeenCalledTimes(2)
 
     expect(fetchJsonOnce).toHaveBeenCalledWith(
-      `https://openlibrary.org/works/${WORK_ID}/editions.json?limit=100`
+      `https://openlibrary.org/works/${WORK_ID}/editions.json?limit=100&offset=0`
     )
   })
 
