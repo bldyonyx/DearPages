@@ -75,23 +75,31 @@ describe('discoverBookEditions', () => {
       openLibraryEdition,
     ])
 
-    const result = await discoverBookEditions({
+    const book = {
       id: 'OL123W',
       source: 'open-library',
-    })
+    }
+
+    const result = await discoverBookEditions(book)
 
     expect(result.workId).toBe('OL123W')
     expect(result.source).toBe('open-library')
 
     expect(resolveOpenLibraryWorkId).not.toHaveBeenCalled()
-    expect(getBookEditions).toHaveBeenCalledWith({
-        id: 'OL123W',
-        source: 'open-library',
-    })
+
+    expect(getOpenLibraryWorkEditions).toHaveBeenCalledWith(
+      'OL123W'
+    )
+
+    expect(getBookEditions).toHaveBeenCalledWith(
+      book,
+      ['Bilbo le Hobbit']
+    )
   })
 
   it('resolves Google Books ISBNs to an Open Library work', async () => {
     resolveOpenLibraryWorkId.mockResolvedValue('OL123W')
+
     getOpenLibraryWorkEditions.mockResolvedValue([
       openLibraryEdition,
     ])
@@ -106,6 +114,13 @@ describe('discoverBookEditions', () => {
       'OL123W'
     )
 
+    expect(getBookEditions).toHaveBeenCalledWith(
+      googleBook,
+      ['Bilbo le Hobbit']
+    )
+
+    expect(result.workId).toBe('OL123W')
+
     expect(result.editions[0]).toMatchObject({
       id: 'OL456M',
       title: 'Bilbo le Hobbit',
@@ -116,12 +131,47 @@ describe('discoverBookEditions', () => {
     })
   })
 
+  it('passes distinct French titles to Google Books', async () => {
+    resolveOpenLibraryWorkId.mockResolvedValue('OL123W')
+
+    getOpenLibraryWorkEditions.mockResolvedValue([
+      openLibraryEdition,
+      {
+        ...openLibraryEdition,
+        id: 'OL457M',
+        openLibraryEditionId: 'OL457M',
+        isbn: '9780000000004',
+        title: 'Bilbo le Hobbit',
+      },
+      {
+        ...openLibraryEdition,
+        id: 'OL458M',
+        openLibraryEditionId: 'OL458M',
+        isbn: '9780000000005',
+        title: 'Le Hobbit',
+      },
+    ])
+
+    await discoverBookEditions(googleBook)
+
+    expect(getBookEditions).toHaveBeenCalledWith(
+      googleBook,
+      ['Bilbo le Hobbit', 'Le Hobbit']
+    )
+  })
+
   it('falls back to Google Books when no work is found', async () => {
     getBookEditions.mockResolvedValue([googleEdition])
 
     const result = await discoverBookEditions(googleBook)
 
     expect(result.source).toBe('google-books')
+
+    expect(getBookEditions).toHaveBeenCalledWith(
+      googleBook,
+      []
+    )
+
     expect(result.editions[0]).toMatchObject({
       googleBooksId: 'google-456',
       openLibraryEditionId: null,
@@ -143,6 +193,7 @@ describe('discoverBookEditions', () => {
     resolveOpenLibraryWorkId.mockRejectedValue(
       new Error('Open Library unavailable')
     )
+
     getBookEditions.mockResolvedValue([googleEdition])
 
     const result = await discoverBookEditions(googleBook)
@@ -155,6 +206,7 @@ describe('discoverBookEditions', () => {
     resolveOpenLibraryWorkId.mockRejectedValue(
       new Error('Open Library unavailable')
     )
+
     getBookEditions.mockRejectedValue(
       new Error('Google Books unavailable')
     )
