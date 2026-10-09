@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import BookCover from '../books/BookCover'
 import { MAX_VISIBLE_COVERS } from './useCurrentlyReadingCarousel.js'
+import { getBookRouteId } from '../../utils/bookPageUtils.js'
 
 function DashboardCover({
   book,
@@ -49,10 +50,11 @@ function CurrentlyReadingCoverStack({
       {visibleBooks.map(({ book, bookIndex, stackIndex }) => {
         const isSelected = stackIndex === 0
         const zIndex = MAX_VISIBLE_COVERS - stackIndex
+        const bookId = getBookRouteId(book)
 
         return (
           <button
-            key={book.googleBooksId}
+            key={bookId}
             type="button"
             onClick={() => navigateToIndex(bookIndex)}
             className={`
@@ -92,7 +94,7 @@ function CurrentlyReadingCoverStack({
             )}
             data-testid="current-reading-cover"
             data-active={isSelected ? 'true' : 'false'}
-            data-book-id={book.googleBooksId}
+            data-book-id={bookId}
             data-stack-position={stackIndex}
           >
             <DashboardCover

@@ -5,6 +5,7 @@ import {
   getUserLibrary,
   updateBookStatus,
 } from '../services/libraryService.js'
+import { getBookRouteId } from '../utils/bookPageUtils.js'
 
 /**
  * Loads and manages the dashboard's Firebase-backed library state.
@@ -85,7 +86,7 @@ function useDashboardLibrary(userId) {
 
       setLibrary((currentLibrary) =>
         currentLibrary.map((book) => {
-          if (book.googleBooksId !== bookId) {
+          if (getBookRouteId(book) !== bookId) {
             return book
           }
 

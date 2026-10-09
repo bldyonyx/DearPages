@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import LibraryBookCard from './LibraryBookCard.jsx'
 import LibraryFilters from './LibraryFilters.jsx'
 import { libraryLarge } from './libraryResponsive.js'
+import { getBookRouteId } from '../../utils/bookPageUtils.js'
 
 function LibraryBooksPanel({
   books,
@@ -53,7 +54,7 @@ function LibraryBooksPanel({
         >
           {visibleBooks.map((book) => (
             <LibraryBookCard
-              key={book.googleBooksId}
+              key={getBookRouteId(book)}
               book={book}
             />
           ))}

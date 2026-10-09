@@ -6,6 +6,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { BOOK_STATUSES } from '../../services/libraryService'
+import { getBookRouteId } from '../../utils/bookPageUtils.js'
 import StatusBadge from '../ui/StatusBadge'
 
 const statusOptions = [
@@ -29,6 +30,7 @@ function CurrentlyReadingBookInfo({
   updatingBookId,
 }) {
   const { t } = useTranslation()
+  const currentBookId = getBookRouteId(currentBook)
 
   async function handleStatusChange(newStatus) {
     if (!currentBook || updatingBookId) return
@@ -42,7 +44,7 @@ function CurrentlyReadingBookInfo({
 
     try {
       await onStatusChange(
-        currentBook.googleBooksId,
+        currentBookId,
         newStatus
       )
 
@@ -126,7 +128,7 @@ function CurrentlyReadingBookInfo({
         "
       >
         <Link
-          to={`/books/${currentBook.googleBooksId}`}
+          to={`/books/${currentBookId}`}
           state={{
             book: currentBook,
             libraryBook: currentBook,
@@ -157,7 +159,7 @@ function CurrentlyReadingBookInfo({
               setIsStatusOpen((current) => !current)
             }
             disabled={
-              updatingBookId === currentBook.googleBooksId
+              updatingBookId === currentBookId
             }
             className="
               cursor-pointer
@@ -178,7 +180,7 @@ function CurrentlyReadingBookInfo({
               [@media_(min-width:2400px)_and_(min-height:1300px)]:text-base
             "
           >
-            {updatingBookId === currentBook.googleBooksId
+            {updatingBookId === currentBookId
               ? t('dashboard.currentlyReading.updating')
               : t('common.changeStatus')}
           </button>
@@ -194,7 +196,7 @@ function CurrentlyReadingBookInfo({
                   }
                   disabled={
                     updatingBookId ===
-                    currentBook.googleBooksId
+                    currentBookId
                   }
                   className="block w-full cursor-pointer rounded-xl px-3 py-2 text-left font-ui text-xs text-darkwood transition-colors hover:bg-darkwood/10 disabled:cursor-wait disabled:opacity-60 [@media_(min-width:2200px)_and_(min-height:1100px)]:text-sm"
                 >
@@ -221,7 +223,7 @@ function CurrentlyReadingBookInfo({
             <div className="flex gap-2">
               {books.map((book, bookIndex) => (
                 <button
-                  key={book.googleBooksId}
+                  key={getBookRouteId(book)}
                   type="button"
                   onClick={() => navigateToIndex(bookIndex)}
                   className={`

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import BookCard from '../books/BookCard'
 import { dashboardLarge } from './dashboardResponsive.js'
+import { getBookRouteId } from '../../utils/bookPageUtils.js'
 
 function RecentlyAdded({ books }) {
   const { t } = useTranslation()
@@ -88,7 +89,7 @@ function RecentlyAdded({ books }) {
         >
           {books.map((book) => (
             <div
-              key={book.googleBooksId}
+              key={getBookRouteId(book)}
               className="
                 w-36 shrink-0
                 sm:w-40
@@ -99,7 +100,7 @@ function RecentlyAdded({ books }) {
             >
               <BookCard
                 book={book}
-                bookId={book.googleBooksId}
+                bookId={getBookRouteId(book)}
                 title={book.title}
                 author={book.authors?.join(', ')}
                 cover={book.cover}

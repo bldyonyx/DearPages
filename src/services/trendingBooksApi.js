@@ -58,6 +58,10 @@ export function isEligibleTrendingBook(book) {
  * @returns {string} Description normalisée.
  */
 function getDescription(description) {
+  if (Array.isArray(description)) {
+    return description.find((item) => typeof item === 'string') || ''
+  }
+
   if (typeof description === 'string') {
     return description
   }
@@ -129,7 +133,7 @@ export async function getTrendingBooksDetails(limit = 10) {
   })
 }
 
-function formatOpenLibrarySearchBook(book) {
+export function formatOpenLibrarySearchBook(book) {
   const isbns = book.isbn || []
   const normalizedId = book.key.replace('/works/', '')
   const subjects = book.subject || []
@@ -137,7 +141,6 @@ function formatOpenLibrarySearchBook(book) {
 
   return {
     id: normalizedId,
-    googleBooksId: normalizedId,
     openLibraryId: book.key,
     title: book.title || 'Titre inconnu',
     authors: book.author_name || ['Auteur inconnu'],
@@ -149,8 +152,53 @@ function formatOpenLibrarySearchBook(book) {
     subjects,
     subjectKeys,
     categories: subjects,
+    description: getDescription(book.first_sentence),
+    publishedDate: book.first_publish_year
+      ? String(book.first_publish_year)
+      : '',
     source: 'open-library',
   }
+}
+
+export async function getOpenLibraryBooksBySearch({
+  title = '',
+  author = '',
+  limit = 20,
+} = {}) {
+  const normalizedTitle = String(title || '').trim()
+  const normalizedAuthor = String(author || '').trim()
+
+  if (!normalizedTitle && !normalizedAuthor) {
+    return []
+  }
+
+  const params = new URLSearchParams({
+    limit: String(limit),
+    fields:
+      'key,title,author_name,isbn,cover_i,subject,subject_key,first_publish_year,first_sentence',
+  })
+
+  if (normalizedTitle) {
+    params.set('title', normalizedTitle)
+  }
+
+  if (normalizedAuthor) {
+    params.set('author', normalizedAuthor)
+  }
+
+  let data
+
+  try {
+    data = await fetchJsonOnce(
+      `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`
+    )
+  } catch {
+    throw new Error('Impossible de recuperer ces suggestions.')
+  }
+
+  return (data.docs || [])
+    .filter((book) => book.key && book.key.startsWith('/works/'))
+    .map(formatOpenLibrarySearchBook)
 }
 
 /**
@@ -177,7 +225,8 @@ export async function getOpenLibraryBooksBySubject(
       normalizedSubject,
     limit: String(limit),
     page: String(page),
-    fields: 'key,title,author_name,isbn,cover_i,subject,subject_key',
+    fields:
+      'key,title,author_name,isbn,cover_i,subject,subject_key,first_publish_year,first_sentence',
   })
 
   let data
@@ -252,10 +301,6 @@ export async function getOpenLibraryBookById(workId) {
 
   return {
     id: normalizedId,
-
-    // On garde une propriété commune afin que le reste de
-    // l'application puisse manipuler le livre normalement.
-    googleBooksId: normalizedId,
 
     openLibraryId: `/works/${normalizedId}`,
 

@@ -7,6 +7,7 @@ import {
 
 import { database } from './firebase.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
+import { getBookRouteId } from '../utils/bookPageUtils.js'
 
 /**
  * Available reading statuses for books stored in Dear Pages.
@@ -26,8 +27,10 @@ export const BOOK_STATUSES = {
  * @returns {Object} Library book data ready for Firebase.
  */
 export function createLibraryBook(book, status) {
+  const bookId = getBookRouteId(book)
   const libraryBook = {
-    googleBooksId: book.googleBooksId,
+    id: bookId,
+    googleBooksId: book.googleBooksId || null,
     title: book.title,
     authors: book.authors,
     isbn: book.isbn || null,
@@ -66,13 +69,15 @@ export async function addBookToLibrary(
   book,
   status = BOOK_STATUSES.TO_READ
 ) {
-  if (!userId || !book?.googleBooksId) {
+  const bookId = getBookRouteId(book)
+
+  if (!userId || !bookId) {
     throw new Error('Missing user or book information.')
   }
 
   const bookRef = ref(
     database,
-    `users/${userId}/library/${book.googleBooksId}`
+    `users/${userId}/library/${bookId}`
   )
 
   await set(bookRef, createLibraryBook(book, status))
@@ -104,7 +109,8 @@ export async function getUserLibrary(userId) {
   return Object.entries(snapshot.val())
     .map(([bookId, book]) => ({
       ...book,
-      googleBooksId: book.googleBooksId || bookId,
+      id: book.id || bookId,
+      googleBooksId: book.googleBooksId || null,
     }))
     .sort(
       (firstBook, secondBook) =>

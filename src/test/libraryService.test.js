@@ -79,6 +79,23 @@ describe('createLibraryBook', () => {
 
     expect(libraryBook.description).toBe('')
   })
+
+  it('stores Open Library books without inventing a Google Books ID', () => {
+    const libraryBook = createLibraryBook(
+      {
+        id: 'OL123W',
+        openLibraryId: '/works/OL123W',
+        title: 'Open Library title',
+        authors: ['Author name'],
+        source: 'open-library',
+      },
+      BOOK_STATUSES.TO_READ
+    )
+
+    expect(libraryBook.id).toBe('OL123W')
+    expect(libraryBook.googleBooksId).toBeNull()
+    expect(libraryBook.openLibraryId).toBe('/works/OL123W')
+  })
 })
 
 describe('removeBookFromLibrary', () => {

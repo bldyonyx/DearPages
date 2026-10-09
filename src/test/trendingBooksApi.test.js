@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  getOpenLibraryBooksBySearch,
   getOpenLibraryBooksBySubject,
   getTrendingBooksDetails,
   isEligibleTrendingBook,
@@ -277,5 +278,46 @@ describe('getOpenLibraryBooksBySubject', () => {
     expect(books[0].subjects).toEqual(['Love stories'])
     expect(books[0].subjectKeys).toEqual(['love_stories'])
     expect(books[0].categories).toEqual(['Love stories'])
+  })
+})
+
+describe('getOpenLibraryBooksBySearch', () => {
+  it('uses structured title and author parameters and preserves source IDs', async () => {
+    const fetchMock = mockTrendingResponse([
+      {
+        ...trendingDoc('OL8W', ['Mystery'], {
+          author_name: ['Freida McFadden'],
+          first_publish_year: 2022,
+          first_sentence: ['A newlywed takes a job as a housemaid.'],
+          subject_key: ['mystery'],
+        }),
+        title: 'The Housemaid',
+      },
+    ])
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    const books = await getOpenLibraryBooksBySearch({
+      title: 'The Housemaid',
+      author: 'Freida McFadden',
+      limit: 20,
+    })
+    const url = new URL(fetchMock.mock.calls[0][0])
+
+    expect(url.searchParams.get('title')).toBe('The Housemaid')
+    expect(url.searchParams.get('author')).toBe('Freida McFadden')
+    expect(url.searchParams.get('q')).toBeNull()
+    expect(url.searchParams.get('limit')).toBe('20')
+    expect(url.searchParams.get('fields')).toContain('first_sentence')
+    expect(books[0]).toMatchObject({
+      id: 'OL8W',
+      openLibraryId: '/works/OL8W',
+      title: 'The Housemaid',
+      authors: ['Freida McFadden'],
+      description: 'A newlywed takes a job as a housemaid.',
+      publishedDate: '2022',
+      source: 'open-library',
+    })
+    expect(books[0].googleBooksId).toBeUndefined()
   })
 })

@@ -16,6 +16,12 @@ export function isOpenLibraryWorkId(bookId) {
   return /^OL\d+W$/i.test(bookId)
 }
 
+export function normalizeOpenLibraryWorkId(openLibraryId) {
+  const normalizedId = String(openLibraryId || '').replace('/works/', '')
+
+  return isOpenLibraryWorkId(normalizedId) ? normalizedId : ''
+}
+
 /**
  * Selects the public API that owns a BookPage route ID.
  *
@@ -29,7 +35,12 @@ export function getBookApiSource(bookId) {
 }
 
 export function getBookRouteId(book) {
-  return book?.googleBooksId || book?.id || book?.openLibraryId || null
+  return (
+    book?.googleBooksId ||
+    normalizeOpenLibraryWorkId(book?.openLibraryId) ||
+    book?.id ||
+    null
+  )
 }
 
 export function getRouteStateBook(routeState, bookId) {
@@ -67,7 +78,7 @@ export function normalizeBookForPage(book) {
   return {
     ...book,
     id: book.id || routeId,
-    googleBooksId: book.googleBooksId || routeId,
+    googleBooksId: book.googleBooksId || null,
     authors: toSafeArray(book.authors, ['Auteur inconnu']),
     categories: toSafeArray(book.categories),
     isbn: book.isbn || isbns[0] || null,

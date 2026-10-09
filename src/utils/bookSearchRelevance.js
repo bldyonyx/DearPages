@@ -1,127 +1,46 @@
+
 const STRONG_TITLE_SCORE = 75
 const STRONG_AUTHOR_SCORE = 85
+const MIN_TITLE_SCORE = 55
+const MIN_AUTHOR_SCORE = 85
 
 function normalizeIsbn(value) {
-  return String(value || '')
-    .replace(/[^0-9xX]/g, '')
-    .toUpperCase()
+  return String(value || '').replace(/[^0-9xX]/g, '').toUpperCase()
 }
 
-function isOrderedSubsequence(needles, haystack) {
-  let searchFrom = 0
+function normalizeOpenLibraryWorkId(value) {
+  const id = String(value || '').replace('/works/', '')
+  return /^OL\d+W$/i.test(id) ? id.toUpperCase() : ''
+}
 
-  return needles.every((needle) => {
-    const foundIndex = haystack.indexOf(needle, searchFrom)
+function hasKnownAuthor(book) {
+  return (book?.authors || []).some((author) => {
+    const normalizedAuthor = normalizeSearchText(author)
 
-    if (foundIndex === -1) return false
-
-    searchFrom = foundIndex + 1
-    return true
+    return (
+      normalizedAuthor &&
+      normalizedAuthor !== 'auteur inconnu' &&
+      normalizedAuthor !== 'unknown author'
+    )
   })
 }
 
-function countTokenMatches(queryTokens, textTokens) {
-  const textTokenSet = new Set(textTokens)
-
-  return queryTokens.filter((token) => textTokenSet.has(token)).length
+function hasDescription(book) {
+  return String(book?.description || '').trim().length > 0
 }
 
-function scoreTextFieldRelevance(text, query, weight = 1) {
-  const normalizedText = normalizeSearchText(text)
-  const normalizedQuery = normalizeSearchText(query)
-  const queryTokens = tokenizeSearchText(query)
-  const textTokens = tokenizeSearchText(text)
-
-  if (!normalizedText || !normalizedQuery || !queryTokens.length) {
-    return 0
-  }
-
-  if (normalizedText === normalizedQuery) return 100 * weight
-  if (normalizedText.startsWith(`${normalizedQuery} `)) {
-    return 90 * weight
-  }
-  if (normalizedText.includes(` ${normalizedQuery} `)) {
-    return 82 * weight
-  }
-  if (normalizedText.endsWith(` ${normalizedQuery}`)) {
-    return 78 * weight
-  }
-
-  const matchedTokens = countTokenMatches(queryTokens, textTokens)
-
-  if (matchedTokens === queryTokens.length) {
-    if (isOrderedSubsequence(queryTokens, textTokens)) {
-      return 70 * weight
-    }
-
-    return 60 * weight
-  }
-
-  if (matchedTokens > 0) {
-    return (30 + (matchedTokens / queryTokens.length) * 25) * weight
-  }
-
-  return 0
+function getMetadataQualityBonus(book) {
+  return (
+    (book?.cover ? 3 : 0) +
+    (hasKnownAuthor(book) ? 3 : 0) +
+    (hasDescription(book) ? 2 : 0)
+  )
 }
 
-function scoreSingleAuthor(author, query) {
-  const authorTokens = tokenizeSearchText(author)
-  const queryTokens = tokenizeSearchText(query)
-  const authorWithoutInitials = getNonInitialTokens(authorTokens)
-  const queryWithoutInitials = getNonInitialTokens(queryTokens)
-  const normalizedAuthor = authorTokens.join(' ')
-  const normalizedQuery = queryTokens.join(' ')
-  const comparableAuthor = authorWithoutInitials.join(' ')
-  const comparableQuery = queryWithoutInitials.join(' ')
-
-  if (
-    !authorTokens.length ||
-    !queryTokens.length ||
-    !queryWithoutInitials.length
-  ) {
-    return 0
-  }
-
-  if (normalizedAuthor === normalizedQuery) return 100
-  if (comparableAuthor && comparableAuthor === comparableQuery) {
-    return queryTokens.length > queryWithoutInitials.length ? 98 : 95
-  }
-
-  const authorFirst = authorWithoutInitials[0]
-  const authorLast = authorWithoutInitials.at(-1)
-  const queryFirst = queryWithoutInitials[0]
-  const queryLast = queryWithoutInitials.at(-1)
-
-  if (
-    queryWithoutInitials.length >= 2 &&
-    authorFirst === queryFirst &&
-    authorLast === queryLast
-  ) {
-    return 90
-  }
-
-  if (
-    queryWithoutInitials.length >= 2 &&
-    isOrderedSubsequence(queryWithoutInitials, authorWithoutInitials)
-  ) {
-    return 82
-  }
-
-  if (queryLast && authorLast === queryLast) {
-    return queryWithoutInitials.length === 1 ? 45 : 55
-  }
-
-  return 0
+function hasMinimumMetadataQuality(book) {
+  return Boolean(book?.cover) || hasDescription(book)
 }
 
-/**
- * Normalizes user search text for explainable title and author comparison.
- * Accents, punctuation, and repeated whitespace are removed, while initials
- * remain as single-letter tokens for author matching.
- *
- * @param {string} value - Text to normalize.
- * @returns {string} Lowercase, accent-free, whitespace-normalized text.
- */
 export function normalizeSearchText(value) {
   return String(value || '')
     .normalize('NFD')
@@ -131,36 +50,188 @@ export function normalizeSearchText(value) {
     .trim()
 }
 
-/**
- * Splits normalized search text into whole-word tokens.
- *
- * @param {string} value - Text to tokenize.
- * @returns {Array<string>} Normalized tokens.
- */
 export function tokenizeSearchText(value) {
-  const normalizedText = normalizeSearchText(value)
-
-  return normalizedText ? normalizedText.split(/\s+/) : []
+  const text = normalizeSearchText(value)
+  return text ? text.split(/\s+/) : []
 }
 
 export function getNonInitialTokens(tokens) {
   return tokens.filter((token) => !/^[a-z]$/.test(token))
 }
 
-export function buildTitleSearchQuery(query) {
-  const trimmedQuery = String(query || '').trim()
+function isOrderedSubsequence(needles, haystack) {
+  let from = 0
 
-  return trimmedQuery ? `intitle:"${trimmedQuery}"` : ''
+  return needles.every((needle) => {
+    const index = haystack.indexOf(needle, from)
+    if (index < 0) return false
+
+    from = index + 1
+    return true
+  })
+}
+
+function scoreTextFieldRelevance(text, query, weight = 1) {
+  const normalizedText = normalizeSearchText(text)
+  const normalizedQuery = normalizeSearchText(query)
+  const queryTokens = tokenizeSearchText(query)
+  const textTokens = tokenizeSearchText(text)
+
+  if (!normalizedText || !normalizedQuery || !queryTokens.length) return 0
+
+  if (normalizedText === normalizedQuery) return 100 * weight
+  if (normalizedText.startsWith(`${normalizedQuery} `)) return 90 * weight
+  if (normalizedText.includes(` ${normalizedQuery} `)) return 82 * weight
+  if (normalizedText.endsWith(` ${normalizedQuery}`)) return 78 * weight
+
+  const tokenSet = new Set(textTokens)
+  const matched = queryTokens.filter((token) => tokenSet.has(token)).length
+
+  if (matched === queryTokens.length) {
+    return (isOrderedSubsequence(queryTokens, textTokens) ? 70 : 60) * weight
+  }
+
+  return matched
+    ? (30 + (matched / queryTokens.length) * 25) * weight
+    : 0
+}
+
+function scoreSingleAuthor(author, query) {
+  const authorTokens = tokenizeSearchText(author)
+  const queryTokens = tokenizeSearchText(query)
+  const authorWords = getNonInitialTokens(authorTokens)
+  const queryWords = getNonInitialTokens(queryTokens)
+
+  if (!authorTokens.length || !queryWords.length) return 0
+
+  if (authorTokens.join(' ') === queryTokens.join(' ')) return 100
+
+  if (authorWords.join(' ') === queryWords.join(' ')) {
+    return queryTokens.length > queryWords.length ? 98 : 95
+  }
+
+  if (
+    queryWords.length >= 2 &&
+    authorWords[0] === queryWords[0] &&
+    authorWords.at(-1) === queryWords.at(-1)
+  ) {
+    return 90
+  }
+
+  if (
+    queryWords.length >= 2 &&
+    isOrderedSubsequence(queryWords, authorWords)
+  ) {
+    return 82
+  }
+
+  if (queryWords.at(-1) === authorWords.at(-1)) {
+    return queryWords.length === 1 ? 45 : 55
+  }
+
+  return 0
+}
+
+export function buildTitleSearchQuery(query) {
+  const trimmed = String(query || '').trim()
+  return trimmed ? `intitle:"${trimmed}"` : ''
 }
 
 export function buildAuthorSearchQuery(query) {
-  const tokens = tokenizeSearchText(query)
-  const terms = getNonInitialTokens(tokens)
+  const terms = getNonInitialTokens(tokenizeSearchText(query))
   const surname = terms.at(-1)
 
-  if (terms.length < 2 || !surname) return ''
+  return terms.length >= 2 && surname
+    ? `${terms.join(' ')} inauthor:${surname}`
+    : ''
+}
 
-  return `${terms.join(' ')} inauthor:${surname}`
+// Recherche explicite : "The Housemaid Freida McFadden".
+export function splitTitleAndAuthor(query) {
+  const tokens = tokenizeSearchText(query)
+
+  if (tokens.length < 4) return null
+
+  const title = tokens.slice(0, -2).join(' ')
+  const authorTokens = tokens.slice(-2)
+
+  const authorStopWords = new Set([
+    'a',
+    'an',
+    'and',
+    'de',
+    'des',
+    'du',
+    'la',
+    'le',
+    'les',
+    'of',
+    'the',
+  ])
+
+  if (authorTokens.some((token) => authorStopWords.has(token))) {
+    return null
+  }
+
+  const author = authorTokens.join(' ')
+  return title && author ? { title, author } : null
+}
+
+// Permet aussi "Misery Stephen King".
+// On ne valide le découpage que si un livre correspond
+// réellement au titre ET à l'auteur.
+export function getConfirmedTitleAuthorParts(books, query) {
+  const tokens = tokenizeSearchText(query)
+
+  if (tokens.length < 3) return null
+
+  const title = tokens.slice(0, -2).join(' ')
+  const author = tokens.slice(-2).join(' ')
+
+  const stopWords = new Set([
+    'a',
+    'an',
+    'and',
+    'de',
+    'des',
+    'du',
+    'la',
+    'le',
+    'les',
+    'of',
+    'the',
+  ])
+
+  if (!title || tokens.slice(-2).some((word) => stopWords.has(word))) {
+    return null
+  }
+
+  const confirmed = books.some(
+    (book) =>
+      scoreTitleRelevance(book, title) >= STRONG_TITLE_SCORE &&
+      scoreAuthorRelevance(book, author) >= 80
+  )
+
+  return confirmed ? { title, author } : null
+}
+
+// Détecte une recherche par auteur à partir des livres trouvés.
+export function isConfirmedAuthorSearch(books, query) {
+  const tokens = tokenizeSearchText(query)
+
+  if (tokens.length < 2 || tokens.length > 3) return false
+
+  return books.some(
+    (book) => scoreAuthorRelevance(book, query) >= STRONG_AUTHOR_SCORE
+  )
+}
+
+export function buildTitleAndAuthorSearchQuery(query) {
+  const parts = splitTitleAndAuthor(query)
+
+  if (!parts) return ''
+
+  return `intitle:"${parts.title}" inauthor:${parts.author.split(' ').at(-1)}`
 }
 
 export function scoreTitleRelevance(book, query) {
@@ -179,88 +250,247 @@ export function scoreAuthorRelevance(book, query) {
   )
 }
 
-export function scoreBookSearchRelevance(book, query) {
+function scoreCandidate(book, query, intent = null) {
+  const combined = intent?.combined || splitTitleAndAuthor(query)
+
+  if (combined) {
+    const title = scoreTitleRelevance(book, combined.title)
+    const author = scoreAuthorRelevance(book, combined.author)
+
+    // Les deux champs doivent correspondre.
+    if (title >= 75 && author >= 80) {
+      return {
+        titleScore: title,
+        authorScore: author,
+        score: 300 + title + author + getMetadataQualityBonus(book),
+        isQualified: true,
+      }
+    }
+
+    const fullTitleScore = scoreTitleRelevance(book, query)
+
+    if (fullTitleScore >= STRONG_TITLE_SCORE) {
+      return {
+        titleScore: fullTitleScore,
+        authorScore: author,
+        score: fullTitleScore + 100 + getMetadataQualityBonus(book),
+        isQualified: true,
+      }
+    }
+
+    return {
+      titleScore: title,
+      authorScore: author,
+      score: 0,
+      isQualified: false,
+    }
+  }
+
   const titleScore = scoreTitleRelevance(book, query)
   const authorScore = scoreAuthorRelevance(book, query)
+
   const languageBonus = book?.language === 'fr' ? 2 : 0
   const coverBonus = book?.cover ? 1 : 0
+
+  const isTitleMatch = titleScore >= MIN_TITLE_SCORE
+  const isAuthorMatch = authorScore >= MIN_AUTHOR_SCORE
+
+  const authorSearch = intent?.authorOnly === true
+
+  const exactTitleBonus =
+    !authorSearch && titleScore >= 100 ? 200 : 0
+
+  const strongTitleBonus =
+    !authorSearch && titleScore >= STRONG_TITLE_SCORE ? 100 : 0
+
+  const authorOnlyPenalty =
+    !authorSearch && !isTitleMatch && isAuthorMatch ? -20 : 0
+
+  const authorPriority =
+    authorSearch && isAuthorMatch ? 300 : 0
 
   return {
     titleScore,
     authorScore,
-    score: Math.max(titleScore, authorScore) + languageBonus + coverBonus,
+    score:
+      Math.max(titleScore, authorScore) +
+      exactTitleBonus +
+      strongTitleBonus +
+      authorOnlyPenalty +
+      authorPriority +
+      languageBonus +
+      coverBonus +
+      getMetadataQualityBonus(book),
+    isQualified: authorSearch
+      ? isAuthorMatch
+      : isTitleMatch || isAuthorMatch,
   }
 }
 
-export function hasSufficientSearchMatches(books, query) {
-  return books.some((book) => {
-    const titleScore = scoreTitleRelevance(book, query)
-    const authorScore = scoreAuthorRelevance(book, query)
+export function scoreBookSearchRelevance(book, query, intent = null) {
+  return scoreCandidate(book, query, intent)
+}
 
-    return (
-      titleScore >= STRONG_TITLE_SCORE ||
-      authorScore >= STRONG_AUTHOR_SCORE
+export function hasStrongTitleMatch(books, query) {
+  const parts = splitTitleAndAuthor(query)
+  const titleQuery = parts ? parts.title : query
+
+  return books.some(
+    (book) =>
+      scoreTitleRelevance(book, titleQuery) >= STRONG_TITLE_SCORE
+  )
+}
+
+export function hasSufficientSearchMatches(books, query) {
+  const parts = splitTitleAndAuthor(query)
+
+  if (parts) {
+    return books.some(
+      (book) =>
+        scoreTitleRelevance(book, parts.title) >= 75 &&
+        scoreAuthorRelevance(book, parts.author) >= 85
     )
-  })
+  }
+
+  return books.some(
+    (book) =>
+      scoreTitleRelevance(book, query) >= STRONG_TITLE_SCORE ||
+      scoreAuthorRelevance(book, query) >= STRONG_AUTHOR_SCORE
+  )
 }
 
 export function getSearchBookIdentityKeys(book) {
-  const googleBookId = book?.googleBooksId || book?.id
+  const googleBookId = book?.googleBooksId
+
+  const openLibraryId = normalizeOpenLibraryWorkId(
+    book?.openLibraryId || book?.id
+  )
+
   const isbnKeys = [...(book?.isbns || []), book?.isbn]
     .map(normalizeIsbn)
     .filter(Boolean)
     .map((isbn) => `isbn:${isbn}`)
+
   const title = normalizeSearchText(book?.title)
-  const primaryAuthor = normalizeSearchText(book?.authors?.[0])
-  const titleAuthorKey =
-    title && primaryAuthor
-      ? `title-author:${title}:${primaryAuthor}`
-      : ''
+  const author = normalizeSearchText(book?.authors?.[0])
 
   return [
     googleBookId ? `google:${googleBookId}` : '',
+    openLibraryId ? `openlibrary:${openLibraryId}` : '',
     ...isbnKeys,
-    titleAuthorKey,
+    title && author ? `title-author:${title}:${author}` : '',
   ].filter(Boolean)
 }
 
-export function mergeAndRankSearchBooks(candidateGroups, query, limit) {
-  const seenIdentityKeys = new Set()
-  const uniqueBooks = []
+function mergeSearchBook(currentBook, nextBook) {
+  return {
+    ...nextBook,
+    ...currentBook,
+
+    googleBooksId:
+      currentBook.googleBooksId || nextBook.googleBooksId,
+
+    openLibraryId:
+      currentBook.openLibraryId || nextBook.openLibraryId,
+
+    isbn: currentBook.isbn || nextBook.isbn || null,
+
+    isbns: Array.from(
+      new Set([
+        ...(currentBook.isbns || []),
+        ...(nextBook.isbns || []),
+      ])
+    ),
+
+    cover: currentBook.cover || nextBook.cover || null,
+
+    description:
+      currentBook.description || nextBook.description || '',
+
+    categories:
+      currentBook.categories?.length > 0
+        ? currentBook.categories
+        : nextBook.categories || [],
+
+    publishedDate:
+      currentBook.publishedDate || nextBook.publishedDate || '',
+
+    source:
+      currentBook.source === nextBook.source
+        ? currentBook.source
+        : currentBook.source || nextBook.source,
+  }
+}
+
+export function mergeAndRankSearchBooks(
+  candidateGroups,
+  query,
+  limit,
+  intent = null
+) {
+  const seenKeysToIndex = new Map()
+  const unique = []
 
   candidateGroups.flat().forEach((book, originalIndex) => {
-    const identityKeys = getSearchBookIdentityKeys(book)
-    const isDuplicate = identityKeys.some((key) =>
-      seenIdentityKeys.has(key)
+    if (!hasMinimumMetadataQuality(book)) return
+
+    const relevance = scoreBookSearchRelevance(book, query, intent)
+
+    if (!relevance.isQualified) return
+
+    const keys = getSearchBookIdentityKeys(book)
+
+    const existingIndex = keys
+      .map((key) => seenKeysToIndex.get(key))
+      .find((index) => index !== undefined)
+
+    if (existingIndex !== undefined) {
+      const existing = unique[existingIndex]
+      const mergedBook = mergeSearchBook(existing.book, book)
+
+      const mergedRelevance = scoreBookSearchRelevance(
+        mergedBook,
+        query,
+        intent
+      )
+
+      unique[existingIndex] = {
+        ...existing,
+        book: mergedBook,
+        relevance:
+          mergedRelevance.score > existing.relevance.score
+            ? mergedRelevance
+            : existing.relevance,
+      }
+
+      keys.forEach((key) =>
+        seenKeysToIndex.set(key, existingIndex)
+      )
+
+      return
+    }
+
+    const nextIndex = unique.length
+
+    keys.forEach((key) =>
+      seenKeysToIndex.set(key, nextIndex)
     )
 
-    if (isDuplicate) return
-
-    identityKeys.forEach((key) => seenIdentityKeys.add(key))
-    uniqueBooks.push({ book, originalIndex })
-  })
-
-  return uniqueBooks
-    .map(({ book, originalIndex }) => ({
+    unique.push({
       book,
       originalIndex,
-      relevance: scoreBookSearchRelevance(book, query),
-    }))
-    .sort((left, right) => {
-      const scoreDifference =
-        right.relevance.score - left.relevance.score
-      if (scoreDifference) return scoreDifference
-
-      const titleDifference =
-        right.relevance.titleScore - left.relevance.titleScore
-      if (titleDifference) return titleDifference
-
-      const authorDifference =
-        right.relevance.authorScore - left.relevance.authorScore
-      if (authorDifference) return authorDifference
-
-      return left.originalIndex - right.originalIndex
+      relevance,
     })
+  })
+
+  return unique
+    .sort(
+      (a, b) =>
+        b.relevance.score - a.relevance.score ||
+        b.relevance.titleScore - a.relevance.titleScore ||
+        b.relevance.authorScore - a.relevance.authorScore ||
+        a.originalIndex - b.originalIndex
+    )
     .slice(0, limit)
     .map(({ book }) => book)
 }

@@ -1,28 +1,38 @@
+
 import { fetchJsonOnce } from '../utils/inFlightRequest'
+
 import {
   buildAuthorSearchQuery,
   buildTitleSearchQuery,
-  hasSufficientSearchMatches,
+  getConfirmedTitleAuthorParts,
+  isConfirmedAuthorSearch,
   mergeAndRankSearchBooks,
 } from '../utils/bookSearchRelevance.js'
+
 import {
   getBestGoogleCover,
   getIndustryIdentifierIsbns,
   getPreferredIsbn,
 } from './coverUtils.js'
 
+import { getOpenLibraryBooksBySearch } from './trendingBooksApi.js'
+
 const BASE_URL = 'https://www.googleapis.com/books/v1/volumes'
 const API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
+
 const SEARCH_RESULTS_LIMIT = 20
 const SEARCH_CANDIDATE_LIMIT = 40
 const TITLE_SEARCH_CANDIDATE_LIMIT = 20
+const OPEN_LIBRARY_SEARCH_CANDIDATE_LIMIT = 20
 const SUGGESTION_CANDIDATE_LIMIT = 10
 const SUGGESTION_RESULTS_LIMIT = 5
+
 const GOOGLE_SUBJECT_QUERIES = {
   crime: 'subject:"crime fiction"',
   comics: 'subject:"comics graphic novels"',
   'young adult': 'subject:"young adult fiction"',
 }
+
 const GOOGLE_BOOKS_RETRY_DELAY_MS = 250
 
 const SUBJECT_RELEVANCE_RULES = {
@@ -38,6 +48,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'kingdom',
     ],
   },
+
   romance: {
     categories: [
       'romance',
@@ -58,6 +69,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'dating',
     ],
   },
+
   mystery: {
     categories: [
       'mystery',
@@ -76,6 +88,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'death',
     ],
   },
+
   thriller: {
     categories: ['thriller', 'suspense'],
     genericFictionTerms: [
@@ -88,6 +101,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'danger',
     ],
   },
+
   crime: {
     categories: [
       'crime fiction',
@@ -107,8 +121,14 @@ const SUBJECT_RELEVANCE_RULES = {
       'killer',
     ],
   },
+
   horror: {
-    categories: ['horror', 'ghost', 'occult', 'supernatural'],
+    categories: [
+      'horror',
+      'ghost',
+      'occult',
+      'supernatural',
+    ],
     genericFictionTerms: [
       'horror',
       'haunted',
@@ -119,8 +139,13 @@ const SUBJECT_RELEVANCE_RULES = {
       'supernatural',
     ],
   },
+
   'science fiction': {
-    categories: ['science fiction', 'sci-fi', 'sci fi'],
+    categories: [
+      'science fiction',
+      'sci-fi',
+      'sci fi',
+    ],
     genericFictionTerms: [
       'science fiction',
       'sci-fi',
@@ -131,6 +156,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'alien',
     ],
   },
+
   adventure: {
     categories: ['adventure'],
     genericFictionTerms: [
@@ -143,6 +169,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'treasure',
     ],
   },
+
   'young adult': {
     categories: [
       'young adult fiction',
@@ -160,6 +187,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'seventeen',
     ],
   },
+
   classics: {
     categories: [
       'classic',
@@ -170,15 +198,23 @@ const SUBJECT_RELEVANCE_RULES = {
       'juvenile fiction',
     ],
   },
+
   history: {
     categories: ['history'],
   },
+
   biography: {
-    categories: ['biography', 'autobiography', 'memoir'],
+    categories: [
+      'biography',
+      'autobiography',
+      'memoir',
+    ],
   },
+
   poetry: {
     categories: ['poetry'],
   },
+
   comics: {
     categories: [
       'comics',
@@ -188,6 +224,7 @@ const SUBJECT_RELEVANCE_RULES = {
       'cartoons',
     ],
   },
+
   'self help': {
     categories: [
       'self-help',
@@ -197,21 +234,23 @@ const SUBJECT_RELEVANCE_RULES = {
       'health & fitness',
     ],
   },
+
   philosophy: {
-    categories: ['philosophy', 'ethics', 'logic', 'metaphysics'],
+    categories: [
+      'philosophy',
+      'ethics',
+      'logic',
+      'metaphysics',
+    ],
   },
 }
 
 /**
- * Builds a Google Books subject query while preserving Dear Pages subject
- * values. Multi-word subjects must be quoted so Google treats them as a
- * single subject phrase instead of mixing a subject token with free text.
- *
- * @param {string} subject - Dear Pages genre subject.
- * @returns {string} Encoded Google Books query value.
+ * Construit une recherche Google Books par sujet.
  */
 function createSubjectQuery(subject) {
   const normalizedSubject = String(subject || '').trim()
+
   const subjectQuery =
     GOOGLE_SUBJECT_QUERIES[normalizedSubject] ||
     (/\s/.test(normalizedSubject)
@@ -261,13 +300,7 @@ function hasGenericFictionCategory(categories) {
 }
 
 /**
- * Checks whether a Google Books item reasonably matches the requested Dear
- * Pages subject. Category matches are preferred; limited text fallback is only
- * used when Google gives a broad fiction category for genres that need it.
- *
- * @param {Object} item - Raw Google Books item.
- * @param {string} subject - Dear Pages genre subject.
- * @returns {boolean} True when the item is relevant enough for recommendations.
+ * Vérifie la pertinence d'un livre pour un sujet.
  */
 function isRelevantSubjectBook(item, subject) {
   const rule = SUBJECT_RELEVANCE_RULES[subject]
@@ -275,11 +308,17 @@ function isRelevantSubjectBook(item, subject) {
   if (!rule) return true
 
   const volumeInfo = item.volumeInfo || {}
+
   const categories = (volumeInfo.categories || []).map(
     normalizeSearchText
   )
 
-  if (metadataContainsAnyTerm(categories.join(' '), rule.categories)) {
+  if (
+    metadataContainsAnyTerm(
+      categories.join(' '),
+      rule.categories
+    )
+  ) {
     return true
   }
 
@@ -314,14 +353,7 @@ function isGoogleBooksImageHost(hostname) {
 }
 
 /**
- * Keeps Google Books cover URLs as close as possible to the API response.
- *
- * Google Books `zoom` and size parameters can change both image dimensions and
- * crop behavior, so this helper only upgrades known Google image URLs to HTTPS
- * and rejects Google's generic no-cover asset when it is visible in the URL.
- *
- * @param {string|null} coverUrl - Cover URL returned by Google Books.
- * @returns {string|null} Original, HTTPS-normalized, or null cover URL.
+ * Normalise les URLs des couvertures Google Books.
  */
 function normalizeGoogleBooksCoverUrl(coverUrl) {
   if (!coverUrl) {
@@ -357,13 +389,7 @@ function normalizeGoogleBooksCoverUrl(coverUrl) {
 }
 
 /**
- * Nettoie une description provenant de Google Books.
- *
- * Certaines descriptions contiennent des balises HTML ou des entités HTML
- * qui ne doivent pas apparaître telles quelles dans l'interface.
- *
- * @param {string} description - Description brute Google Books.
- * @returns {string} Description nettoyée.
+ * Nettoie les descriptions Google Books.
  */
 function cleanBookDescription(description = '') {
   return description
@@ -379,17 +405,15 @@ function cleanBookDescription(description = '') {
 }
 
 /**
- * Formate un livre reçu depuis l'API Google Books
- * pour l'utiliser plus facilement dans l'application.
- *
- * @param {Object} item - Livre retourné par Google Books.
- * @returns {Object} Livre formaté pour Dear Pages.
+ * Formate un livre Google Books pour Dear Pages.
  */
 function formatBook(item) {
   const volumeInfo = item.volumeInfo || {}
+
   const isbns = getIndustryIdentifierIsbns(
     volumeInfo.industryIdentifiers || []
   )
+
   const isbn = getPreferredIsbn(isbns)
 
   return {
@@ -418,11 +442,7 @@ function formatBook(item) {
 }
 
 /**
- * Effectue une requête vers Google Books.
- *
- * @param {string} url - URL Google Books à appeler.
- * @param {string} message - Message d'erreur à utiliser si la requête échoue.
- * @returns {Promise<Object>} Réponse JSON Google Books.
+ * Gestion des requêtes Google Books.
  */
 function delay(ms) {
   return new Promise((resolve) => {
@@ -436,6 +456,7 @@ function isRetryableGoogleBooksError(error) {
 
 function createGoogleBooksError(message, error) {
   const wrappedError = new Error(message)
+
   wrappedError.status = error.status
   wrappedError.apiError = error.apiError
   wrappedError.cause = error
@@ -460,11 +481,23 @@ async function getGoogleBooksData(url, message) {
   }
 }
 
+/**
+ * Construit l'URL Google Books.
+ */
 function createVolumesSearchUrl(query, options = {}) {
   const params = new URLSearchParams({
     q: query,
-    maxResults: String(options.maxResults || SEARCH_RESULTS_LIMIT),
+    maxResults: String(
+      options.maxResults || SEARCH_RESULTS_LIMIT
+    ),
   })
+
+  if (options.startIndex) {
+    params.set(
+      'startIndex',
+      String(options.startIndex)
+    )
+  }
 
   if (options.printType) {
     params.set('printType', options.printType)
@@ -477,14 +510,19 @@ function createVolumesSearchUrl(query, options = {}) {
   return `${BASE_URL}?${params.toString()}`
 }
 
+/**
+ * Récupère des candidats Google Books.
+ */
 async function searchGoogleBooksCandidates(
   query,
   maxResults,
-  message
+  message,
+  startIndex = 0
 ) {
   const data = await getGoogleBooksData(
     createVolumesSearchUrl(query, {
       maxResults,
+      startIndex,
       printType: 'books',
     }),
     message
@@ -493,67 +531,167 @@ async function searchGoogleBooksCandidates(
   return data.items?.map(formatBook) || []
 }
 
-/**
- * Recherche des livres dans l'API Google Books.
- *
- * @param {string} query - Recherche saisie par l'utilisateur.
- * @returns {Promise<Array>} Liste des livres trouvés et formatés.
- */
-export async function searchBooks(query) {
-  const trimmedQuery = query.trim()
+function getFulfilledCandidateGroups(results) {
+  return results
+    .filter((result) => result.status === 'fulfilled')
+    .map((result) => result.value)
+}
 
-  if (!trimmedQuery) return []
-
-  const broadCandidates = await searchGoogleBooksCandidates(
-    trimmedQuery,
-    SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
-  )
-
-  const titleCandidates = await searchGoogleBooksCandidates(
-    buildTitleSearchQuery(trimmedQuery),
-    TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
-  )
-
-  const rankedInitialCandidates = mergeAndRankSearchBooks(
-    [broadCandidates, titleCandidates],
-    trimmedQuery,
-    SEARCH_RESULTS_LIMIT
-  )
-
-  const authorQuery = buildAuthorSearchQuery(trimmedQuery)
-
-  if (
-    !authorQuery ||
-    hasSufficientSearchMatches(
-      rankedInitialCandidates,
-      trimmedQuery
-    )
-  ) {
-    return rankedInitialCandidates
-  }
-
-  const authorCandidates = await searchGoogleBooksCandidates(
-    authorQuery,
-    TITLE_SEARCH_CANDIDATE_LIMIT,
-    'Impossible de récupérer les livres.'
-  )
-
-  return mergeAndRankSearchBooks(
-    [broadCandidates, titleCandidates, authorCandidates],
-    trimmedQuery,
-    SEARCH_RESULTS_LIMIT
+function getFirstRejectedSearchError(results) {
+  return (
+    results.find(
+      (result) =>
+        result.status === 'rejected' && result.reason?.status
+    )?.reason ||
+    results.find(
+      (result) => result.status === 'rejected'
+    )?.reason
   )
 }
 
 /**
- * Récupère quelques suggestions de livres à partir
- * de la recherche saisie par l'utilisateur.
+ * Recherche principale dans Découvrir.
  *
- * @param {string} query - Texte actuellement saisi.
- * @returns {Promise<Array>} Liste courte de livres suggérés.
+ * Combine Google Books et Open Library.
+ * Détecte les recherches par auteur et titre + auteur
+ * à partir des métadonnées des livres.
  */
+export async function searchBooks(query) {
+  const trimmedQuery = String(query || '').trim()
+
+  if (!trimmedQuery) return []
+
+  const errorMessage = 'Impossible de récupérer les livres.'
+  const candidateGroups = []
+
+  const tokens = trimmedQuery.split(/\s+/)
+
+  const possibleAuthor =
+    tokens.length >= 2 && tokens.length <= 3
+
+  const possibleCombined = tokens.length >= 3
+  const authorName = tokens.slice(-2).join(' ')
+  const titlePart = tokens.slice(0, -2).join(' ')
+
+  const requests = [
+    searchGoogleBooksCandidates(
+      buildTitleSearchQuery(trimmedQuery),
+      TITLE_SEARCH_CANDIDATE_LIMIT,
+      errorMessage
+    ),
+
+    searchGoogleBooksCandidates(
+      trimmedQuery,
+      SEARCH_CANDIDATE_LIMIT,
+      errorMessage
+    ),
+
+    getOpenLibraryBooksBySearch({
+      title: trimmedQuery,
+      limit: OPEN_LIBRARY_SEARCH_CANDIDATE_LIMIT,
+    }),
+  ]
+
+  // Chercher aussi par auteur, même lorsqu'une biographie
+  // porte exactement le nom recherché.
+  if (possibleAuthor) {
+    requests.push(
+      searchGoogleBooksCandidates(
+        buildAuthorSearchQuery(trimmedQuery),
+        TITLE_SEARCH_CANDIDATE_LIMIT,
+        errorMessage
+      ),
+
+      getOpenLibraryBooksBySearch({
+        author: trimmedQuery,
+        limit: OPEN_LIBRARY_SEARCH_CANDIDATE_LIMIT,
+      })
+    )
+  }
+
+  // Chercher titre + auteur, y compris les requêtes
+  // de trois mots comme "Misery Stephen King".
+  if (possibleCombined && titlePart) {
+    requests.push(
+      searchGoogleBooksCandidates(
+        `intitle:"${titlePart}" inauthor:${tokens.at(-1)}`,
+        TITLE_SEARCH_CANDIDATE_LIMIT,
+        errorMessage
+      ),
+
+      getOpenLibraryBooksBySearch({
+        title: titlePart,
+        author: authorName,
+        limit: OPEN_LIBRARY_SEARCH_CANDIDATE_LIMIT,
+      })
+    )
+  }
+
+  const initialResults = await Promise.allSettled(requests)
+
+  candidateGroups.push(
+    ...getFulfilledCandidateGroups(initialResults)
+  )
+
+  if (candidateGroups.length === 0) {
+    throw getFirstRejectedSearchError(initialResults)
+  }
+
+  // L'intention n'est confirmée que si les résultats
+  // contiennent des métadonnées correspondantes.
+  const getIntent = () => {
+    const candidates = candidateGroups.flat()
+
+    const combined = getConfirmedTitleAuthorParts(
+      candidates,
+      trimmedQuery
+    )
+
+    return {
+      combined,
+      authorOnly:
+        !combined &&
+        isConfirmedAuthorSearch(candidates, trimmedQuery),
+    }
+  }
+
+  let ranked = mergeAndRankSearchBooks(
+    candidateGroups,
+    trimmedQuery,
+    SEARCH_RESULTS_LIMIT,
+    getIntent()
+  )
+
+  // Pagination supplémentaire si aucun résultat pertinent.
+  if (!ranked.length && !getIntent().authorOnly) {
+    const extra = await Promise.allSettled([
+      searchGoogleBooksCandidates(
+        buildTitleSearchQuery(trimmedQuery),
+        TITLE_SEARCH_CANDIDATE_LIMIT,
+        errorMessage,
+        TITLE_SEARCH_CANDIDATE_LIMIT
+      ),
+    ])
+
+    candidateGroups.push(
+      ...getFulfilledCandidateGroups(extra)
+    )
+
+    ranked = mergeAndRankSearchBooks(
+      candidateGroups,
+      trimmedQuery,
+      SEARCH_RESULTS_LIMIT,
+      getIntent()
+    )
+  }
+
+  return ranked
+}
+
+/**
+ * Suggestions pendant la saisie.
+ */
+
 export async function getBookSuggestions(query) {
   const trimmedQuery = query.trim()
 
@@ -561,6 +699,18 @@ export async function getBookSuggestions(query) {
     return []
   }
 
+  const tokens = trimmedQuery.split(/\s+/)
+
+  // Pour une recherche complète comme "Misery Stephen King",
+  // réutiliser les résultats pertinents de la recherche principale.
+  if (tokens.length >= 2) {
+    const books = await searchBooks(trimmedQuery)
+
+    return books.slice(0, SUGGESTION_RESULTS_LIMIT)
+  }
+
+  // Pour les recherches courtes, conserver les suggestions
+  // Google Books afin de limiter les appels API.
   const candidates = await searchGoogleBooksCandidates(
     trimmedQuery,
     SUGGESTION_CANDIDATE_LIMIT,
@@ -574,13 +724,9 @@ export async function getBookSuggestions(query) {
   )
 }
 
+
 /**
- * Récupère des livres appartenant à une catégorie Google Books.
- *
- * @param {string} subject - Catégorie de livres à rechercher.
- * @param {number} [maxResults=10] - Nombre maximum de livres.
- * @param {number} [startIndex=0] - Position du premier résultat.
- * @returns {Promise<Array>} Liste de livres formatés.
+ * Livres d'une catégorie Google Books.
  */
 export async function getBooksBySubject(
   subject,
@@ -612,18 +758,18 @@ export async function getBooksBySubjectWindow(
 
   return {
     books: items
-      .filter((item) => isRelevantSubjectBook(item, subject))
+      .filter((item) =>
+        isRelevantSubjectBook(item, subject)
+      )
       .map(formatBook),
+
     returnedCount: items.length,
     nextStartIndex: startIndex + items.length,
   }
 }
 
 /**
- * Recherche un livre Google Books à partir de son ISBN.
- *
- * @param {string} isbn - ISBN du livre à rechercher.
- * @returns {Promise<Object|null>} Livre formaté ou null.
+ * Recherche par ISBN.
  */
 export async function getBookByIsbn(isbn) {
   if (!isbn) {
@@ -643,10 +789,7 @@ export async function getBookByIsbn(isbn) {
 }
 
 /**
- * Récupère la fiche complète du volume Google Books sélectionné.
- *
- * @param {string} bookId - Identifiant Google Books du livre.
- * @returns {Promise<Object|null>} Livre formaté pour Dear Pages.
+ * Récupère une fiche Google Books par son ID.
  */
 export async function getBookById(bookId) {
   if (!bookId) {

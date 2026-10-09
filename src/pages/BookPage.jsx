@@ -16,7 +16,10 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useBookLibraryState } from '../hooks/useBookLibraryState.js'
 import { useBookPageData } from '../hooks/useBookPageData.js'
 import { BOOK_STATUSES } from '../services/libraryService.js'
-import { hasCompleteInitialBookDetails } from '../utils/bookPageUtils.js'
+import {
+  getBookRouteId,
+  hasCompleteInitialBookDetails,
+} from '../utils/bookPageUtils.js'
 
 const STATUS_OPTIONS = [
   { value: BOOK_STATUSES.TO_READ, labelKey: 'status.to-read' },
@@ -107,6 +110,7 @@ function BookPage() {
   const canRenderBookDetails =
     Boolean(book) &&
     (!isBookLoading || hasCompleteInitialBookDetails(book))
+  const currentBookId = getBookRouteId(book) || id
 
   if (!isBookLoading && !book) {
     return (
@@ -172,7 +176,7 @@ function BookPage() {
             {!isBookLoading && (
               <BookPersonalSection
                 userId={userId}
-                bookId={book.googleBooksId}
+                bookId={currentBookId}
                 libraryBook={libraryBook}
                 isLibraryLoading={isLibraryLoading}
                 onLibraryBookChange={setLibraryBook}

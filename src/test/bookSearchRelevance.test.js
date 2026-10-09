@@ -19,6 +19,7 @@ function book({
   isbns = [],
   language = 'en',
   cover = null,
+  description = '',
 }) {
   return {
     id,
@@ -30,6 +31,7 @@ function book({
     isbns,
     language,
     cover,
+    description,
     source: 'google-books',
   }
 }
@@ -38,7 +40,8 @@ function googleItem(
   id,
   title,
   authors = ['Auteur inconnu'],
-  categories = []
+  categories = [],
+  overrides = {}
 ) {
   return {
     id,
@@ -49,6 +52,7 @@ function googleItem(
       language: 'en',
       printType: 'BOOK',
       categories,
+      ...overrides,
     },
   }
 }
@@ -57,6 +61,22 @@ function successfulResponse(items) {
   return Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ items }),
+  })
+}
+
+function openLibraryDoc(id, title, authors = ['Auteur inconnu'], overrides = {}) {
+  return {
+    key: `/works/${id}`,
+    title,
+    author_name: authors,
+    ...overrides,
+  }
+}
+
+function successfulOpenLibraryResponse(docs = []) {
+  return Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({ docs }),
   })
 }
 
@@ -78,6 +98,12 @@ function getRequestQuery(call) {
   const url = new URL(call[0])
 
   return url.searchParams.get('q')
+}
+
+function getRequestParam(call, name) {
+  const url = new URL(call[0])
+
+  return url.searchParams.get(name)
 }
 
 afterEach(() => {
@@ -218,24 +244,24 @@ describe('book search merge and ranking', () => {
       }),
       book({
         id: 'isbn-a',
-        title: 'Foundation',
+        title: 'Dune',
         authors: ['Isaac Asimov'],
         isbn: '9780441172719',
       }),
       book({
         id: 'isbn-b',
-        title: 'Foundation Deluxe',
+        title: 'Dune Deluxe',
         authors: ['Isaac Asimov'],
         isbn: '978-0-441-17271-9',
       }),
       book({
         id: 'title-author-a',
-        title: 'Harry Potter',
+        title: 'Dune',
         authors: ['J. K. Rowling'],
       }),
       book({
         id: 'title-author-b',
-        title: 'Harry Potter',
+        title: 'Dune',
         authors: ['J. K. Rowling'],
       }),
     ]
@@ -279,6 +305,106 @@ describe('book search merge and ranking', () => {
       'title-author:l etranger:albert camus',
     ])
   })
+
+  it('excludes records with no cover, description, or identified author', () => {
+    const candidates = [
+      book({
+        id: 'empty-record',
+        title: 'The Housemaid',
+      }),
+      book({
+        id: 'known-author',
+        title: 'The Housemaid',
+        authors: ['Freida McFadden'],
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      'The Housemaid',
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual(['known-author'])
+  })
+
+  it('keeps relevant books without covers when they have other useful metadata', () => {
+    const candidates = [
+      book({
+        id: 'description-only-quality',
+        title: 'The Housemaid',
+        description: 'A domestic thriller.',
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      'The Housemaid',
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual([
+      'description-only-quality',
+    ])
+  })
+
+  it('uses metadata quality only as a secondary ranking signal', () => {
+    const candidates = [
+      book({
+        id: 'weak-with-metadata',
+        title: 'The Housemaid Stories',
+        authors: ['Known Author'],
+        cover: 'https://example.com/cover.jpg',
+        description: 'Useful metadata.',
+      }),
+      book({
+        id: 'exact-with-author',
+        title: 'The Housemaid',
+        authors: ['Freida McFadden'],
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      'The Housemaid',
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual([
+      'exact-with-author',
+      'weak-with-metadata',
+    ])
+  })
+
+  it('uses metadata quality to order otherwise equal relevant records', () => {
+    const candidates = [
+      book({
+        id: 'exact-sparse',
+        title: 'The Housemaid',
+        authors: ['Freida McFadden'],
+      }),
+      book({
+        id: 'exact-rich',
+        title: 'The Housemaid',
+        authors: ['Amma Darko'],
+        cover: 'https://example.com/cover.jpg',
+        description: 'A complete search record.',
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      'The Housemaid',
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual([
+      'exact-rich',
+      'exact-sparse',
+    ])
+    expect(result[0].cover).toBe('https://example.com/cover.jpg')
+    expect(result[0].description).toBe('A complete search record.')
+  })
 })
 
 describe('booksApi search request behavior', () => {
@@ -303,6 +429,7 @@ describe('booksApi search request behavior', () => {
           ),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -310,10 +437,13 @@ describe('booksApi search request behavior', () => {
     const results = await searchBooks('Harry Potter')
 
     expect(results).toHaveLength(2)
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe('Harry Potter')
-    expect(getRequestQuery(fetchMock.mock.calls[1])).toBe(
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
       'intitle:"Harry Potter"'
+    )
+    expect(getRequestQuery(fetchMock.mock.calls[1])).toBe('Harry Potter')
+    expect(getRequestParam(fetchMock.mock.calls[2], 'title')).toBe(
+      'Harry Potter'
     )
     expect(fetchMock.mock.calls[0][0]).not.toContain('langRestrict')
   })
@@ -331,19 +461,22 @@ describe('booksApi search request behavior', () => {
           googleItem('weak-2', 'George and the Dragon', ['Margaret Hodges']),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
       .mockImplementationOnce(() =>
         successfulResponse([
           googleItem('grrm', 'A Game of Thrones', ['George R. R. Martin']),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
 
     const results = await searchBooks('George Martin')
 
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-    expect(getRequestQuery(fetchMock.mock.calls[2])).toBe(
+    expect(fetchMock).toHaveBeenCalledTimes(6)
+    expect(getRequestQuery(fetchMock.mock.calls[3])).toBe(
       'george martin inauthor:martin'
     )
     expect(results[0].id).toBe('grrm')
@@ -383,6 +516,9 @@ describe('booksApi search request behavior', () => {
         ])
       )
       .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -405,6 +541,7 @@ describe('booksApi search request behavior', () => {
           googleItem('retry-success', 'Retry Success', ['Author']),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
       .mockImplementationOnce(() =>
         successfulResponse([
           googleItem('retry-title', 'Retry Success', ['Author']),
@@ -419,10 +556,12 @@ describe('booksApi search request behavior', () => {
     const results = await promise
 
     expect(results).toHaveLength(1)
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe('Retry Success')
+    expect(fetchMock).toHaveBeenCalledTimes(4)
+    expect(getRequestQuery(fetchMock.mock.calls[0])).toBe(
+      'intitle:"Retry Success"'
+    )
     expect(getRequestQuery(fetchMock.mock.calls[1])).toBe('Retry Success')
-    expect(getRequestQuery(fetchMock.mock.calls[2])).toBe(
+    expect(getRequestQuery(fetchMock.mock.calls[3])).toBe(
       'intitle:"Retry Success"'
     )
   })
@@ -432,6 +571,9 @@ describe('booksApi search request behavior', () => {
 
     const fetchMock = vi
       .fn()
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() => failedResponse(503))
+      .mockImplementationOnce(() => failedResponse(503))
       .mockImplementationOnce(() => failedResponse(503))
       .mockImplementationOnce(() => failedResponse(503))
 
@@ -448,7 +590,7 @@ describe('booksApi search request behavior', () => {
     })
     await vi.advanceTimersByTimeAsync(250)
     await promise
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(5)
   })
 
   it.each([400, 403])(
@@ -456,6 +598,8 @@ describe('booksApi search request behavior', () => {
     async (status) => {
       const fetchMock = vi
         .fn()
+        .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
+        .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
         .mockImplementationOnce(() => failedResponse(status, 'badRequest'))
 
       vi.stubGlobal('fetch', fetchMock)
@@ -465,7 +609,7 @@ describe('booksApi search request behavior', () => {
         message: 'Impossible de récupérer les livres.',
         status,
       })
-      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock).toHaveBeenCalledTimes(3)
     }
   )
 
@@ -482,6 +626,7 @@ describe('booksApi search request behavior', () => {
           googleItem('normal-title', 'Normal Success', ['Author']),
         ])
       )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
 
     vi.stubGlobal('fetch', fetchMock)
     const { searchBooks } = await import('../services/booksApi.js')
@@ -489,6 +634,165 @@ describe('booksApi search request behavior', () => {
     const results = await searchBooks('Normal Success')
 
     expect(results).toHaveLength(1)
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('keeps distinct works that share The Housemaid title', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('freida-google', 'The Housemaid', [
+            'Freida McFadden',
+          ]),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() =>
+        successfulOpenLibraryResponse([
+          openLibraryDoc('OLAMMAW', 'The Housemaid', ['Amma Darko']),
+        ])
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('The Housemaid')
+
+    expect(results.map((result) => result.authors[0])).toEqual([
+      'Freida McFadden',
+      'Amma Darko',
+    ])
+    expect(results[1].googleBooksId).toBeUndefined()
+    expect(results[1].openLibraryId).toBe('/works/OLAMMAW')
+  })
+
+  it('prioritizes Freida McFadden for The Housemaid Freida McFadden', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('amma-google', 'The Housemaid', ['Amma Darko']),
+        ])
+      )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('freida-google', 'The Housemaid', [
+            'Freida McFadden',
+          ]),
+        ])
+      )
+      .mockImplementationOnce(() =>
+        successfulOpenLibraryResponse([
+          openLibraryDoc('OLFREIDAW', 'The Housemaid', [
+            'Freida McFadden',
+          ]),
+        ])
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('The Housemaid Freida McFadden')
+
+    expect(results[0].authors).toContain('Freida McFadden')
+    expect(results[0].googleBooksId).toBe('freida-google')
+    expect(results[0].openLibraryId).toBe('/works/OLFREIDAW')
+    expect(
+      results.some((result) => result.authors.includes('Amma Darko'))
+    ).toBe(false)
+  })
+
+  it('excludes Harry Potter description-only matches', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('hp-1', 'Harry Potter and the Sorcerer’s Stone', [
+            'J. K. Rowling',
+          ]),
+        ])
+      )
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('description-only', 'A Wizarding Companion', [
+            'Someone Else',
+          ], [], {
+            description: 'Mentions Harry Potter in passing.',
+          }),
+        ])
+      )
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Harry Potter')
+
+    expect(results.map((result) => result.id)).toEqual(['hp-1'])
+  })
+
+  it('keeps Victor Hugo author searches working', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() => successfulOpenLibraryResponse([]))
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('les-miserables', 'Les Misérables', ['Victor Hugo']),
+        ])
+      )
+      .mockImplementationOnce(() =>
+        successfulOpenLibraryResponse([
+          openLibraryDoc('OLVHUGOW', 'Notre-Dame de Paris', [
+            'Victor Hugo',
+          ]),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Victor Hugo')
+
+    expect(results.map((result) => result.authors[0])).toEqual([
+      'Victor Hugo',
+      'Victor Hugo',
+    ])
+    expect(results.map((result) => result.title)).toContain('Les Misérables')
+  })
+
+  it('finds relevant French La Femme de ménage titles', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        successfulResponse([
+          googleItem('femme-google', 'La Femme de ménage', [
+            'Freida McFadden',
+          ], [], {
+            language: 'fr',
+          }),
+        ])
+      )
+      .mockImplementationOnce(() => successfulResponse([]))
+      .mockImplementationOnce(() =>
+        successfulOpenLibraryResponse([
+          openLibraryDoc('OLFEMMEW', 'La Femme de ménage', [
+            'Freida McFadden',
+          ]),
+        ])
+      )
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('La Femme de ménage')
+
+    expect(results[0].title).toBe('La Femme de ménage')
+    expect(results[0].authors).toContain('Freida McFadden')
   })
 })

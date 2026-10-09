@@ -8,7 +8,10 @@ import {
   removeBookFromLibrary,
   updateBookStatus,
 } from '../services/libraryService.js'
-import { getRouteStateLibraryBook } from '../utils/bookPageUtils.js'
+import {
+  getBookRouteId,
+  getRouteStateLibraryBook,
+} from '../utils/bookPageUtils.js'
 
 export function useBookLibraryState({
   book,
@@ -56,6 +59,7 @@ export function useBookLibraryState({
     ? loadingState.isLoading
     : Boolean(userId)
   const isRemoveModalOpen = removeModalBookId === bookId
+  const currentBookId = getBookRouteId(book) || bookId
   const libraryError =
     libraryErrorState.bookId === bookId &&
     libraryErrorState.routeKey === routeKey
@@ -160,7 +164,7 @@ export function useBookLibraryState({
 
       const storedBook = await getLibraryBook(
         userId,
-        book.googleBooksId
+        currentBookId
       )
 
       setLibraryBook(storedBook)
@@ -187,7 +191,7 @@ export function useBookLibraryState({
       if (libraryBook) {
         const updatedBook = await updateBookStatus(
           userId,
-          book.googleBooksId,
+          currentBookId,
           newStatus
         )
 
@@ -202,7 +206,7 @@ export function useBookLibraryState({
 
         const storedBook = await getLibraryBook(
           userId,
-          book.googleBooksId
+          currentBookId
         )
 
         setLibraryBook(storedBook)
@@ -240,7 +244,7 @@ export function useBookLibraryState({
     setLibraryError('')
 
     try {
-      await removeBookFromLibrary(userId, book.googleBooksId)
+      await removeBookFromLibrary(userId, currentBookId)
 
       setLibraryBook(null)
       setRemoveModalBookId(null)

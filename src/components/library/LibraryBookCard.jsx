@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import BookCover from '../books/BookCover.jsx'
 import StatusBadge from '../ui/StatusBadge.jsx'
 import { BOOK_STATUSES } from '../../services/libraryService.js'
+import { getBookRouteId } from '../../utils/bookPageUtils.js'
 import { formatReadingMonthYear } from '../../utils/readingDateUtils.js'
 import { libraryLarge } from './libraryResponsive.js'
 
@@ -21,10 +22,11 @@ function LibraryBookCard({ book }) {
       : ''
 
   const showsFinalStatusDate = isFinished || isAbandoned
+  const bookId = getBookRouteId(book)
 
   return (
     <Link
-      to={`/books/${book.googleBooksId}`}
+      to={`/books/${bookId}`}
       state={{
         book,
         libraryBook: book,
