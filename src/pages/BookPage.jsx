@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useLocation,
@@ -8,6 +9,7 @@ import {
 
 import BookDescriptionSection from '../components/books/BookDescriptionSection.jsx'
 import BookDetails from '../components/books/BookDetails.jsx'
+import BookEditionsSection from '../components/books/BookEditionsSection.jsx'
 import BookPersonalSection from '../components/books/BookPersonalSection.jsx'
 import RemoveBookModal from '../components/books/RemoveBookModal.jsx'
 import { bookLarge } from '../components/books/bookResponsive.js'
@@ -35,14 +37,10 @@ function BookDetailsLoadingState({ shouldAnimate = true }) {
     <section
       className={`
         ${shouldAnimate ? 'dp-section-enter' : ''}
-        min-h-90
-        rounded-3xl
+        min-h-90 rounded-3xl
         border border-darkwood/10
-        bg-cream/80
-        px-5 py-6
-        shadow-sm
-        sm:px-7 sm:py-8
-        md:px-8
+        bg-cream/80 px-5 py-6 shadow-sm
+        sm:px-7 sm:py-8 md:px-8
         lg:px-11 lg:py-10
       `}
       role="status"
@@ -52,8 +50,7 @@ function BookDetailsLoadingState({ shouldAnimate = true }) {
       <div
         className="
           flex h-full min-h-75
-          items-center justify-center
-          text-center
+          items-center justify-center text-center
         "
       >
         <p className="font-handwritten text-xl text-walnut">
@@ -73,12 +70,20 @@ function BookPage() {
   const userId = user?.uid
   const routeState = location.state
 
+  const [isEditionsOpen, setIsEditionsOpen] = useState(false)
+
+  const closeEditions = useCallback(() => {
+    setIsEditionsOpen(false)
+  }, [])
+
   useEffect(() => {
     window.scrollTo({
       top: 0,
       left: 0,
       behavior: 'instant',
     })
+
+    setIsEditionsOpen(false)
   }, [id])
 
   const { book, isBookLoading, error } = useBookPageData({
@@ -110,6 +115,7 @@ function BookPage() {
   const canRenderBookDetails =
     Boolean(book) &&
     (!isBookLoading || hasCompleteInitialBookDetails(book))
+
   const currentBookId = getBookRouteId(book) || id
 
   if (!isBookLoading && !book) {
@@ -127,8 +133,7 @@ function BookPage() {
       <main
         className={`
           w-full px-5 pb-14 pt-6
-          sm:px-7
-          lg:px-9
+          sm:px-7 lg:px-9
           ${bookLarge.page}
           ${bookLarge.pagePadding}
         `}
@@ -153,6 +158,7 @@ function BookPage() {
               onAddToLibrary={handleAddToLibrary}
               onStatusChange={handleStatusChange}
               onRemoveFromLibrary={handleOpenRemoveModal}
+              onOpenEditions={() => setIsEditionsOpen(true)}
             />
           )}
         </div>
@@ -185,6 +191,14 @@ function BookPage() {
           </div>
         )}
       </main>
+
+      {book && (
+        <BookEditionsSection
+          book={book}
+          isOpen={isEditionsOpen}
+          onClose={closeEditions}
+        />
+      )}
 
       <RemoveBookModal
         isOpen={isRemoveModalOpen}

@@ -1,8 +1,10 @@
+
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getBookById } from '../services/booksApi.js'
 import { getOpenLibraryBookById } from '../services/books/trendingBooksApi.js'
+import { getOpenLibraryEditionById } from '../services/books/openLibraryEditionDetails.js'
 import {
   BOOK_API_SOURCES,
   getBookApiSource,
@@ -12,7 +14,13 @@ import {
 } from '../utils/bookPageUtils.js'
 
 async function getBookDetails(bookId) {
-  if (getBookApiSource(bookId) === BOOK_API_SOURCES.OPEN_LIBRARY) {
+  const source = getBookApiSource(bookId)
+
+  if (source === BOOK_API_SOURCES.OPEN_LIBRARY_EDITION) {
+    return getOpenLibraryEditionById(bookId)
+  }
+
+  if (source === BOOK_API_SOURCES.OPEN_LIBRARY) {
     return getOpenLibraryBookById(bookId)
   }
 
@@ -60,9 +68,7 @@ export function useBookPageData({
       try {
         const bookData = await getBookDetails(bookId)
 
-        if (isCancelled) {
-          return
-        }
+        if (isCancelled) return
 
         setBookState((currentState) => ({
           bookId,

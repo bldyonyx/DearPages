@@ -1,44 +1,57 @@
+
 export const BOOK_API_SOURCES = {
   GOOGLE_BOOKS: 'google-books',
   OPEN_LIBRARY: 'open-library',
+  OPEN_LIBRARY_EDITION: 'open-library-edition',
 }
 
-/**
- * Checks whether a route ID points to an Open Library Work.
- *
- * Trending books use Work IDs such as `OL76590W`, while regular search
- * results use Google Books volume IDs.
- *
- * @param {string} bookId - Book ID from the route.
- * @returns {boolean} True when the ID belongs to Open Library.
- */
 export function isOpenLibraryWorkId(bookId) {
-  return /^OL\d+W$/i.test(bookId)
+  return /^OL\d+W$/i.test(String(bookId || ''))
+}
+
+export function isOpenLibraryEditionId(bookId) {
+  return /^OL\d+M$/i.test(String(bookId || ''))
 }
 
 export function normalizeOpenLibraryWorkId(openLibraryId) {
-  const normalizedId = String(openLibraryId || '').replace('/works/', '')
+  const normalizedId = String(openLibraryId || '')
+    .replace(/^\/works\//, '')
 
-  return isOpenLibraryWorkId(normalizedId) ? normalizedId : ''
+  return isOpenLibraryWorkId(normalizedId)
+    ? normalizedId
+    : ''
 }
 
-/**
- * Selects the public API that owns a BookPage route ID.
- *
- * @param {string} bookId - Book ID from the route.
- * @returns {string} One of BOOK_API_SOURCES.
- */
 export function getBookApiSource(bookId) {
-  return isOpenLibraryWorkId(bookId)
-    ? BOOK_API_SOURCES.OPEN_LIBRARY
-    : BOOK_API_SOURCES.GOOGLE_BOOKS
+  if (isOpenLibraryEditionId(bookId)) {
+    return BOOK_API_SOURCES.OPEN_LIBRARY_EDITION
+  }
+
+  if (isOpenLibraryWorkId(bookId)) {
+    return BOOK_API_SOURCES.OPEN_LIBRARY
+  }
+
+  return BOOK_API_SOURCES.GOOGLE_BOOKS
 }
 
 export function getBookRouteId(book) {
+  if (!book) return null
+
+  if (book.googleBooksId) {
+    return book.googleBooksId
+  }
+
+  if (isOpenLibraryEditionId(book.openLibraryEditionId)) {
+    return book.openLibraryEditionId
+  }
+
+  if (isOpenLibraryEditionId(book.id)) {
+    return book.id
+  }
+
   return (
-    book?.googleBooksId ||
-    normalizeOpenLibraryWorkId(book?.openLibraryId) ||
-    book?.id ||
+    normalizeOpenLibraryWorkId(book.openLibraryId) ||
+    book.id ||
     null
   )
 }
@@ -68,9 +81,7 @@ export function toSafeArray(value, fallback = []) {
 }
 
 export function normalizeBookForPage(book) {
-  if (!book) {
-    return null
-  }
+  if (!book) return null
 
   const routeId = getBookRouteId(book)
   const isbns = toSafeArray(book.isbns)
@@ -138,9 +149,7 @@ export function hasUsefulBookDescription(book) {
 export function hasCompleteInitialBookDetails(book) {
   const normalizedBook = normalizeBookForPage(book)
 
-  if (!normalizedBook) {
-    return false
-  }
+  if (!normalizedBook) return false
 
   return (
     hasUsefulTitle(normalizedBook.title) &&
@@ -152,16 +161,6 @@ export function hasCompleteInitialBookDetails(book) {
   )
 }
 
-/**
- * Merges canonical metadata into the optimistic route-state book.
- *
- * Route-state data represents the exact book the user selected, so canonical
- * data only fills fields that are missing from the current page book.
- *
- * @param {Object|null} currentBook - Current optimistic/canonical page book.
- * @param {Object|null} nextBook - Newly loaded canonical book.
- * @returns {Object|null} Normalized page book.
- */
 export function mergeBookDetails(currentBook, nextBook) {
   const normalizedNextBook = normalizeBookForPage(nextBook)
 

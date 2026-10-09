@@ -1,4 +1,5 @@
-import { Trash2 } from 'lucide-react'
+
+import { BookCopy, ChevronRight, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/books/coverUtils.js'
@@ -44,21 +45,11 @@ const CATEGORY_LABEL_KEYS = {
   'media tie-in': 'bookPage.categories.media tie-in',
 }
 
-/**
- * Cleans and translates book categories for display.
- * The original book data is left unchanged.
- *
- * @param {string[]} categories - Raw book categories.
- * @returns {string[]} Clean categories displayed in Dear Pages.
- */
 function formatCategories(categories = [], t) {
-  const ignoredCategories = [
-    'general',
-    'literary collections',
-  ]
+  const ignoredCategories = ['general', 'literary collections']
 
-  const formattedCategories = categories
-    .flatMap((category) => category.split('/'))
+  return categories
+    .flatMap((category) => String(category).split('/'))
     .map((category) => category.trim())
     .filter(Boolean)
     .filter(
@@ -66,54 +57,28 @@ function formatCategories(categories = [], t) {
         !ignoredCategories.includes(category.toLowerCase())
     )
     .map((category) => {
-      const normalizedCategory = category.toLowerCase()
-
-      return (
-        (CATEGORY_LABEL_KEYS[normalizedCategory]
-          ? t(CATEGORY_LABEL_KEYS[normalizedCategory])
-          : null) ||
-        category
-      )
+      const key = CATEGORY_LABEL_KEYS[category.toLowerCase()]
+      return key ? t(key) : category
     })
     .filter(
-      (category, index, categoryList) =>
-        categoryList.findIndex(
+      (category, index, items) =>
+        items.findIndex(
           (item) =>
             item.toLowerCase() === category.toLowerCase()
         ) === index
     )
-
-  return formattedCategories.slice(0, 3)
+    .slice(0, 3)
 }
 
-/**
- * Returns a smaller responsive font size for unusually long
- * book titles so external metadata cannot overwhelm the layout.
- *
- * @param {string} title - Book title.
- * @returns {string} Tailwind classes for the title size.
- */
 function getTitleSize(title = '') {
-  if (title.length > 140) {
-    return 'text-2xl sm:text-3xl'
-  }
-
-  if (title.length > 80) {
-    return 'text-3xl sm:text-4xl'
-  }
-
+  if (title.length > 140) return 'text-2xl sm:text-3xl'
+  if (title.length > 80) return 'text-3xl sm:text-4xl'
   return 'text-4xl sm:text-5xl'
 }
 
 function getLargeTitleSize(title = '') {
-  if (title.length > 140) {
-    return bookLarge.longTitle
-  }
-
-  if (title.length > 80) {
-    return bookLarge.mediumTitle
-  }
-
+  if (title.length > 140) return bookLarge.longTitle
+  if (title.length > 80) return bookLarge.mediumTitle
   return bookLarge.title
 }
 
@@ -128,17 +93,14 @@ function BookDetails({
   onAddToLibrary,
   onStatusChange,
   onRemoveFromLibrary,
+  onOpenEditions,
 }) {
-  const { t } = useTranslation()
-  const visibleCategories = formatCategories(
-    book.categories,
-    t
-  )
-
+  const { t, i18n } = useTranslation()
+  const isFrench = i18n.language?.startsWith('fr')
+  const visibleCategories = formatCategories(book.categories, t)
   const titleSize = getTitleSize(book.title)
   const largeTitleSize = getLargeTitleSize(book.title)
-  const isLibraryActionDisabled =
-    isSaving || isLibraryLoading
+  const isLibraryActionDisabled = isSaving || isLibraryLoading
 
   return (
     <section
@@ -156,21 +118,15 @@ function BookDetails({
     >
       <div
         className={`
-          flex w-full
-          min-w-0 flex-col gap-7
-          lg:flex-row
-          lg:items-center
-          lg:gap-10
-          xl:gap-12
+          flex w-full min-w-0 flex-col gap-7
+          lg:flex-row lg:items-center lg:gap-10 xl:gap-12
           ${bookLarge.detailsInner}
         `}
       >
         <div
           className={`
-            mx-auto w-full
-            max-w-44 shrink-0
-            sm:max-w-52.5
-            lg:mx-0
+            mx-auto w-full max-w-44 shrink-0
+            sm:max-w-52.5 lg:mx-0
             ${bookLarge.cover}
           `}
         >
@@ -189,17 +145,33 @@ function BookDetails({
             "
             imageClassName="h-full w-full object-cover"
           />
+
+          <button
+            type="button"
+            onClick={onOpenEditions}
+            className="
+              group mt-3 flex w-full items-center
+              justify-center gap-1.5
+              font-ui text-xs text-walnut/65
+              transition hover:text-darkwood
+            "
+          >
+            <BookCopy size={13} strokeWidth={1.6} />
+            <span className="underline-offset-3 group-hover:underline">
+              {isFrench
+                ? 'Voir les autres éditions'
+                : 'See other editions'}
+            </span>
+            <ChevronRight size={13} strokeWidth={1.6} />
+          </button>
         </div>
 
         <div className="w-full min-w-0 flex-1">
           <h1
             title={book.title}
             className={`
-              max-w-3xl
-              overflow-hidden
-              font-heading
-              font-bold
-              leading-tight
+              max-w-3xl overflow-hidden
+              font-heading font-bold leading-tight
               text-darkwood
               ${titleSize}
               ${largeTitleSize}
@@ -215,10 +187,8 @@ function BookDetails({
 
           <p
             className={`
-              mt-2
-              overflow-hidden
-              font-handwritten
-              text-xl text-walnut
+              mt-2 overflow-hidden
+              font-handwritten text-xl text-walnut
               sm:text-2xl
               ${bookLarge.author}
             `}
@@ -237,8 +207,7 @@ function BookDetails({
               {book.publishedDate && (
                 <p
                   className={`
-                    font-ui text-sm
-                    text-walnut/65
+                    font-ui text-sm text-walnut/65
                     ${bookLarge.metadataText}
                   `}
                 >
@@ -249,10 +218,8 @@ function BookDetails({
               {visibleCategories.length > 0 && (
                 <p
                   className={`
-                    mt-1.5
-                    font-ui text-sm
-                    text-forest/80
-                    wrap-break-word
+                    mt-1.5 font-ui text-sm
+                    text-forest/80 wrap-break-word
                     ${bookLarge.metadataText}
                   `}
                 >
@@ -275,13 +242,10 @@ function BookDetails({
                   onClick={onAddToLibrary}
                   disabled={isLibraryActionDisabled}
                   className="
-                    w-full rounded-2xl
-                    bg-lime
+                    w-full rounded-2xl bg-lime
                     px-5 py-3.5
-                    font-ui text-sm
-                    font-bold text-darkwood
-                    transition
-                    hover:-translate-y-0.5
+                    font-ui text-sm font-bold text-darkwood
+                    transition hover:-translate-y-0.5
                     hover:brightness-95
                     disabled:cursor-not-allowed
                     disabled:opacity-60
@@ -297,10 +261,8 @@ function BookDetails({
                 <div className="mt-5">
                   <p
                     className={`
-                      mb-2
-                      font-ui text-xs
-                      font-bold uppercase
-                      tracking-[0.12em]
+                      mb-2 font-ui text-xs font-bold
+                      uppercase tracking-[0.12em]
                       text-walnut
                       ${bookLarge.controlLabel}
                     `}
@@ -330,10 +292,8 @@ function BookDetails({
                 <div className="mt-5">
                   <p
                     className={`
-                      mb-2
-                      font-ui text-xs
-                      font-bold uppercase
-                      tracking-[0.12em]
+                      mb-2 font-ui text-xs font-bold
+                      uppercase tracking-[0.12em]
                       text-walnut
                       ${bookLarge.controlLabel}
                     `}
@@ -343,10 +303,8 @@ function BookDetails({
 
                   <div
                     className={`
-                      flex w-full max-w-xl
-                      flex-col gap-3
-                      xl:flex-row
-                      xl:items-center
+                      flex w-full max-w-xl flex-col gap-3
+                      xl:flex-row xl:items-center
                       ${bookLarge.libraryControls}
                     `}
                   >
@@ -365,13 +323,11 @@ function BookDetails({
                       disabled={isLibraryActionDisabled}
                       className="
                         inline-flex w-full shrink-0
-                        items-center justify-center
-                        gap-2 rounded-2xl
+                        items-center justify-center gap-2
+                        rounded-2xl
                         border border-dustyrose/60
-                        bg-cream/70
-                        px-4 py-3.5
-                        font-ui text-sm
-                        text-walnut
+                        bg-cream/70 px-4 py-3.5
+                        font-ui text-sm text-walnut
                         transition
                         hover:bg-dustyrose/25
                         hover:text-darkwood
@@ -380,11 +336,7 @@ function BookDetails({
                         xl:w-auto
                       "
                     >
-                      <Trash2
-                        size={17}
-                        strokeWidth={1.7}
-                      />
-
+                      <Trash2 size={17} strokeWidth={1.7} />
                       {t('bookPage.details.removeFromLibrary')}
                     </button>
                   </div>
@@ -393,7 +345,10 @@ function BookDetails({
             )}
 
             {libraryError && (
-              <p role="alert" className="mt-3 font-ui text-sm text-red-700">
+              <p
+                role="alert"
+                className="mt-3 font-ui text-sm text-red-700"
+              >
                 {libraryError}
               </p>
             )}
