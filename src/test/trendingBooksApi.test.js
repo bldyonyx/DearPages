@@ -4,7 +4,7 @@ import {
   getOpenLibraryBooksBySubject,
   getTrendingBooksDetails,
   isEligibleTrendingBook,
-} from '../services/trendingBooksApi.js'
+} from '../services/books/trendingBooksApi.js'
 
 function trendingDoc(id, subject = [], overrides = {}) {
   return {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getBookById } from '../services/booksApi.js'
-import { getOpenLibraryBookById } from '../services/trendingBooksApi.js'
+import { getOpenLibraryBookById } from '../services/books/trendingBooksApi.js'
 import {
   BOOK_API_SOURCES,
   getBookApiSource,

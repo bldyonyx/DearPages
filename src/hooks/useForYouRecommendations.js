@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getOpenLibraryBooksBySubject } from '../services/trendingBooksApi'
+import { getOpenLibraryBooksBySubject } from '../services/books/trendingBooksApi'
 import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import { addBooksToIdentitySet } from '../utils/recommendationSelection'
 import {

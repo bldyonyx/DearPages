@@ -1,6 +1,5 @@
-
-import { fetchJsonOnce } from '../utils/inFlightRequest'
-import { isExplicitDiscoveryBook } from '../utils/discoveryContentSafety.js'
+import { fetchJsonOnce } from '../../utils/inFlightRequest.js'
+import { isExplicitDiscoveryBook } from '../../utils/discoveryContentSafety.js'
 import { getPreferredIsbn } from './coverUtils.js'
 
 // Keep existing imports working during the refactor.

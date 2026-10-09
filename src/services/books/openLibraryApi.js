@@ -1,5 +1,5 @@
 
-import { fetchJsonOnce } from '../utils/inFlightRequest'
+import { fetchJsonOnce } from '../../utils/inFlightRequest.js'
 import { getPreferredIsbn } from './coverUtils.js'
 
 const OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json'

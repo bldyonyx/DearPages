@@ -8,7 +8,7 @@ import {
   OPEN_LIBRARY_COVER_CACHE_STATUS,
   isOpenLibraryCoverUrl,
   resolveOpenLibraryCoverByIsbn,
-} from '../../services/coverUtils.js'
+} from '../../services/books/coverUtils.js'
 
 const BOOK_COVER_INTRINSIC_WIDTH = 200
 const BOOK_COVER_INTRINSIC_HEIGHT = 300

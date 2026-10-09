@@ -14,7 +14,7 @@ import {
   getPreferredIsbn,
   getSizedGoogleBooksCoverUrl,
   resolveOpenLibraryCoverByIsbn,
-} from '../services/coverUtils'
+} from '../services/books/coverUtils.js'
 
 function mockOpenLibraryBooksResponse(metadata) {
   return vi.fn().mockResolvedValue({

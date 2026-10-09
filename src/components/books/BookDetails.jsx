@@ -1,7 +1,7 @@
 import { Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/coverUtils.js'
+import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/books/coverUtils.js'
 import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
 import { bookLarge } from './bookResponsive.js'

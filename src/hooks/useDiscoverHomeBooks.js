@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import {
   getOpenLibraryBooksBySubject,
   getTrendingBooksDetails,
-} from '../services/trendingBooksApi'
+} from '../services/books/trendingBooksApi'
 import { fetchRecommendationBatch } from '../utils/recommendationBatching'
 import {
   addBooksToIdentitySet,

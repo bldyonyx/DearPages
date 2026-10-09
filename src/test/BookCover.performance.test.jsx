@@ -21,7 +21,7 @@ import {
   clearOpenLibraryCoverCache,
   GOOGLE_COVER_CARD_WIDTH,
   GOOGLE_COVER_PAGE_WIDTH,
-} from '../services/coverUtils.js'
+} from '../services/books/coverUtils.js'
 
 function mockOpenLibraryCoverResponse(coverUrl) {
   return vi.fn().mockResolvedValue({
