@@ -1,5 +1,6 @@
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -51,6 +52,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  cleanup()
   vi.clearAllMocks()
   window.sessionStorage.clear()
   await i18n.changeLanguage('fr')
