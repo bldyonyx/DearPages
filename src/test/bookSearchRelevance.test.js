@@ -3,6 +3,7 @@ import {
   buildAuthorSearchQuery,
   buildTitleSearchQueries,
   buildTitleSearchQuery,
+  getTitleAuthorSplitCandidates,
   getSearchBookIdentityKeys,
   mergeAndRankSearchBooks,
   normalizeSearchText,
@@ -114,6 +115,12 @@ function getRequestParam(call, name) {
   return url.searchParams.get(name)
 }
 
+function getGoogleBooksCalls(fetchMock) {
+  return fetchMock.mock.calls.filter(
+    (call) => new URL(call[0]).hostname === 'www.googleapis.com'
+  )
+}
+
 afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
@@ -191,6 +198,18 @@ describe('book search relevance scoring', () => {
     ).toBeGreaterThanOrEqual(95)
   })
 
+  it('matches initialized author queries to full author names', () => {
+    const result = book({
+      id: 'lmm',
+      title: 'Anne of Green Gables',
+      authors: ['Lucy Maud Montgomery'],
+    })
+
+    expect(
+      scoreAuthorRelevance(result, 'L. M. Montgomery')
+    ).toBeGreaterThanOrEqual(95)
+  })
+
   it('prioritizes Dune as an exact title match', () => {
     const dune = book({
       id: 'dune',
@@ -223,6 +242,27 @@ describe('book search relevance scoring', () => {
     expect(
       scoreTitleRelevance(phraseMatch, 'Harry Potter')
     ).toBeGreaterThan(scoreTitleRelevance(partialMatch, 'Harry Potter'))
+  })
+
+  it('builds progressive title and author split candidates', () => {
+    expect(
+      getTitleAuthorSplitCandidates(
+        'Les Quatre Filles du docteur March Louisa May Alcott'
+      )
+    ).toEqual([
+      {
+        title: 'les quatre filles du docteur march louisa',
+        author: 'may alcott',
+      },
+      {
+        title: 'les quatre filles du docteur march',
+        author: 'louisa may alcott',
+      },
+      {
+        title: 'les quatre filles du docteur',
+        author: 'march louisa may alcott',
+      },
+    ])
   })
 
   it('keeps broad Harry title-token matches above weak matches', () => {
@@ -394,6 +434,58 @@ describe('book search merge and ranking', () => {
       'exact-with-author',
       'weak-with-metadata',
     ])
+  })
+
+  it('prioritizes exact title matches over another book by the same author', () => {
+    const candidates = [
+      book({
+        id: 'castle-air',
+        title: 'Castle in the Air',
+        authors: ['Diana Wynne Jones'],
+      }),
+      book({
+        id: 'howl',
+        title: "Howl's Moving Castle",
+        authors: ['Diana Wynne Jones'],
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      "Howl's Moving Castle",
+      20
+    )
+
+    expect(result.map((item) => item.id)).toEqual(['howl'])
+  })
+
+  it('prioritizes exact title matches inside title and author searches', () => {
+    const candidates = [
+      book({
+        id: 'castle-air',
+        title: 'Castle in the Air',
+        authors: ['Diana Wynne Jones'],
+      }),
+      book({
+        id: 'howl',
+        title: "Howl's Moving Castle",
+        authors: ['Diana Wynne Jones'],
+      }),
+    ]
+
+    const result = mergeAndRankSearchBooks(
+      [candidates],
+      "Howl's Moving Castle Diana Wynne Jones",
+      20,
+      {
+        combined: {
+          title: "howl s moving castle",
+          author: 'diana wynne jones',
+        },
+      }
+    )
+
+    expect(result.map((item) => item.id)).toEqual(['howl'])
   })
 
   it('uses metadata quality to order otherwise equal relevant records', () => {
@@ -853,6 +945,484 @@ describe('booksApi search request behavior', () => {
     expect(
       results.some((result) => result.authors.includes('Amma Darko'))
     ).toBe(false)
+  })
+
+  it('falls back to longer title and author splits when the author has three words', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname === 'openlibrary.org') {
+        return successfulOpenLibraryResponse([])
+      }
+
+      const requestQuery = parsedUrl.searchParams.get('q')
+
+      if (
+        requestQuery ===
+        'intitle:"les quatre filles du docteur march" inauthor:alcott'
+      ) {
+        return successfulResponse([
+          googleItem(
+            'little-women-fr',
+            'Les Quatre Filles du docteur March',
+            ['Louisa May Alcott'],
+            [],
+            { language: 'fr' }
+          ),
+        ])
+      }
+
+      return successfulResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Les Quatre Filles du docteur March Louisa May Alcott'
+    )
+
+    expect(results[0].id).toBe('little-women-fr')
+    expect(results[0].authors).toContain('Louisa May Alcott')
+  })
+
+  it('matches initialized authors in title and author searches', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname === 'openlibrary.org') {
+        return successfulOpenLibraryResponse([])
+      }
+
+      const requestQuery = parsedUrl.searchParams.get('q')
+
+      if (
+        requestQuery ===
+        'intitle:"anne de la maison aux pignons verts" inauthor:montgomery'
+      ) {
+        return successfulResponse([
+          googleItem(
+            'anne-fr',
+            'Anne de la maison aux pignons verts',
+            ['Lucy Maud Montgomery'],
+            [],
+            { language: 'fr' }
+          ),
+        ])
+      }
+
+      return successfulResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Anne de la maison aux pignons verts L. M. Montgomery'
+    )
+
+    expect(results[0].id).toBe('anne-fr')
+    expect(results[0].authors).toContain('Lucy Maud Montgomery')
+  })
+
+  it('uses normalized Open Library keyword fallback for alternate title results', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      const requestQuery = parsedUrl.searchParams.get('q')
+
+      if (
+        requestQuery ===
+        'le chateau de hurle diana wynne jones'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc('OLHOWLW', "Howl's Moving Castle", [
+            'Diana Wynne Jones',
+          ]),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Le Château de Hurle Diana Wynne Jones'
+    )
+
+    expect(results[0].id).toBe('OLHOWLW')
+    expect(results[0].title).toBe("Howl's Moving Castle")
+  })
+
+  it('keeps exact title-only Open Library results without cover metadata when the author is known', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      if (
+        parsedUrl.searchParams.get('title') ===
+        'Les Quatre Filles du docteur March'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc(
+            'OLLITTLEWOMENFR',
+            'Les quatre filles du docteur March',
+            ['Louisa May Alcott'],
+            { cover_i: null, first_sentence: [] }
+          ),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Les Quatre Filles du docteur March'
+    )
+
+    expect(results[0].id).toBe('OLLITTLEWOMENFR')
+    expect(results[0].authors).toContain('Louisa May Alcott')
+  })
+
+  it('enriches sparse title-only results with limited Open Library keyword results', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      if (
+        parsedUrl.searchParams.get('title') ===
+        'Les Quatre Filles du docteur March'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc(
+            'OLLITTLEWOMENFRSPARSE',
+            'Les quatre filles du docteur March',
+            ['Louisa May Alcott'],
+            { cover_i: null, first_sentence: [] }
+          ),
+        ])
+      }
+
+      if (
+        parsedUrl.searchParams.get('q') ===
+        'Les Quatre Filles du docteur March'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc('OLLITTLEWOMEN', 'Little Women', [
+            'Louisa May Alcott',
+          ]),
+          openLibraryDoc(
+            'OLLITTLEWOMENADAPTATION',
+            'Little Women [adaptation]',
+            ['Lucia Monfried']
+          ),
+          openLibraryDoc(
+            'OLLITTLEWOMENCOLLECTION',
+            'Little Women / Heidi / Anne of Green Gables',
+            ['Louisa May Alcott']
+          ),
+          openLibraryDoc(
+            'OLLITTLEWOMENFRCOVER',
+            'Les quatre filles du docteur March',
+            ['Louisa May Alcott'],
+            { cover_i: 12345 }
+          ),
+          openLibraryDoc(
+            'OLTUNNEL',
+            'Une lumière au bout du tunnel',
+            ['Xavier T.']
+          ),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Les Quatre Filles du docteur March'
+    )
+
+    const titles = results.map((book) => book.title)
+
+    expect(titles).toContain('Les quatre filles du docteur March')
+    expect(titles).toContain('Little Women')
+    expect(titles).toContain('Little Women [adaptation]')
+    expect(titles).toContain(
+      'Little Women / Heidi / Anne of Green Gables'
+    )
+    expect(titles).not.toContain('Une lumière au bout du tunnel')
+    expect(results[0].title).toBe('Les quatre filles du docteur March')
+    expect(results[0].cover).toContain('/12345-L.jpg')
+    expect(titles.indexOf('Little Women')).toBeLessThan(
+      titles.indexOf('Little Women / Heidi / Anne of Green Gables')
+    )
+    expect(
+      fetchMock.mock.calls.filter(
+        (call) =>
+          new URL(call[0]).hostname === 'openlibrary.org' &&
+          new URL(call[0]).searchParams.has('q')
+      )
+    ).toHaveLength(1)
+  })
+
+  it('finds French Anne title-only results from Open Library title search', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      if (
+        parsedUrl.searchParams.get('title') ===
+        'Anne de la maison aux pignons verts'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc(
+            'OLANNEFR',
+            'Anne de la Maison Aux Pignons Verts',
+            ['Lucy Maud Montgomery'],
+            { cover_i: null, first_sentence: [] }
+          ),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      'Anne de la maison aux pignons verts'
+    )
+
+    expect(results[0].id).toBe('OLANNEFR')
+    expect(results[0].authors).toContain('Lucy Maud Montgomery')
+  })
+
+  it('uses Open Library keyword ranking for translated title-only alternate titles', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      const requestQuery = parsedUrl.searchParams.get('q')
+
+      if (requestQuery === 'le chateau de hurle') {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc('OLHOWLW', "Howl's Moving Castle", [
+            'Diana Wynne Jones',
+          ]),
+          openLibraryDoc('OLCASTLEAIRW', 'Castle in the Air', [
+            'Diana Wynne Jones',
+          ]),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Le Château de Hurle')
+
+    expect(results[0].id).toBe('OLHOWLW')
+    expect(results[0].title).toBe("Howl's Moving Castle")
+  })
+
+  it('keeps available French Narnia title-only editions', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      if (
+        parsedUrl.searchParams.get('title') ===
+        "Le Lion, la Sorcière blanche et l'Armoire magique"
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc(
+            'OLNARNIAFR',
+            "Le lion, la sorcière blanche et l'armoire magique",
+            ['Jasmine Jones', 'Andrew Adamson'],
+            { cover_i: 15166738 }
+          ),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks(
+      "Le Lion, la Sorcière blanche et l'Armoire magique"
+    )
+
+    expect(results[0].id).toBe('OLNARNIAFR')
+    expect(results[0].title).toContain('sorcière blanche')
+  })
+
+  it('keeps original title searches working', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return successfulResponse([])
+      }
+
+      if (parsedUrl.searchParams.get('title') === 'Little Women') {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc('OLLITTLEWOMEN', 'Little Women', [
+            'Louisa May Alcott',
+          ]),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Little Women')
+
+    expect(results[0].id).toBe('OLLITTLEWOMEN')
+    expect(results[0].title).toBe('Little Women')
+  })
+
+  it('preserves title-only Open Library results when Google Books returns 503', async () => {
+    vi.useFakeTimers()
+
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return failedResponse(503)
+      }
+
+      if (
+        parsedUrl.searchParams.get('title') ===
+        'Les Quatre Filles du docteur March'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc(
+            'OLLITTLEWOMENFR',
+            'Les quatre filles du docteur March',
+            ['Louisa May Alcott'],
+            { cover_i: null, first_sentence: [] }
+          ),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const promise = searchBooks(
+      'Les Quatre Filles du docteur March'
+    )
+    await vi.advanceTimersByTimeAsync(250)
+    const results = await promise
+
+    expect(results[0].id).toBe('OLLITTLEWOMENFR')
+    expect(getGoogleBooksCalls(fetchMock)).toHaveLength(6)
+  })
+
+  it('does not run fallback Google requests when initial results are already relevant', async () => {
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname === 'openlibrary.org') {
+        const title = parsedUrl.searchParams.get('title')
+
+        if (title === 'Known Long Query Author Name') {
+          return successfulOpenLibraryResponse([
+            openLibraryDoc('OLKNOWNW', 'Known Long Query', [
+              'Author Name',
+            ]),
+          ])
+        }
+
+        return successfulOpenLibraryResponse([])
+      }
+
+      return successfulResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const results = await searchBooks('Known Long Query Author Name')
+
+    expect(results[0].id).toBe('OLKNOWNW')
+    expect(getGoogleBooksCalls(fetchMock)).toHaveLength(3)
+  })
+
+  it('preserves Open Library fallback results and avoids extra Google fallback calls after Google 503s', async () => {
+    vi.useFakeTimers()
+
+    const fetchMock = vi.fn((url) => {
+      const parsedUrl = new URL(url)
+
+      if (parsedUrl.hostname !== 'openlibrary.org') {
+        return failedResponse(503)
+      }
+
+      const requestQuery = parsedUrl.searchParams.get('q')
+
+      if (
+        requestQuery ===
+        'le chateau de hurle diana wynne jones'
+      ) {
+        return successfulOpenLibraryResponse([
+          openLibraryDoc('OLHOWLW', "Howl's Moving Castle", [
+            'Diana Wynne Jones',
+          ]),
+        ])
+      }
+
+      return successfulOpenLibraryResponse([])
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchBooks } = await import('../services/booksApi.js')
+
+    const promise = searchBooks(
+      'Le Château de Hurle Diana Wynne Jones'
+    )
+    await vi.advanceTimersByTimeAsync(250)
+    const results = await promise
+
+    expect(results[0].id).toBe('OLHOWLW')
+    expect(getGoogleBooksCalls(fetchMock)).toHaveLength(8)
   })
 
   it('excludes Harry Potter description-only matches', async () => {

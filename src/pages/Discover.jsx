@@ -65,6 +65,7 @@ function Discover() {
     suggestions,
     isLoading,
     areSuggestionsLoading,
+    hasSearchedSuggestions,
     error,
     handleSubmit,
     handleClearSearch,
@@ -147,6 +148,7 @@ function Discover() {
           submittedQuery={queryFromUrl}
           suggestions={suggestions}
           isSuggestionsLoading={areSuggestionsLoading}
+          hasSearchedSuggestions={hasSearchedSuggestions}
         />
       </section>
 

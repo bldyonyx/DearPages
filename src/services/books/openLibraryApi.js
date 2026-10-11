@@ -113,6 +113,41 @@ export async function getOpenLibraryBooksBySearch({
 }
 
 /**
+ * Searches Open Library with its broad keyword query.
+ */
+export async function getOpenLibraryBooksByKeywordSearch(
+  query,
+  limit = 20
+) {
+  const normalizedQuery = String(query || '').trim()
+
+  if (!normalizedQuery) {
+    return []
+  }
+
+  const params = new URLSearchParams({
+    q: normalizedQuery,
+    limit: String(limit),
+    fields:
+      'key,title,author_name,isbn,cover_i,subject,subject_key,first_publish_year,first_sentence',
+  })
+
+  let data
+
+  try {
+    data = await fetchJsonOnce(
+      `${OPEN_LIBRARY_SEARCH_URL}?${params.toString()}`
+    )
+  } catch {
+    throw new Error('Impossible de recuperer ces suggestions.')
+  }
+
+  return (data.docs || [])
+    .filter((book) => book.key && book.key.startsWith('/works/'))
+    .map(formatOpenLibrarySearchBook)
+}
+
+/**
  * Searches Open Library by subject for Discover fallback results.
  */
 export async function getOpenLibraryBooksBySubject(

@@ -8,6 +8,7 @@ import { getBooksBySubject } from './bookSubjectService.js'
 export {
   formatOpenLibrarySearchBook,
   getOpenLibraryBooksBySearch,
+  getOpenLibraryBooksByKeywordSearch,
   getOpenLibraryBooksBySubject,
   getOpenLibraryBookById,
 } from './openLibraryApi.js'

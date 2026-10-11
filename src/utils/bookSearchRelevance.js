@@ -4,6 +4,22 @@ const STRONG_AUTHOR_SCORE = 85
 const MIN_TITLE_SCORE = 55
 const MIN_AUTHOR_SCORE = 85
 const UNKNOWN_AUTHOR_TITLE_MATCH_PENALTY = 20
+const MIN_AUTHOR_SUFFIX_TOKENS = 2
+const MAX_AUTHOR_SUFFIX_TOKENS = 4
+
+const TITLE_AUTHOR_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'de',
+  'des',
+  'du',
+  'la',
+  'le',
+  'les',
+  'of',
+  'the',
+])
 
 function normalizeIsbn(value) {
   return String(value || '').replace(/[^0-9xX]/g, '').toUpperCase()
@@ -42,6 +58,14 @@ function hasMinimumMetadataQuality(book) {
   return Boolean(book?.cover) || hasDescription(book)
 }
 
+function hasMinimumSearchQuality(book, relevance) {
+  return (
+    hasMinimumMetadataQuality(book) ||
+    (hasKnownAuthor(book) &&
+      relevance.titleScore >= STRONG_TITLE_SCORE)
+  )
+}
+
 export function normalizeSearchText(value) {
   return String(value || '')
     .normalize('NFD')
@@ -70,6 +94,14 @@ function isOrderedSubsequence(needles, haystack) {
     from = index + 1
     return true
   })
+}
+
+function initialsMatchWords(initials, words) {
+  if (!initials.length || initials.length > words.length) return false
+
+  return initials.every(
+    (initial, index) => words[index]?.startsWith(initial)
+  )
 }
 
 function scoreTextFieldRelevance(text, query, weight = 1) {
@@ -102,10 +134,22 @@ function scoreSingleAuthor(author, query) {
   const queryTokens = tokenizeSearchText(query)
   const authorWords = getNonInitialTokens(authorTokens)
   const queryWords = getNonInitialTokens(queryTokens)
+  const queryInitials = queryTokens.filter((token) =>
+    /^[a-z]$/.test(token)
+  )
 
   if (!authorTokens.length || !queryWords.length) return 0
 
   if (authorTokens.join(' ') === queryTokens.join(' ')) return 100
+
+  if (
+    queryInitials.length > 0 &&
+    queryWords.length === 1 &&
+    authorWords.at(-1) === queryWords[0] &&
+    initialsMatchWords(queryInitials, authorWords.slice(0, -1))
+  ) {
+    return 96
+  }
 
   if (authorWords.join(' ') === queryWords.join(' ')) {
     return queryTokens.length > queryWords.length ? 98 : 95
@@ -162,73 +206,61 @@ export function buildAuthorSearchQuery(query) {
     : ''
 }
 
-// Recherche explicite : "The Housemaid Freida McFadden".
-export function splitTitleAndAuthor(query) {
+export function getTitleAuthorSplitCandidates(query) {
   const tokens = tokenizeSearchText(query)
 
-  if (tokens.length < 4) return null
+  if (tokens.length < 3) return []
 
-  const title = tokens.slice(0, -2).join(' ')
-  const authorTokens = tokens.slice(-2)
+  const maxAuthorTokens = Math.min(
+    MAX_AUTHOR_SUFFIX_TOKENS,
+    tokens.length - 1
+  )
+  const candidates = []
 
-  const authorStopWords = new Set([
-    'a',
-    'an',
-    'and',
-    'de',
-    'des',
-    'du',
-    'la',
-    'le',
-    'les',
-    'of',
-    'the',
-  ])
+  for (
+    let authorTokenCount = MIN_AUTHOR_SUFFIX_TOKENS;
+    authorTokenCount <= maxAuthorTokens;
+    authorTokenCount += 1
+  ) {
+    const titleTokens = tokens.slice(0, -authorTokenCount)
+    const authorTokens = tokens.slice(-authorTokenCount)
 
-  if (authorTokens.some((token) => authorStopWords.has(token))) {
-    return null
+    if (
+      !titleTokens.length ||
+      authorTokens.some((token) =>
+        TITLE_AUTHOR_STOP_WORDS.has(token)
+      )
+    ) {
+      continue
+    }
+
+    candidates.push({
+      title: titleTokens.join(' '),
+      author: authorTokens.join(' '),
+    })
   }
 
-  const author = authorTokens.join(' ')
-  return title && author ? { title, author } : null
+  return candidates
+}
+
+// Recherche explicite : "The Housemaid Freida McFadden".
+export function splitTitleAndAuthor(query) {
+  return getTitleAuthorSplitCandidates(query)[0] || null
 }
 
 // Permet aussi "Misery Stephen King".
 // On ne valide le découpage que si un livre correspond
 // réellement au titre ET à l'auteur.
 export function getConfirmedTitleAuthorParts(books, query) {
-  const tokens = tokenizeSearchText(query)
-
-  if (tokens.length < 3) return null
-
-  const title = tokens.slice(0, -2).join(' ')
-  const author = tokens.slice(-2).join(' ')
-
-  const stopWords = new Set([
-    'a',
-    'an',
-    'and',
-    'de',
-    'des',
-    'du',
-    'la',
-    'le',
-    'les',
-    'of',
-    'the',
-  ])
-
-  if (!title || tokens.slice(-2).some((word) => stopWords.has(word))) {
-    return null
-  }
-
-  const confirmed = books.some(
-    (book) =>
-      scoreTitleRelevance(book, title) >= STRONG_TITLE_SCORE &&
-      scoreAuthorRelevance(book, author) >= 80
+  return (
+    getTitleAuthorSplitCandidates(query).find(({ title, author }) =>
+      books.some(
+        (book) =>
+          scoreTitleRelevance(book, title) >= STRONG_TITLE_SCORE &&
+          scoreAuthorRelevance(book, author) >= 80
+      )
+    ) || null
   )
-
-  return confirmed ? { title, author } : null
 }
 
 // Détecte une recherche par auteur à partir des livres trouvés.
@@ -267,7 +299,7 @@ export function scoreAuthorRelevance(book, query) {
 }
 
 function scoreCandidate(book, query, intent = null) {
-  const combined = intent?.combined || splitTitleAndAuthor(query)
+  const combined = intent?.authorOnly ? null : intent?.combined
   const unknownAuthorTitlePenalty = hasKnownAuthor(book)
     ? 0
     : UNKNOWN_AUTHOR_TITLE_MATCH_PENALTY
@@ -310,7 +342,10 @@ function scoreCandidate(book, query, intent = null) {
   }
 
   const titleScore = scoreTitleRelevance(book, query)
-  const authorScore = scoreAuthorRelevance(book, query)
+  const authorScore = scoreAuthorRelevance(
+    book,
+    intent?.authorQuery || query
+  )
 
   const languageBonus = book?.language === 'fr' ? 2 : 0
   const coverBonus = book?.cover ? 1 : 0
@@ -456,11 +491,10 @@ export function mergeAndRankSearchBooks(
   const unique = []
 
   candidateGroups.flat().forEach((book, originalIndex) => {
-    if (!hasMinimumMetadataQuality(book)) return
-
     const relevance = scoreBookSearchRelevance(book, query, intent)
 
     if (!relevance.isQualified) return
+    if (!hasMinimumSearchQuality(book, relevance)) return
 
     const keys = getSearchBookIdentityKeys(book)
 

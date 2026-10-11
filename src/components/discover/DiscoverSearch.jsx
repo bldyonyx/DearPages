@@ -15,6 +15,7 @@ function DiscoverSearch({
   submittedQuery,
   suggestions,
   isSuggestionsLoading,
+  hasSearchedSuggestions,
 }) {
   const { t } = useTranslation()
   const searchRef = useRef(null)
@@ -34,7 +35,9 @@ function DiscoverSearch({
     trimmedSearch !== trimmedSubmittedQuery
 
   const hasSuggestionsPanel =
-    suggestions.length > 0 || isSuggestionsLoading
+    suggestions.length > 0 ||
+    isSuggestionsLoading ||
+    hasSearchedSuggestions
 
   const shouldShowSuggestions =
     isSuggestionsOpen &&

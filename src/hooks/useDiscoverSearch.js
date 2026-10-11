@@ -24,6 +24,8 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
   const [isLoading, setIsLoading] = useState(false)
   const [areSuggestionsLoading, setAreSuggestionsLoading] =
     useState(false)
+  const [hasSearchedSuggestions, setHasSearchedSuggestions] =
+    useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -78,10 +80,12 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     ) {
       setSuggestions([])
       setAreSuggestionsLoading(false)
+      setHasSearchedSuggestions(false)
       return
     }
 
     setAreSuggestionsLoading(true)
+    setHasSearchedSuggestions(false)
 
     const timeout = setTimeout(async () => {
       try {
@@ -97,6 +101,7 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
       } finally {
         if (isActive) {
           setAreSuggestionsLoading(false)
+          setHasSearchedSuggestions(true)
         }
       }
     }, 300)
@@ -116,6 +121,7 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
 
     setSuggestions([])
     setAreSuggestionsLoading(false)
+    setHasSearchedSuggestions(false)
     setSearchParams({ q: trimmedSearch })
   }
 
@@ -123,6 +129,7 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     setSearch('')
     setSuggestions([])
     setAreSuggestionsLoading(false)
+    setHasSearchedSuggestions(false)
     setSearchParams({})
   }
 
@@ -133,6 +140,7 @@ function useDiscoverSearch(queryFromUrl, setSearchParams) {
     suggestions,
     isLoading,
     areSuggestionsLoading,
+    hasSearchedSuggestions,
     error,
     handleSubmit,
     handleClearSearch: clearSearch,

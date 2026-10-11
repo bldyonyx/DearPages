@@ -33,7 +33,28 @@ function SearchSuggestions({ suggestions, isLoading }) {
   }
 
   if (suggestions.length === 0) {
-    return null
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="
+          absolute left-0 right-0 top-full z-20
+          mt-2 rounded-2xl
+          border border-walnut/20
+          bg-cream p-4
+          shadow-lg
+        "
+      >
+        <p
+          className={`
+            font-ui text-sm text-darkwood/60
+            ${discoverLarge.description}
+          `}
+        >
+          {t('discoverPage.search.emptySubtitle')}
+        </p>
+      </div>
+    )
   }
 
   return (
