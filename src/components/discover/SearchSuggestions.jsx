@@ -100,7 +100,8 @@ function SearchSuggestions({ suggestions, isLoading }) {
               cover={book.cover}
               isbn={book.isbn}
               source={book.source}
-              className="h-full w-full"
+              placeholderVariant="compact"
+              className="h-full w-full rounded-[inherit]"
               imageClassName="h-full w-full object-cover"
             />
           </div>

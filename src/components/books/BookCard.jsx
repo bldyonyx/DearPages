@@ -14,6 +14,7 @@ function BookCard({
   source,
   status,
   coverLoading = 'lazy',
+  coverPlaceholderVariant = 'full',
   titleClassName = '',
   authorClassName = '',
   contentClassName = '',
@@ -49,7 +50,11 @@ function BookCard({
       isbn={isbn}
       source={source}
       coverLoading={coverLoading}
-      className="aspect-2/3 overflow-hidden rounded-xl bg-cream"
+      placeholderVariant={coverPlaceholderVariant}
+      className={`
+        aspect-2/3 overflow-hidden rounded-xl
+        ${coverPlaceholderVariant === 'compact' ? 'bg-parchment' : 'bg-cream'}
+      `}
       imageClassName="
         h-full w-full object-cover
         transition-transform duration-200

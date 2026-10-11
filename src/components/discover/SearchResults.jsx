@@ -151,6 +151,7 @@ function SearchResults({
                     cover={book.cover}
                     isbn={book.isbn}
                     source={book.source}
+                    coverPlaceholderVariant="compact"
                     titleClassName={
                       discoverLarge.searchResultsBookTitle
                     }

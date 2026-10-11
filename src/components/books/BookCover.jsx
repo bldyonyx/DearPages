@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Heart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -45,6 +46,7 @@ function BookCover({
   className = '',
   imageClassName = '',
   fallback = 'placeholder',
+  placeholderVariant = 'full',
   titleClassName = 'font-heading text-lg font-bold leading-snug text-darkwood',
 }) {
   const { t } = useTranslation()
@@ -186,22 +188,41 @@ function BookCover({
             {title}
           </span>
         </div>
+      ) : placeholderVariant === 'compact' ? (
+        <div
+          className="
+            relative flex h-full w-full items-center justify-center
+            overflow-hidden rounded-[inherit] bg-parchment
+          "
+          aria-label={`${t('bookPage.coverUnavailableLine1')} ${t(
+            'bookPage.coverUnavailableLine2'
+          )}`}
+        >
+          <div className="absolute inset-1 rounded-[inherit] border border-olive/20" />
+
+          <Heart
+            aria-hidden="true"
+            size={18}
+            strokeWidth={1.7}
+            className="relative shrink-0 text-olive/40"
+          />
+        </div>
       ) : (
         <div
           className="
             relative flex h-full w-full items-center justify-center
-            bg-sage/20 p-4
+            overflow-hidden rounded-[inherit] bg-parchment p-4
           "
         >
           <div className="absolute inset-2 rounded-lg border border-olive/20" />
 
           <div className="relative text-center">
-            <span
+            <Heart
               aria-hidden="true"
-              className="font-heading text-3xl text-olive/40"
-            >
-              ♡
-            </span>
+              size={28}
+              strokeWidth={1.7}
+              className="mx-auto text-olive/40"
+            />
 
             <p className="mt-3 font-ui text-[10px] leading-relaxed text-darkwood/40">
               {t('bookPage.coverUnavailableLine1')}
