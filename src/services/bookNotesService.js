@@ -3,11 +3,13 @@ import { get, push, ref, remove, serverTimestamp, set, update } from 'firebase/d
 import { database, isFirebaseEmulator } from './firebase.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 import { isCivilDate as isBookNoteDate } from '../utils/civilDateUtils.js'
+import { todayCivilDate } from '../utils/civilDateUtils.js'
 
 export { isBookNoteDate }
 
 export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 })
 export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
+export const LEGACY_BOOK_REVIEW_ID = 'legacy-review-v1'
 export const isBookNotesUiEnabled = isFirebaseEmulator === true
 
 function failure(code, message) {
@@ -97,18 +99,37 @@ export async function getBookNotesForDisplay(uid, bookId) {
   const book = await get(location.book)
   if (!book.exists()) throw failure('book-not-found', 'Book no longer exists in the library.')
   const notes = await readNotes(location.notes)
-  const marker = await get(ref(database, `users/${uid}/bookNotesLegacy/${bookId}`))
-  if (marker.exists()) return { notes, legacy: { status: 'processed' } }
-  if (notes.some((note) => note.id === LEGACY_BOOK_NOTE_ID)) {
-    return { notes, legacy: { status: 'conflict' } }
+  const noteMarker = await get(ref(database, `users/${uid}/bookNotesLegacy/${bookId}`))
+  const reviewMarker = await get(ref(database, `users/${uid}/bookReviewsLegacy/${bookId}`))
+  return {
+    notes,
+    legacy: await legacyDisplay(book.val().note, notes, noteMarker, LEGACY_BOOK_NOTE_ID),
+    legacyReview: await legacyDisplay(book.val().review, notes, reviewMarker, LEGACY_BOOK_REVIEW_ID),
   }
-  const source = book.val().note ?? ''
+}
+
+// Exact UTF-16 source fingerprint for the confirmation snapshot. The raw source
+// stays in the service; no marker HTML is returned to the React display contract.
+async function sourceVersion(source) {
+  const bytes = new Uint8Array(source.length * 2)
+  const view = new DataView(bytes.buffer)
+  for (let index = 0; index < source.length; index++) view.setUint16(index * 2, source.charCodeAt(index), true)
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest), (value) => value.toString(16).padStart(2, '0')).join('')
+}
+
+async function legacyDisplay(value, notes, marker, noteId) {
+  if (marker.exists()) return { status: 'processed' }
+  if (notes.some((note) => note.id === noteId)) return { status: 'conflict' }
+  const source = value ?? ''
+  let contentHtml
   try {
-    const { contentHtml } = fields({ contentHtml: source }, true)
-    return { notes, legacy: { status: source === '' ? 'empty' : 'unprocessed', contentHtml } }
+    contentHtml = fields({ contentHtml: source }, true).contentHtml
   } catch {
-    return { notes, legacy: { status: 'invalid' } }
+    return { status: 'invalid' }
   }
+  if (source === '') return { status: 'empty' }
+  return { status: 'unprocessed', contentHtml, sourceVersion: await sourceVersion(source) }
 }
 
 export async function getBookNote(uid, bookId, noteId) {
@@ -153,14 +174,27 @@ export async function deleteBookNote(uid, bookId, noteId) {
  */
 const legacyConversions = new Map()
 
-export async function migrateLegacyBookNote(uid, bookId) {
+export function migrateLegacyBookNote(uid, bookId, options = {}) {
+  return migrateLegacy(uid, bookId, 'note', options)
+}
+
+export function migrateLegacyBookReview(uid, bookId, options = {}) {
+  return migrateLegacy(uid, bookId, 'review', options)
+}
+
+async function migrateLegacy(uid, bookId, kind, options) {
   // Share a pending conversion in this SDK instance: get() may otherwise observe
   // another local conversion's optimistic, not-yet-acknowledged marker.
   identifier(uid)
   identifier(bookId)
-  const key = `${uid}/${bookId}`
+  if (!options || Object.getPrototypeOf(options) !== Object.prototype ||
+      Object.keys(options).some((key) => !['expectedVersion', 'title'].includes(key)) ||
+      (options.expectedVersion !== undefined && (typeof options.expectedVersion !== 'string' || !/^[a-f0-9]{64}$/.test(options.expectedVersion)))) {
+    throw failure('invalid-argument', 'Invalid conversion options.')
+  }
+  const key = `${uid}/${bookId}/${kind}`
   if (legacyConversions.has(key)) return legacyConversions.get(key)
-  const conversion = convertLegacyBookNote(uid, bookId)
+  const conversion = convertLegacy(uid, bookId, kind, options)
   legacyConversions.set(key, conversion)
   try {
     return await conversion
@@ -169,12 +203,14 @@ export async function migrateLegacyBookNote(uid, bookId) {
   }
 }
 
-async function convertLegacyBookNote(uid, bookId) {
+async function convertLegacy(uid, bookId, kind, options) {
   if (isFirebaseEmulator !== true) {
     throw failure('emulator-only', 'Legacy conversion is disabled outside the isolated emulator.')
   }
-  const location = paths(uid, bookId, LEGACY_BOOK_NOTE_ID)
-  const markerRef = ref(database, `users/${uid}/bookNotesLegacy/${bookId}`)
+  const noteId = kind === 'note' ? LEGACY_BOOK_NOTE_ID : LEGACY_BOOK_REVIEW_ID
+  const markerBranch = kind === 'note' ? 'bookNotesLegacy' : 'bookReviewsLegacy'
+  const location = paths(uid, bookId, noteId)
+  const markerRef = ref(database, `users/${uid}/${markerBranch}/${bookId}`)
   const book = await get(location.book)
   if (!book.exists()) throw failure('book-not-found', 'Book no longer exists in the library.')
   const previous = await get(markerRef)
@@ -182,15 +218,16 @@ async function convertLegacyBookNote(uid, bookId) {
   if ((await get(location.notes)).exists()) {
     throw failure('legacy-conflict', 'Reserved legacy note already exists without its marker.')
   }
-  const sourceHtml = book.val().note ?? ''
+  const sourceHtml = book.val()[kind] ?? ''
   // Validate before committing anything. Invalid/oversized historical data stays untouched.
-  const today = new Date()
-  const date = `${today.getFullYear().toString().padStart(4, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  const values = fields({ contentHtml: sourceHtml, date })
+  const values = fields({ title: options.title ?? (kind === 'review' ? 'Mon avis sur le livre' : ''), contentHtml: sourceHtml, date: todayCivilDate() })
+  if (options.expectedVersion !== undefined && options.expectedVersion !== await sourceVersion(sourceHtml)) {
+    throw failure('legacy-source-changed', 'Historical source changed since confirmation. Refresh before converting.')
+  }
   const marker = { version: 1, outcome: sourceHtml === '' ? 'empty' : 'copied', sourceHtml, processedAt: serverTimestamp() }
-  const writes = { [`bookNotesLegacy/${bookId}`]: marker }
+  const writes = { [`${markerBranch}/${bookId}`]: marker }
   if (marker.outcome === 'copied') {
-    writes[`bookNotes/${bookId}/${LEGACY_BOOK_NOTE_ID}`] = {
+    writes[`bookNotes/${bookId}/${noteId}`] = {
       ...values, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     }
   }
@@ -202,6 +239,7 @@ async function convertLegacyBookNote(uid, bookId) {
     if (/permission[ _-]denied/i.test(error.code || error.message || '')) {
       const winner = await get(markerRef)
       if (winner.exists()) return winner.val()
+      throw Object.assign(failure('legacy-conflict', `Conversion rejected (source, destination or permissions): ${error.message}`), { cause: error })
     }
     throw error
   }

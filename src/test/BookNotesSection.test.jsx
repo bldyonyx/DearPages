@@ -7,11 +7,11 @@ import BookPersonalSpace from '../components/books/BookPersonalSpace.jsx'
 import * as service from '../services/bookNotesService.js'
 import * as library from '../services/libraryService.js'
 
-const fixture = vi.hoisted(() => ({ enabled: true, notes: [], legacy: { status: 'empty' } }))
+const fixture = vi.hoisted(() => ({ enabled: true, notes: [], legacy: { status: 'empty' }, legacyReview: { status: 'empty' } }))
 vi.mock('../services/bookNotesService.js', () => ({
   get isBookNotesUiEnabled() { return fixture.enabled },
   compareBookNotes: (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id),
-  getBookNotesForDisplay: vi.fn(), createBookNote: vi.fn(), updateBookNote: vi.fn(), deleteBookNote: vi.fn(), migrateLegacyBookNote: vi.fn(),
+  getBookNotesForDisplay: vi.fn(), getBookNote: vi.fn(), createBookNote: vi.fn(), updateBookNote: vi.fn(), deleteBookNote: vi.fn(), migrateLegacyBookNote: vi.fn(), migrateLegacyBookReview: vi.fn(),
 }))
 vi.mock('../services/libraryService.js', () => ({
   BOOK_STATUSES: { TO_READ: 'to-read', READING: 'reading', FINISHED: 'finished', ABANDONED: 'abandoned' },
@@ -45,9 +45,11 @@ async function open() {
 }
 beforeEach(async () => {
   vi.resetAllMocks()
-  fixture.enabled = true; fixture.notes = []; fixture.legacy = { status: 'empty' }
-  service.getBookNotesForDisplay.mockImplementation(async () => ({ notes: structuredClone(fixture.notes), legacy: structuredClone(fixture.legacy) }))
+  fixture.enabled = true; fixture.notes = []; fixture.legacy = { status: 'empty' }; fixture.legacyReview = { status: 'empty' }
+  service.getBookNotesForDisplay.mockImplementation(async () => ({ notes: structuredClone(fixture.notes), legacy: { sourceVersion: 'a'.repeat(64), ...structuredClone(fixture.legacy) }, legacyReview: { sourceVersion: 'b'.repeat(64), ...structuredClone(fixture.legacyReview) } }))
   service.createBookNote.mockResolvedValue('created')
+  service.migrateLegacyBookNote.mockResolvedValue({ outcome: 'copied' })
+  service.migrateLegacyBookReview.mockResolvedValue({ outcome: 'copied' })
   await i18n.changeLanguage('fr')
 })
 afterEach(() => vi.useRealTimers())
@@ -59,6 +61,7 @@ describe('multiple notes UI', () => {
     await waitFor(() => expect(addButton()).toBeEnabled())
     expect(screen.getByText(/Tes prochaines pensées/)).toBeInTheDocument()
     expect(service.migrateLegacyBookNote).not.toHaveBeenCalled()
+    expect(service.migrateLegacyBookReview).not.toHaveBeenCalled()
   })
 
   it('shows several independently editable notes with safe rich text and dates', async () => {
@@ -314,6 +317,7 @@ describe('compact accordion and historical reviews', () => {
   })
 
   it('preserves a safe historical review in exactly one read-only card without a migration', async () => {
+    fixture.legacyReview = { status: 'unprocessed', contentHtml: '<b>Avis conservé</b><script>bad()</script><img src=x onerror=bad()>' }
     render(<BookNotesSection userId="user" bookId="book" historicalReview={'<b>Avis conservé</b><script>bad()</script><img src=x onerror=bad()>'} />)
     await waitFor(() => expect(addButton()).toBeEnabled())
     const review = card('Ancien avis')
@@ -330,6 +334,7 @@ describe('compact accordion and historical reviews', () => {
 
   it('combines identical read-only historical note/review sources without creating a note', async () => {
     fixture.legacy = { status: 'unprocessed', contentHtml: '<b>Même texte</b>' }
+    fixture.legacyReview = { status: 'unprocessed', contentHtml: '<b>Même texte</b>' }
     render(<BookNotesSection userId="user" bookId="book" historicalReview="<b>Même texte</b>" />)
     await waitFor(() => expect(addButton()).toBeEnabled())
     const combined = card('Ancienne note et ancien avis')
@@ -350,10 +355,201 @@ describe('compact accordion and historical reviews', () => {
   })
 
   it('signals an invalid review without unsafe coercion or writes', () => {
+    fixture.enabled = false
     render(<BookNotesSection userId="user" bookId="book" historicalReview={{ html: '<script>bad()</script>' }} />)
     expect(screen.getByRole('alert')).toHaveTextContent('ancien avis a un format invalide')
     expect(screen.queryByRole('article', { name: 'Ancien avis' })).not.toBeInTheDocument()
     expect(library.updateBookReview).not.toHaveBeenCalled()
+  })
+})
+
+describe('manual confirmed historical conversions', () => {
+  function historical(kind) {
+    fixture[kind === 'note' ? 'legacy' : 'legacyReview'] = { status: 'unprocessed', contentHtml: '<b>Texte historique</b>' }
+  }
+  function converted(kind) {
+    return { id: kind === 'note' ? 'legacy-note-v1' : 'legacy-review-v1', title: kind === 'note' ? '' : 'Mon avis sur le livre', date: '2026-10-24', contentHtml: '<b>Texte historique</b>', createdAt: 10 }
+  }
+  function request(kind) {
+    const root = card(kind === 'note' ? 'Ancienne note' : 'Ancien avis')
+    expand(root)
+    fireEvent.click(within(root).getByRole('button', { name: kind === 'note' ? 'Convertir l’ancienne note' : 'Convertir l’ancien avis' }))
+    return screen.getByRole('dialog')
+  }
+  function confirm() { fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer la conversion' })) }
+
+  it.each(['note', 'review'])('converts %s only after confirmation, then allows ordinary editing and deletion without fallback', async (kind) => {
+    historical(kind)
+    service.getBookNote.mockResolvedValue(converted(kind))
+    const method = kind === 'note' ? service.migrateLegacyBookNote : service.migrateLegacyBookReview
+    render(<BookNotesSection userId="user" bookId="book" historicalReview="STALE_PROP_MUST_STAY_HIDDEN" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    expect(service.migrateLegacyBookNote).not.toHaveBeenCalled()
+    expect(service.migrateLegacyBookReview).not.toHaveBeenCalled()
+    const dialog = request(kind)
+    expect(method).not.toHaveBeenCalled()
+    expect(dialog).toHaveTextContent('date technique de conversion')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Annuler' }))
+    expect(method).not.toHaveBeenCalled()
+    request(kind); confirm()
+    const title = kind === 'note' ? 'Note sans titre' : 'Mon avis sur le livre'
+    await screen.findByRole('article', { name: title })
+    expect(method).toHaveBeenCalledWith('user', 'book', kind === 'note' ? { expectedVersion: 'a'.repeat(64) } : { expectedVersion: 'b'.repeat(64), title: 'Mon avis sur le livre' })
+    expect(screen.queryByRole('article', { name: kind === 'note' ? 'Ancienne note' : 'Ancien avis' })).not.toBeInTheDocument()
+    expect(screen.queryByText('STALE_PROP_MUST_STAY_HIDDEN')).not.toBeInTheDocument()
+    clickCard('Modifier', title)
+    change(within(card(title)).getByLabelText('Titre (facultatif)'), 'Renommée')
+    selectDate(card(title), '1900-01-01')
+    content(card(title), '<i>Texte modifié</i>')
+    clickCard('Enregistrer', title)
+    await screen.findByRole('article', { name: 'Renommée' })
+    expect(service.updateBookNote).toHaveBeenCalledWith('user', 'book', converted(kind).id, { title: 'Renommée', date: '1900-01-01', contentHtml: '<i>Texte modifié</i>' })
+    clickCard('Supprimer', 'Renommée')
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Supprimer' }))
+    await waitFor(() => expect(screen.queryByRole('article', { name: 'Renommée' })).not.toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Actualiser' }))
+    await waitFor(() => expect(service.getBookNotesForDisplay).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(method).toHaveBeenCalledTimes(1)
+    expect(library.updateBookReview).not.toHaveBeenCalled()
+    expect(library.updateBookNote).not.toHaveBeenCalled()
+    expect(library.updateBookRating).not.toHaveBeenCalled()
+  })
+
+  it.each(['book-notes/legacy-source-changed', 'book-notes/legacy-conflict'])('reports %s and requires a refreshed confirmation', async (code) => {
+    historical('review')
+    service.migrateLegacyBookReview.mockRejectedValueOnce(Object.assign(new Error('Conflict'), { code }))
+    service.getBookNote.mockResolvedValue(converted('review'))
+    render(<BookNotesSection userId="user" bookId="book" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    await waitFor(() => expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('source a changé'))
+    expect(service.getBookNote).not.toHaveBeenCalled()
+    expect(card('Ancien avis')).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Annuler' }))
+    fixture.legacyReview.sourceVersion = 'c'.repeat(64)
+    fireEvent.click(screen.getByRole('button', { name: 'Actualiser' }))
+    await waitFor(() => expect(service.getBookNotesForDisplay).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    await screen.findByRole('article', { name: 'Mon avis sur le livre' })
+    expect(service.migrateLegacyBookReview).toHaveBeenLastCalledWith('user', 'book', { expectedVersion: 'c'.repeat(64), title: 'Mon avis sur le livre' })
+  })
+
+  it('keeps pending conversion locked without changing the parent book or historical metadata', async () => {
+    historical('review')
+    const deferred = pending()
+    service.migrateLegacyBookReview.mockReturnValueOnce(deferred.promise)
+    service.getBookNote.mockResolvedValue(converted('review'))
+    const book = Object.freeze({ status: 'finished', rating: 4, review: 'Historical review', note: 'Historical note', updatedAt: 123, addedAt: 7 })
+    const changed = vi.fn()
+    render(<BookPersonalSpace userId="user" bookId="book" libraryBook={book} onLibraryBookChange={changed} />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: 'Conversion…' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: 'Annuler' })).toBeDisabled()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Fermer' }))
+    expect(dialog).toBeInTheDocument()
+    expect(service.migrateLegacyBookReview).toHaveBeenCalledTimes(1)
+    await act(async () => deferred.resolve({ outcome: 'copied' }))
+    await screen.findByRole('article', { name: 'Mon avis sur le livre' })
+    expect(changed).not.toHaveBeenCalled()
+    expect(book).toMatchObject({ rating: 4, review: 'Historical review', note: 'Historical note', updatedAt: 123, status: 'finished', addedAt: 7 })
+  })
+
+  it('preserves existing and new drafts while converting an independent historical source', async () => {
+    historical('review'); fixture.notes = [note('a')]
+    service.getBookNote.mockResolvedValue(converted('review'))
+    render(<BookNotesSection userId="user" bookId="book" />)
+    const form = await open()
+    content(form, '<i>Nouveau brouillon</i>')
+    fireEvent.click(within(form).getByRole('button', { name: 'Annuler' }))
+    clickCard('Modifier'); content(card(), '<b>Brouillon existant</b>')
+    request('review'); confirm()
+    await screen.findByRole('article', { name: 'Mon avis sur le livre' })
+    expand(card())
+    expect(within(card()).getByRole('textbox', { name: 'Contenu de la note' })).toHaveTextContent('Brouillon existant')
+    const resumed = await open()
+    expect(within(resumed).getByRole('textbox', { name: 'Contenu de la note' })).toHaveTextContent('Nouveau brouillon')
+    expect(service.createBookNote).not.toHaveBeenCalled()
+    expect(service.updateBookNote).not.toHaveBeenCalled()
+  })
+
+  it('merges the converted card without replacing an independent in-flight edit', async () => {
+    historical('review'); fixture.notes = [note('a')]
+    const deferred = pending()
+    service.getBookNote.mockReturnValueOnce(deferred.promise)
+    render(<BookNotesSection userId="user" bookId="book" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    await waitFor(() => expect(service.getBookNote).toHaveBeenCalled())
+    // Independent programmatic interaction while the read awaits its server result.
+    clickCard('Modifier'); content(card(), '<b>Édition indépendante</b>'); clickCard('Enregistrer')
+    await waitFor(() => expect(service.updateBookNote).toHaveBeenCalled())
+    await act(async () => deferred.resolve(converted('review')))
+    expand(card())
+    expect(card()).toHaveTextContent('Édition indépendante')
+    expect(card('Mon avis sur le livre')).toBeInTheDocument()
+  })
+
+  it('recovers a lost acknowledgement without recreating an already deleted converted review', async () => {
+    historical('review')
+    service.migrateLegacyBookReview.mockRejectedValueOnce(new Error('lost acknowledgement'))
+    service.getBookNote.mockResolvedValue(null)
+    render(<BookNotesSection userId="user" bookId="book" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    await waitFor(() => expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('n’a pas pu être confirmée'))
+    confirm()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(service.createBookNote).not.toHaveBeenCalled()
+    expect(service.migrateLegacyBookReview).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('status')).toHaveTextContent('ne sera pas recréée')
+  })
+
+  it('treats a post-acknowledgement read failure as a saved conversion and offers refresh without fallback', async () => {
+    historical('review')
+    service.getBookNote.mockRejectedValueOnce(new Error('read offline'))
+    render(<BookNotesSection userId="user" bookId="book" historicalReview="Historical prop" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    request('review'); confirm()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByRole('status')).toHaveTextContent('Conversion enregistrée')
+    expect(screen.queryByRole('article', { name: 'Ancien avis' })).not.toBeInTheDocument()
+    fixture.notes = [converted('review')]
+    fireEvent.click(screen.getByRole('button', { name: 'Actualiser' }))
+    await screen.findByRole('article', { name: 'Mon avis sur le livre' })
+    expect(service.migrateLegacyBookReview).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('Historical prop')).not.toBeInTheDocument()
+  })
+
+  it('keeps note and review conversions independent even when read-only contents are identical', async () => {
+    historical('note'); historical('review')
+    service.getBookNote.mockResolvedValue(converted('review'))
+    render(<BookNotesSection userId="user" bookId="book" />)
+    await waitFor(() => expect(addButton()).toBeEnabled())
+    expand(card('Ancienne note et ancien avis'))
+    fireEvent.click(screen.getByRole('button', { name: 'Convertir l’ancien avis' })); confirm()
+    await screen.findByRole('article', { name: 'Mon avis sur le livre' })
+    expect(card('Ancienne note')).toBeInTheDocument()
+    expect(service.migrateLegacyBookNote).not.toHaveBeenCalled()
+    expect(service.migrateLegacyBookReview).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['invalid', 'conflict'])('does not convert a review in %s state', async (status) => {
+    fixture.legacyReview = { status }
+    if (status === 'conflict') fixture.notes = [converted('review')]
+    render(<BookNotesSection userId="user" bookId="book" />)
+    await screen.findByRole('alert')
+    expect(screen.queryByRole('button', { name: 'Convertir l’ancien avis' })).not.toBeInTheDocument()
+    if (status === 'conflict') {
+      expand(card('Mon avis sur le livre'))
+      expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument()
+    }
+    expect(service.migrateLegacyBookReview).not.toHaveBeenCalled()
   })
 })
 

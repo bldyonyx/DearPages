@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import '../i18n/index.js'
 import '../index.css'
 import BookNotesView from '../components/books/BookNotesView.jsx'
+import { todayCivilDate } from '../utils/civilDateUtils.js'
 
 // This entry imports the pure view only. No Firebase SDK, service or auth provider.
 const examples = [
@@ -19,16 +20,28 @@ export default function BookNotesPreview() {
   const [errors, setErrors] = useState({})
   const [fail, setFail] = useState(false)
   const [rating, setRating] = useState(3)
+  const [processed, setProcessed] = useState({})
+  const [conversionStatus, setConversionStatus] = useState('')
   const review = '<p>Une lecture pleine de tendresse.</p>'
-  const legacy = scenario === 'historical' ? { status: 'unprocessed', contentHtml: '<p><b>Ma toute première pensée sur ce livre.</b></p><p>Cette note est conservée en lecture seule.</p>' }
+  const legacy = processed.note ? { status: 'processed' } : scenario === 'historical' ? { status: 'unprocessed', contentHtml: '<p><b>Ma toute première pensée sur ce livre.</b></p><p>Cette note est conservée en lecture seule.</p>', sourceVersion: 'a'.repeat(64) }
     : { status: scenario === 'deleted' ? 'processed' : scenario === 'invalid' ? 'invalid' : scenario === 'conflict' ? 'conflict' : 'empty' }
+  const legacyReview = processed.review ? { status: 'processed' } : { status: 'unprocessed', contentHtml: review, sourceVersion: 'b'.repeat(64) }
   const perform = (key, next) => {
     if (fail) { setErrors((current) => ({ ...current, [key]: key === 'delete' ? 'deleteError' : 'saveError' })); return false }
     setErrors({}); setNotes([...next].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id))); return true
   }
   const model = {
     enabled: true, loaded: scenario !== 'loading' && scenario !== 'error', loading: scenario === 'loading', loadError: scenario === 'error',
-    notes, legacy, pending: {}, errors,
+    notes, legacy, legacyReview, conversionStatus, pending: {}, errors,
+    convert: async (kind, options) => {
+      if (fail) { setErrors((current) => ({ ...current, [`convert:${kind}`]: 'conversionError' })); return false }
+      if (processed[kind]) return true
+      const id = kind === 'note' ? 'legacy-note-v1' : 'legacy-review-v1'
+      const source = kind === 'note' ? legacy : legacyReview
+      setNotes((current) => [...current.filter((note) => note.id !== id), { id, title: options.title || '', date: todayCivilDate(), contentHtml: source.contentHtml }].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id)))
+      setProcessed((current) => ({ ...current, [kind]: true }))
+      setConversionStatus('converted'); setErrors({}); return true
+    },
     create: async (input) => perform('new', [...notes, { ...input, id: crypto.randomUUID() }]),
     save: async (id, input) => perform(id, notes.map((note) => note.id === id ? { ...note, ...input } : note)),
     remove: async (id) => {
@@ -43,7 +56,7 @@ export default function BookNotesPreview() {
         <aside aria-label="Commandes de l’aperçu" className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-walnut/15 bg-mintcream/35 p-4 font-ui text-xs text-walnut">
           <p>Aperçu local · données fictives · aucune connexion Firebase</p>
           <label>État <select value={scenario} onChange={(event) => {
-            const value = event.target.value; setScenario(value); setErrors({})
+            const value = event.target.value; setScenario(value); setErrors({}); setProcessed({}); setConversionStatus('')
             setNotes(value === 'populated' ? examples : value === 'conflict' ? [{ ...examples[0], id: 'legacy-note-v1' }] : [])
           }} className="rounded-lg border border-walnut/20 bg-cream p-2">
             {Object.entries(scenarios).map(([value, label]) => <option key={value} value={value}>{label}</option>)}

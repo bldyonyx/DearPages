@@ -8,7 +8,7 @@ import { sanitizeNoteHtml } from '../../utils/noteHtmlSanitizer.js'
 import { bookLarge } from './bookResponsive.js'
 import { formatCivilDate, isCivilDate } from '../../utils/civilDateUtils.js'
 
-export default function BookNoteCard({ note, pending, error, onSave, onDelete, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice }) {
+export default function BookNoteCard({ note, pending, error, onSave, onDelete, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions }) {
   const { t, i18n } = useTranslation()
   const id = useId()
   const [editing, setEditing] = useState(false)
@@ -50,6 +50,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, r
             }} className="inline-flex items-center gap-2 rounded-xl"><Pencil size={14} aria-hidden="true" />{t('bookPage.notes.edit')}</Button>
             <Button type="button" variant="secondary" disabled={pending} onClick={() => setConfirming(true)} className="inline-flex items-center gap-2 rounded-xl"><Trash2 size={14} aria-hidden="true" />{t('common.delete')}</Button>
           </div>}
+          {historicalActions && <div className="mt-4 flex flex-wrap justify-end gap-2">{historicalActions}</div>}
           {error && !confirming && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
         </>
       )}

@@ -8,7 +8,8 @@ en production, modification de configuration Vite ou de ports n'est nécessaire.
 
 Chemin : `users/{uid}/bookNotes/{bookId}/{noteId}`. L'identité stable est la clé
 Firebase push, exposée comme `id` à la lecture, sans duplication dans le document.
-Exception réservée : `legacy-note-v1` identifie la copie historique décrite ci-dessous.
+Exceptions réservées : `legacy-note-v1` identifie la copie de l'ancien champ
+`note` et `legacy-review-v1` celle de l'ancien champ `review`.
 
 | Champ | Contrat |
 | --- | --- |
@@ -32,16 +33,26 @@ API de `src/services/bookNotesService.js` :
   acquittement serveur.
 - `updateBookNote(uid, bookId, noteId, patch)` : patch non vide des champs métier.
 - `deleteBookNote(uid, bookId, noteId)` : suppression individuelle.
-- `getBookNotesForDisplay(uid, bookId)` : lecture seule de `{ notes, legacy }`.
-  `legacy.status` vaut `empty`, `unprocessed`, `processed`, `invalid` ou `conflict`.
+- `getBookNotesForDisplay(uid, bookId)` : lecture seule de `{ notes, legacy, legacyReview }`.
+  Chaque état historique vaut `empty`, `unprocessed`, `processed`, `invalid` ou `conflict`.
   Seul `unprocessed` fournit un contenu historique utile à l'affichage, assaini
-  par le service puis à nouveau par la vue. Le marqueur brut n'est jamais renvoyé.
+  par le service puis à nouveau par la vue, et une empreinte `sourceVersion` pour
+  confirmer cet instantané. Aucun marqueur brut n'est renvoyé par cette lecture.
+- `migrateLegacyBookNote(uid, bookId, { expectedVersion?, title? } = {})` :
+  conversion explicite de `note`, uniquement dans l'émulateur. L'appel historique
+  sans options reste compatible et conserve ses identifiant, marqueur et sens.
+- `migrateLegacyBookReview(uid, bookId, { expectedVersion?, title? } = {})` :
+  conversion explicite et indépendante de `review`, uniquement dans l'émulateur.
 
 Les erreurs de validation portent `book-notes/invalid-argument`. Un livre absent
 au contrôle initial produit `book-notes/book-not-found` ; une note absente lors
 d'une modification/suppression produit `book-notes/note-not-found`. Les erreurs
 Firebase, dont `PERMISSION_DENIED` lors d'une course après ces contrôles, remontent
 sans masquage. Aucune écriture de secours ne recrée un livre ou une note.
+Exception propre aux conversions : un refus atomique sans marqueur gagnant est
+signalé par `book-notes/legacy-conflict`, avec l'erreur Firebase d'origine dans
+`cause`. Une source différente de l'instantané confirmé produit
+`book-notes/legacy-source-changed` avant toute écriture.
 
 Le sanitizer DOMPurify existant s'applique à l'écriture et à la lecture, en
 conservant `b`, `strong`, `i`, `em`, `font` (tailles 2–5), `br`, `div` et `p`.
@@ -104,8 +115,11 @@ Les tests remplacent cette dépendance exclusivement par leurs SDK locaux vérif
 
 ### Marqueur persistant et immuable
 
-Chemin séparé : `users/{uid}/bookNotesLegacy/{bookId}`. Il ne fait jamais partie
-de la liste des notes et n'est pas supprimé par `deleteBookNote`.
+Chemin inchangé pour `note` : `users/{uid}/bookNotesLegacy/{bookId}`.
+Chemin indépendant pour `review` : `users/{uid}/bookReviewsLegacy/{bookId}`.
+Chaque marqueur ne fait jamais partie de la liste des notes et n'est pas supprimé
+par `deleteBookNote`. Les marqueurs existants de `note` ne sont ni réinterprétés,
+ni déplacés, ni réinitialisés.
 
 | Champ | Signification |
 | --- | --- |
@@ -118,6 +132,7 @@ de la liste des notes et n'est pas supprimé par `deleteBookNote`.
 dans les règles. C'est un instantané technique brut, potentiellement dangereux :
 **ne jamais le rendre en HTML ni le présenter comme une autre note**. La copie
 utilisable est uniquement `bookNotes/{bookId}/legacy-note-v1`, après sanitation.
+Pour `review`, la destination correspondante est `bookNotes/{bookId}/legacy-review-v1`.
 Cette redondance est volontaire : RTDB ne fournit pas de calcul de hash dans les
 règles pour vérifier un condensat envoyé par le client.
 
@@ -142,12 +157,34 @@ sans copie sont refusés. Aucun droit d'écriture d'ancêtre n'est ajouté.
 Cette stratégie utilise la vue fusionnée `newData` et la validation atomique des
 [règles RTDB](https://firebase.google.com/docs/database/security/rules-conditions).
 
+La même opération s'applique à `review` en utilisant exclusivement son propre
+marqueur et `legacy-review-v1`. Deux sources identiques restent deux origines
+indépendantes : aucune conversion ne réutilise le marqueur de l'autre source,
+et aucun rapprochement par contenu ne remplace leur identité persistante.
+
 Un concurrent perdant reçoit un refus serveur ; le service relit alors le
 marqueur et retourne celui du gagnant. Sans marqueur, le refus reste visible
 (par exemple source modifiée pendant la copie). Les appels simultanés d'une même
 instance SDK partagent une promesse par utilisateur/livre pour éviter de lire le
 marqueur optimiste non acquitté d'une autre tentative locale. Les livres distincts
 restent indépendants. La garantie entre instances vient des règles serveur.
+La clé de promesse inclut désormais le type de source : une conversion de note
+et une conversion d'avis peuvent avancer indépendamment pour le même livre.
+
+La lecture d'affichage consulte les notes, puis **les deux** marqueurs, et échoue
+si un marqueur n'est pas lisible. Elle n'appelle aucune fonction de conversion.
+Pour chaque source non traitée valide, elle calcule `sourceVersion` : SHA-256 des
+unités UTF-16 brutes encodées en little-endian. Ce calcul exact distingue même
+des HTML qui produisent le même texte assaini. Cette empreinte n'est pas rendue
+comme contenu et n'est pas stockée dans le marqueur.
+L'interface transmet obligatoirement cette empreinte comme `expectedVersion`
+après confirmation. Le service compare la source fraîche avant d'écrire ; les
+règles comparent ensuite le HTML brut au moment du commit atomique. Une source
+modifiée depuis l'affichage ou entre lecture et commit ne peut donc pas être
+copiée silencieusement. Après conflit, actualiser et confirmer à nouveau.
+Les appels de test sans `expectedVersion` comparent seulement l'instantané pris
+au début de leur propre appel au commit ; ils ne représentent pas une ancienne
+confirmation de l'interface. Web Crypto est requis dans le contexte local sécurisé.
 
 Une coupure avant commit ne laisse aucune moitié d'opération ; une coupure après
 commit mais avant acquittement peut remonter une erreur malgré le succès serveur.
@@ -164,6 +201,10 @@ une date historique connue. `createdAt` et `updatedAt` de la copie sont les
 timestamps serveur de sa création technique. Aucun champ n'utilise le
 `updatedAt` du livre. Une future interface devra rendre explicite cette origine
 pour `legacy-note-v1`, et ne pas inventer de date historique.
+La copie de `review` utilise par défaut « Mon avis sur le livre » ; l'interface
+fournit sa traduction FR/EN comme titre initial. Ce titre reste entièrement
+modifiable, comme le contenu et la date, via le CRUD ordinaire. Les dates de
+`legacy-review-v1` ont exactement la même signification technique.
 
 Après modification ou suppression, le marqueur reste inchangé ; toute nouvelle
 conversion est une lecture seule. Les règles interdisent également la recréation
@@ -171,6 +212,10 @@ directe de `legacy-note-v1` une fois le marqueur présent et la note supprimée.
 Une tentative ancienne encore en vol ne peut ni écraser la version modifiée ni
 rétablir la version supprimée, car son écriture du marqueur est refusée et
 l'opération entière est atomique.
+Ces garanties valent séparément pour `legacy-note-v1` et `legacy-review-v1`.
+Un marqueur présent avec destination absente signifie « déjà traité », jamais
+« à recréer ». Un ancien `note` déjà converti, modifié ou supprimé avant cette
+extension conserve donc son état, même pendant la première conversion de `review`.
 
 La migration n'écrit jamais dans `library` et ne touche aucune autre note. Les
 champs historiques `note`, `review`, `rating`, `updatedAt`, `status` et toutes les
@@ -232,15 +277,30 @@ décroissant du service ; les éléments historiques sans date restent séparés
 Les boutons réutilisent `Button`, les champs `Input`/`Select`, les tokens existants
 et l'animation `dp-menu-enter`, sans nouvelles couleurs ni dépendances.
 
-### Ancien avis : consultation seule, aucune conversion
+### Sources historiques : conversion manuelle confirmée
 
-`BookHistoricalNotes` reçoit `libraryBook.review` déjà chargé par la Book Page et
-le présente dans une unique carte « Ancien avis » en lecture seule. Le sanitizer
-existant est appliqué à l'affichage. Une valeur non textuelle est signalée sans
-la transformer en HTML. Aucune date historique n'est déduite de `updatedAt`.
-Cette consultation reste disponible hors émulateur, sans lecture Firebase
-supplémentaire, à partir des props de la page. Aucun ancien service d'écriture
-n'est appelé et aucun marqueur ou champ de migration d'avis n'est créé.
+Dans l'émulateur, `BookHistoricalNotes` utilise uniquement les deux états
+historiques validés par le service. Une source non traitée propose « Convertir
+l'ancienne note » ou « Convertir l'ancien avis ». Le dialogue précise la copie
+dans « Mes notes », la conservation de la source et la date technique initiale.
+Aucune écriture n'a lieu avant l'action « Confirmer la conversion ». Annuler ne
+modifie rien. Les sources invalides ou en collision n'offrent pas de conversion.
+Une fois traitée, chaque source quitte la compatibilité en lecture seule et sa
+copie est une carte ordinaire, renommeable, modifiable et supprimable.
+
+Le hook conserve deux états terminaux indépendants. Après acquittement, il masque
+immédiatement la source et lit seulement sa destination pour la fusionner dans la
+liste, sans remplacer les autres notes ni leurs brouillons. Si cette lecture
+échoue, le message « Conversion enregistrée » propose une actualisation ; il ne
+prétend pas que l'écriture a échoué. Si la copie a déjà été supprimée par un autre
+client, un message indique qu'elle est absente et ne sera pas recréée. Un échec
+réseau avant acquittement laisse l'état incertain : actualiser ou réessayer
+explicitement est sûr grâce au marqueur. Aucun réessai de conversion automatique.
+
+Hors émulateur, les conversions et les lectures supplémentaires restent
+désactivées. La consultation de `libraryBook.review`, déjà chargé par la page,
+reste disponible en lecture seule, sans aucun ancien service d'écriture. Cette
+compatibilité de production n'active ni n'implémente une migration production.
 
 Si les deux sources historiques encore en lecture seule, `note` et `review`, ont
 exactement le même HTML après sanitation, une seule carte les présente avec les
@@ -249,9 +309,8 @@ les données. Aucun lien de conversion n'est déduit entre `review` et une note
 modifiable : cette déduction pourrait faire réapparaître un avis après suppression
 d'une note. Les corps de cartes ne sont rendus que lorsqu'elles sont ouvertes,
 ce qui évite de présenter simultanément un même contenu historique à deux endroits.
-La source de l'ancien `note` continue à respecter son marqueur existant.
-Une éventuelle conversion future de `review` exigera un contrat persistant
-distinct ; elle n'est ni implémentée ni déclenchée par cette interface.
+Les deux sources respectent leur marqueur indépendant, y compris après suppression
+de leur copie. Aucun HTML brut provenant d'un marqueur n'est rendu dans React.
 
 ### Calendrier civil
 
@@ -295,7 +354,8 @@ Avec le serveur de développement existant, ouvrir `/preview/book-notes.html`
 (en mode émulateur : `http://127.0.0.1:5501/preview/book-notes.html`). Cette entrée
 de développement importe uniquement `BookNotesView`, les styles et l'i18n : aucun
 SDK Firebase, service de données ou fournisseur d'authentification. Ses opérations
-sont en mémoire. Elle permet de vérifier les variantes vide, plusieurs notes,
+sont en mémoire, y compris les conversions et leur état de traitement persistant
+pendant la session d'aperçu. Elle permet de vérifier les variantes vide, plusieurs notes,
 historique, copie supprimée, conflit, source invalide, chargement et erreur, ainsi
 que les brouillons, les dates, la confirmation et les erreurs de sauvegarde.
 Elle est réservée à une origine locale en développement et ne fait pas partie

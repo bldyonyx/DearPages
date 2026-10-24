@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { webcrypto } from 'node:crypto'
 import { get, push, ref, remove, serverTimestamp, set, update } from 'firebase/database'
 import * as notes from '../services/bookNotesService.js'
 
@@ -12,7 +13,8 @@ const input = { contentHtml: '<p><b>Texte</b><font size="4">grand</font><br></p>
 
 beforeEach(() => {
   vi.clearAllMocks()
-  get.mockResolvedValue(snapshot({ title: 'Book' }))
+  vi.stubGlobal('crypto', webcrypto)
+  get.mockImplementation(async (path) => snapshot(path.includes('/bookReviewsLegacy/') ? null : { title: 'Book' }))
 })
 
 describe('book notes service', () => {
@@ -20,7 +22,7 @@ describe('book notes service', () => {
     get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b>' }))
       .mockResolvedValueOnce(snapshot(null))
       .mockResolvedValueOnce(snapshot({ sourceHtml: '<script>RAW_MARKER</script>', version: 1 }))
-    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'processed' } })
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'processed' }, legacyReview: { status: 'empty' } })
     expect(set).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
     expect(remove).not.toHaveBeenCalled()
@@ -28,8 +30,8 @@ describe('book notes service', () => {
   it('sanitizes the unprocessed source and reads the marker last', async () => {
     get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b><img src=x><script>bad()</script>' }))
       .mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot(null))
-    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: '<b>Historical</b>' } })
-    expect(get.mock.calls.map(([path]) => path)).toEqual(['users/owner/library/book', 'users/owner/bookNotes/book', 'users/owner/bookNotesLegacy/book'])
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: '<b>Historical</b>', sourceVersion: expect.stringMatching(/^[a-f0-9]{64}$/) }, legacyReview: { status: 'empty' } })
+    expect(get.mock.calls.map(([path]) => path)).toEqual(['users/owner/library/book', 'users/owner/bookNotes/book', 'users/owner/bookNotesLegacy/book', 'users/owner/bookReviewsLegacy/book'])
   })
   it('reports an ID collision once without showing the source a second time', async () => {
     get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b>' }))
@@ -40,7 +42,7 @@ describe('book notes service', () => {
   })
   it.each([42, 'A\u0001B', 'x'.repeat(200001)])('reports invalid historical content without writes: %#', async (note) => {
     get.mockResolvedValueOnce(snapshot({ note })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot(null))
-    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'invalid' } })
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'invalid' }, legacyReview: { status: 'empty' } })
     expect(update).not.toHaveBeenCalled()
   })
   it('fails closed when marker access fails', async () => {

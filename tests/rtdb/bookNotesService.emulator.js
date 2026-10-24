@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { webcrypto } from 'node:crypto'
 import { initializeApp, deleteApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { getDatabase, connectDatabaseEmulator, ref, get, set, update, remove, serverTimestamp, goOffline, goOnline } from 'firebase/database'
@@ -25,9 +26,12 @@ const readBook = async () => (await get(bookRef())).val()
 const rawNote = () => ({ title: '', ...input, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
 const legacyRef = (index = 1) => ref(clients[index].database, `users/${uid}/bookNotesLegacy/${bookId}`)
 const readMarker = async () => (await get(legacyRef())).val()
+const reviewMarkerRef = (index = 1) => ref(clients[index].database, `users/${uid}/bookReviewsLegacy/${bookId}`)
+const readReviewMarker = async () => (await get(reviewMarkerRef())).val()
 const denied = (promise) => expect(promise).rejects.toThrow(/permission[ _]denied/i)
 
 beforeAll(async () => {
+  vi.stubGlobal('crypto', webcrypto)
   expect(emulator.projectId).toBe('demo-dear-pages')
   await assertEmulatorProject()
   await assertEmulatorsReady()
@@ -233,14 +237,14 @@ describe('book notes CRUD and server rules', () => {
 describe('atomic emulator-only legacy conversion', () => {
   it('reads a safe historical fallback without migration, then suppresses it permanently after deletion', async () => {
     const before = await service.getBookNotesForDisplay(uid, bookId)
-    expect(before).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: original.note } })
+    expect(before).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: original.note, sourceVersion: expect.any(String) }, legacyReview: { status: 'unprocessed', contentHtml: original.review, sourceVersion: expect.any(String) } })
     expect(await readMarker()).toBeNull()
     await service.migrateLegacyBookNote(uid, bookId)
     const copied = await service.getBookNotesForDisplay(uid, bookId)
     expect(copied.legacy).toEqual({ status: 'processed' })
     expect(copied.notes).toHaveLength(1)
     await service.deleteBookNote(uid, bookId, 'legacy-note-v1')
-    expect(await service.getBookNotesForDisplay(uid, bookId)).toEqual({ notes: [], legacy: { status: 'processed' } })
+    expect(await service.getBookNotesForDisplay(uid, bookId)).toEqual({ notes: [], legacy: { status: 'processed' }, legacyReview: { status: 'unprocessed', contentHtml: original.review, sourceVersion: expect.any(String) } })
     expect(await readBook()).toEqual(original)
   })
 
@@ -399,5 +403,198 @@ describe('atomic emulator-only legacy conversion', () => {
       expect((await get(noteRef('legacy-note-v1'))).exists()).toBe(false)
       expect(await readBook()).toEqual({ ...original, note })
     }
+  })
+})
+
+describe('independent historical review conversion', () => {
+  it('converts note and review concurrently with independent markers and preserves ordinary notes and the complete book', async () => {
+    const other = await service.createBookNote(uid, bookId, input)
+    const otherBefore = (await get(noteRef(other))).val()
+    await update(bookRef(), { review: '<p><b>Review</b><i>I</i><font size="5">Large</font><img src=x><script>bad()</script></p>' })
+    const before = await readBook()
+    const display = await service.getBookNotesForDisplay(uid, bookId)
+    await Promise.all([
+      service.migrateLegacyBookNote(uid, bookId, { expectedVersion: display.legacy.sourceVersion }),
+      service.migrateLegacyBookReview(uid, bookId, { expectedVersion: display.legacyReview.sourceVersion, title: 'My review of the book' }),
+    ])
+    const review = (await get(noteRef('legacy-review-v1'))).val()
+    expect(review).toMatchObject({ title: 'My review of the book', contentHtml: '<p><b>Review</b><i>I</i><font size="5">Large</font></p>', createdAt: expect.any(Number), updatedAt: expect.any(Number), date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) })
+    expect(review.createdAt).toBe((await readReviewMarker()).processedAt)
+    expect(review.createdAt).not.toBe(before.updatedAt)
+    expect((await get(noteRef(other))).val()).toEqual(otherBefore)
+    expect(await readBook()).toEqual(before)
+    const after = await service.getBookNotesForDisplay(uid, bookId)
+    expect(after.notes).toHaveLength(3)
+    expect(after.legacy).toEqual({ status: 'processed' })
+    expect(after.legacyReview).toEqual({ status: 'processed' })
+    expect(await readMarker()).toMatchObject({ sourceHtml: before.note, version: 1 })
+    expect(await readReviewMarker()).toMatchObject({ sourceHtml: before.review, version: 1 })
+  })
+
+  it('handles competing clients, repeat conversions, edits and deletion without overwriting or resurrection', async () => {
+    const sdk = await vi.importActual('firebase/database')
+    let writes
+    update.mockImplementationOnce(async (...args) => {
+      writes = args[1]
+      await sdk.update(ref(clients[1].database, `users/${uid}`), writes)
+      return sdk.update(...args)
+    })
+    const markers = await Promise.all([service.migrateLegacyBookReview(uid, bookId), service.migrateLegacyBookReview(uid, bookId)])
+    expect(markers[0]).toEqual(markers[1])
+    expect(await readMarker()).toBeNull()
+    const created = (await get(noteRef('legacy-review-v1'))).val()
+    expect(created.title).toBe('Mon avis sur le livre')
+    await service.updateBookNote(uid, bookId, 'legacy-review-v1', { title: 'Renamed', contentHtml: '<i>Changed</i>', date: '1900-01-01' })
+    await service.migrateLegacyBookReview(uid, bookId)
+    expect((await get(noteRef('legacy-review-v1'))).val()).toMatchObject({ title: 'Renamed', contentHtml: '<i>Changed</i>', date: '1900-01-01', createdAt: created.createdAt })
+    await denied(sdk.update(ref(clients[1].database, `users/${uid}`), writes))
+    await service.deleteBookNote(uid, bookId, 'legacy-review-v1')
+    expect(await service.migrateLegacyBookReview(uid, bookId)).toEqual(markers[0])
+    await denied(sdk.update(ref(clients[1].database, `users/${uid}`), writes))
+    await denied(set(noteRef('legacy-review-v1'), rawNote()))
+    expect((await service.getBookNotesForDisplay(uid, bookId)).legacyReview).toEqual({ status: 'processed' })
+    expect(await service.getBookNotes(uid, bookId)).toHaveLength(0)
+    expect(await readReviewMarker()).toEqual(markers[0])
+    expect(await readBook()).toEqual(original)
+  })
+
+  it.each([null, ''])('marks an absent/empty review without affecting the note contract: %j', async (review) => {
+    await update(bookRef(), { review })
+    await service.migrateLegacyBookReview(uid, bookId)
+    const marker = await readReviewMarker()
+    expect(marker).toMatchObject({ outcome: 'empty', version: 1, sourceHtml: '' })
+    expect(await readMarker()).toBeNull()
+    await update(bookRef(), { review: 'A later review' })
+    expect(await service.migrateLegacyBookReview(uid, bookId)).toEqual(marker)
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    await service.migrateLegacyBookNote(uid, bookId)
+    expect((await get(noteRef('legacy-note-v1'))).val().contentHtml).toBe(original.note)
+  })
+
+  it('rejects a source changed since display and succeeds only after an explicit refresh', async () => {
+    const display = await service.getBookNotesForDisplay(uid, bookId)
+    await update(bookRef(), { review: '<i>New review</i>' })
+    await expect(service.migrateLegacyBookReview(uid, bookId, { expectedVersion: display.legacyReview.sourceVersion })).rejects.toMatchObject({ code: 'book-notes/legacy-source-changed' })
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    const refreshed = await service.getBookNotesForDisplay(uid, bookId)
+    await service.migrateLegacyBookReview(uid, bookId, { expectedVersion: refreshed.legacyReview.sourceVersion })
+    expect((await get(noteRef('legacy-review-v1'))).val().contentHtml).toBe('<i>New review</i>')
+    expect(await readBook()).toEqual({ ...original, review: '<i>New review</i>' })
+  })
+
+  it('atomically rejects source changes between preflight and commit', async () => {
+    const sdk = await vi.importActual('firebase/database')
+    update.mockImplementationOnce(async (...args) => {
+      await sdk.update(bookRef(), { review: '<b>Concurrent source</b>' })
+      return sdk.update(...args)
+    })
+    await expect(service.migrateLegacyBookReview(uid, bookId)).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    await service.migrateLegacyBookReview(uid, bookId)
+    expect((await get(noteRef('legacy-review-v1'))).val().contentHtml).toBe('<b>Concurrent source</b>')
+  })
+
+  it('preserves a pre-contract review ID collision and reports it without a marker', async () => {
+    const existing = { ...input, title: 'Occupied', createdAt: 100, updatedAt: 100 }
+    const response = await fetch(`http://${emulator.host}:${emulator.database}/${notesPath()}/legacy-review-v1.json?ns=${emulator.projectId}`, {
+      method: 'PUT', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify(existing),
+    })
+    expect(response.ok).toBe(true)
+    expect((await service.getBookNotesForDisplay(uid, bookId)).legacyReview).toEqual({ status: 'conflict' })
+    await expect(service.migrateLegacyBookReview(uid, bookId)).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
+    expect((await get(noteRef('legacy-review-v1'))).val()).toEqual(existing)
+    expect(await readReviewMarker()).toBeNull()
+    expect(await readBook()).toEqual(original)
+  })
+
+  it('recovers before commit and after a lost acknowledgement, including a deletion before retry', async () => {
+    update.mockRejectedValueOnce(new Error('network interruption before commit'))
+    await expect(service.migrateLegacyBookReview(uid, bookId)).rejects.toThrow('network interruption')
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    const sdk = await vi.importActual('firebase/database')
+    update.mockImplementationOnce(async (...args) => { await sdk.update(...args); throw new Error('lost acknowledgement') })
+    await expect(service.migrateLegacyBookReview(uid, bookId)).rejects.toThrow('lost acknowledgement')
+    const committed = await readReviewMarker()
+    await sdk.remove(noteRef('legacy-review-v1'))
+    await service.migrateLegacyBookReview(uid, bookId)
+    expect(await readReviewMarker()).toEqual(committed)
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    expect(await readBook()).toEqual(original)
+  })
+
+  it('rejects an offline conversion if the book was removed before server commit', async () => {
+    const sdk = await vi.importActual('firebase/database')
+    update.mockImplementationOnce(async (...args) => {
+      goOffline(clients[0].database)
+      const result = sdk.update(...args).then(() => null, (error) => error)
+      await sdk.remove(bookRef())
+      goOnline(clients[0].database)
+      const error = await result
+      if (error) throw error
+    })
+    await denied(service.migrateLegacyBookReview(uid, bookId))
+    await set(bookRef(), original)
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    await service.migrateLegacyBookReview(uid, bookId)
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(true)
+  })
+
+  it('enforces schema, owner isolation, atomic creation, immutable markers and ancestor protection', async () => {
+    const user = ref(clients[1].database, `users/${uid}`)
+    const marker = { version: 1, outcome: 'copied', sourceHtml: original.review, processedAt: serverTimestamp() }
+    const writes = { [`bookReviewsLegacy/${bookId}`]: marker, [`bookNotes/${bookId}/legacy-review-v1`]: rawNote() }
+    for (const index of [2, 3]) {
+      await denied(get(reviewMarkerRef(index)))
+      await denied(update(ref(clients[index].database, `users/${uid}`), writes))
+    }
+    await denied(set(reviewMarkerRef(), marker))
+    await denied(set(noteRef('legacy-review-v1'), rawNote()))
+    for (const patch of [{ version: 2 }, { outcome: 'empty' }, { sourceHtml: original.note }, { processedAt: 1 }, { extra: true }, { sourceHtml: null }]) {
+      await denied(update(user, { ...writes, [`bookReviewsLegacy/${bookId}`]: { ...marker, ...patch } }))
+    }
+    for (const patch of [{ extra: true }, { contentHtml: '<script>bad()</script>' }, { date: '1900-02-29' }, { title: null }]) {
+      await denied(update(user, { ...writes, [`bookNotes/${bookId}/legacy-review-v1`]: { ...rawNote(), ...patch } }))
+    }
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    await service.migrateLegacyBookReview(uid, bookId)
+    for (const index of [1, 2, 3]) {
+      await denied(remove(reviewMarkerRef(index)))
+      await denied(update(reviewMarkerRef(index), { outcome: 'empty' }))
+    }
+    for (const path of [`users/${uid}`, `users/${uid}/bookReviewsLegacy`]) {
+      await denied(remove(ref(clients[1].database, path)))
+      await denied(set(ref(clients[1].database, path), {}))
+    }
+    await remove(bookRef())
+    await denied(get(reviewMarkerRef()))
+    await set(bookRef(), original)
+    expect((await readReviewMarker()).outcome).toBe('copied')
+    expect(await readBook()).toEqual(original)
+  })
+
+  it.each([42, 'A\u0001B', 'x'.repeat(200001)])('keeps invalid historical reviews untouched: %#', async (review) => {
+    await update(bookRef(), { review })
+    expect((await service.getBookNotesForDisplay(uid, bookId)).legacyReview).toEqual({ status: 'invalid' })
+    await expect(service.migrateLegacyBookReview(uid, bookId)).rejects.toMatchObject({ code: 'book-notes/invalid-argument' })
+    expect(await readReviewMarker()).toBeNull()
+    expect((await get(noteRef('legacy-review-v1'))).exists()).toBe(false)
+    expect(await readBook()).toEqual({ ...original, review })
+  })
+
+  it('converts a review when the old note was already converted, edited and deleted, without reviving that note', async () => {
+    await service.migrateLegacyBookNote(uid, bookId)
+    const originalMarker = await readMarker()
+    await service.updateBookNote(uid, bookId, 'legacy-note-v1', { contentHtml: '<b>Edited note</b>' })
+    await service.deleteBookNote(uid, bookId, 'legacy-note-v1')
+    await service.migrateLegacyBookReview(uid, bookId)
+    expect(await readMarker()).toEqual(originalMarker)
+    expect((await get(noteRef('legacy-note-v1'))).exists()).toBe(false)
+    expect((await get(noteRef('legacy-review-v1'))).val().contentHtml).toBe(original.review)
+    expect(await readBook()).toEqual(original)
   })
 })

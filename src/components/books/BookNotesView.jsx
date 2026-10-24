@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import Button from '../ui/Button.jsx'
+import Modal from '../ui/Modal.jsx'
 import BookNoteCard from './BookNoteCard.jsx'
 import BookNoteForm from './BookNoteForm.jsx'
 import BookHistoricalNotes from './BookHistoricalNotes.jsx'
@@ -15,8 +16,9 @@ export default function BookNotesView({ model, historicalReview }) {
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState(null)
   const [openId, setOpenId] = useState(null)
+  const [conversion, setConversion] = useState(null)
   function toggle(id) { setAdding(false); setOpenId((current) => current === id ? null : id) }
-  const { notes, legacy, loading, loaded, loadError, pending, errors, enabled } = model
+  const { notes, legacy, legacyReview, loading, loaded, loadError, pending, errors, enabled } = model
   const canWrite = enabled && loaded && !loading && !loadError
   return (
     <section aria-labelledby={titleId} className="min-w-0 space-y-4">
@@ -28,6 +30,7 @@ export default function BookNotesView({ model, historicalReview }) {
       </div>
       {!enabled && <p className="font-ui text-sm leading-6 text-walnut">{t('bookPage.notes.emulatorOnly')}</p>}
       {loading && <p role="status" className="font-ui text-sm text-walnut">{t('bookPage.notes.loading')}</p>}
+      {model.conversionStatus && <p role="status" className="font-ui text-sm leading-6 text-forest">{t(`bookPage.notes.${model.conversionStatus}`)}</p>}
       {loadError && <div role="alert" className="space-y-3 font-ui text-sm text-red-700">
         <p>{t('bookPage.notes.loadError')}</p>
         <Button type="button" variant="secondary" onClick={model.reload} disabled={loading}>{t('bookPage.notes.retry')}</Button>
@@ -43,9 +46,26 @@ export default function BookNotesView({ model, historicalReview }) {
       {loaded && !loading && !loadError && !notes.length && ['empty', 'processed'].includes(legacy?.status) && !adding && <p className={`py-4 font-handwritten text-lg text-walnut/70 ${bookLarge.handwritten}`}>{t('bookPage.notes.empty')}</p>}
       <div className="space-y-3">{notes.map((note) => <BookNoteCard key={note.id} note={note} pending={pending[note.id] || loading || !canWrite}
         expanded={openId === `note:${note.id}`} onToggle={() => toggle(`note:${note.id}`)}
-        isLegacyCopy={note.id === 'legacy-note-v1' && legacy?.status === 'processed'}
-        error={errors[note.id]} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict')} />)}</div>
-      <div className="space-y-3"><BookHistoricalNotes legacy={loaded && !loadError ? legacy : null} review={historicalReview} openId={openId} onToggle={toggle} /></div>
+        isLegacyCopy={(note.id === 'legacy-note-v1' && legacy?.status === 'processed') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'processed')}
+        error={errors[note.id]} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'conflict')} />)}</div>
+      <div className="space-y-3"><BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
+        legacyReview={enabled ? (loaded && !loadError ? legacyReview : { status: 'unknown' }) : null}
+        review={enabled ? undefined : historicalReview} openId={openId} onToggle={toggle} pending={pending} canConvert={canWrite}
+        onConvertRequest={(kind, source) => setConversion({ kind, expectedVersion: source.sourceVersion })} /></div>
+      <Modal isOpen={Boolean(conversion)} title={t('bookPage.notes.conversionTitle')}
+        onClose={() => { if (!pending[`convert:${conversion?.kind}`]) setConversion(null) }}>
+        <p className="font-ui text-sm leading-6 text-walnut">{t(conversion?.kind === 'review' ? 'bookPage.notes.conversionReviewBody' : 'bookPage.notes.conversionNoteBody')}</p>
+        <p className="mt-3 font-ui text-xs leading-5 text-walnut/65">{t('bookPage.notes.conversionDateHint')}</p>
+        {errors[`convert:${conversion?.kind}`] && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${errors[`convert:${conversion.kind}`]}`)}</p>}
+        <div className="mt-5 flex flex-wrap justify-end gap-3">
+          <Button type="button" variant="secondary" disabled={pending[`convert:${conversion?.kind}`]} onClick={() => setConversion(null)}>{t('common.cancel')}</Button>
+          <Button type="button" disabled={pending[`convert:${conversion?.kind}`] || !canWrite} onClick={async () => {
+            const options = { expectedVersion: conversion.expectedVersion }
+            if (conversion.kind === 'review') options.title = t('bookPage.notes.reviewInitialTitle')
+            if (await model.convert(conversion.kind, options)) setConversion(null)
+          }}>{pending[`convert:${conversion?.kind}`] ? t('bookPage.notes.converting') : t('bookPage.notes.confirmConversion')}</Button>
+        </div>
+      </Modal>
       {enabled && loaded && !loadError && <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <p className="font-ui text-xs leading-5 text-walnut/60">{t('bookPage.notes.draftHint')}</p>
         <Button type="button" variant="secondary" onClick={model.reload} disabled={loading || Object.values(pending).some(Boolean)}>{t('bookPage.notes.refresh')}</Button>
