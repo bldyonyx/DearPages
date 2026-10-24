@@ -428,7 +428,39 @@
       "abandonedDateRemoved": "Abandon date removed.",
       "abandonedDateError": "We couldn't save the abandon date.",
       "finishedTitle": "Finished reading",
-      "abandonedTitle": "Abandoned reading"
+      "abandonedTitle": "Abandoned reading",
+      "ratingSaveError": "We couldn’t save your rating."
+    },
+    "notes": {
+      "add": "Add a note",
+      "newNote": "New note",
+      "optionalTitle": "Title (optional)",
+      "date": "Note date",
+      "content": "Note content",
+      "untitled": "Untitled note",
+      "edit": "Edit",
+      "empty": "Your next thoughts will find a home here ♡",
+      "loading": "Loading your notes…",
+      "loadError": "We couldn’t load your notes and their historical state.",
+      "retry": "Try again",
+      "refresh": "Refresh",
+      "saveError": "We couldn’t save this note. Your draft has been kept.",
+      "deleteError": "We couldn’t delete this note. Please try again shortly.",
+      "invalidInput": "Check the title (up to 200 characters, without tags), date and note content.",
+      "missingNote": "This note no longer exists. Your draft has been kept; refresh the list to check.",
+      "deleteTitle": "Delete this note?",
+      "deleteBody": "This note will be permanently deleted. Your other notes and review will remain intact.",
+      "draftHint": "Your drafts stay available while you remain on this page.",
+      "legacyTitle": "Previous note",
+      "legacyReadOnly": "Historical note awaiting conversion, read only. Its original writing date is unknown.",
+      "legacyInvalid": "This previous note cannot be displayed: its format or size is invalid. The data has been preserved.",
+      "legacyConflict": "The previous note has an identifier conflict. It has been preserved, without automatic conversion or changes.",
+      "migratedDate": "Copied from the previous note. The date was initialized during conversion and may have been changed; the original writing date is unknown.",
+      "emulatorOnly": "Multiple notes are currently available only in the local test environment.",
+      "legacyReviewTitle": "Previous review",
+      "legacyCombinedTitle": "Previous note and review",
+      "legacyReviewReadOnly": "Historical review kept read only. Its original writing date is unknown. It has not been converted or changed.",
+      "legacyReviewInvalid": "This previous review has an invalid format. It has been preserved without changes."
     },
     "date": {
       "unknown": "Unknown date",
@@ -646,5 +678,13 @@
     "continue": "Continue",
     "sessionError": "We couldn't find your session. Sign in again, then try once more.",
     "saveError": "We couldn't save your preferences right now."
+  },
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "month": "Month",
+    "year": "Year",
+    "chooseDate": "Choose a date",
+    "keyboardHint": "Arrows: day or week. Home/End: week. Page Up/Down: month; with Shift: year. Escape: close."
   }
 }

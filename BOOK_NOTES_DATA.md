@@ -1,7 +1,7 @@
 # Notes multiples : couche de données
 
-Cette étape ajoute uniquement un service et des règles **locales**. Aucun composant
-ne l'appelle encore. Aucune migration réelle, suppression de champ historique, écriture
+Le service et les règles **locales** sont intégrés à une interface de notes multiples,
+activée uniquement dans Firebase Emulator. Aucune migration réelle, suppression de champ historique, écriture
 en production, modification de configuration Vite ou de ports n'est nécessaire.
 
 ## Contrat
@@ -32,6 +32,10 @@ API de `src/services/bookNotesService.js` :
   acquittement serveur.
 - `updateBookNote(uid, bookId, noteId, patch)` : patch non vide des champs métier.
 - `deleteBookNote(uid, bookId, noteId)` : suppression individuelle.
+- `getBookNotesForDisplay(uid, bookId)` : lecture seule de `{ notes, legacy }`.
+  `legacy.status` vaut `empty`, `unprocessed`, `processed`, `invalid` ou `conflict`.
+  Seul `unprocessed` fournit un contenu historique utile à l'affichage, assaini
+  par le service puis à nouveau par la vue. Le marqueur brut n'est jamais renvoyé.
 
 Les erreurs de validation portent `book-notes/invalid-argument`. Un livre absent
 au contrôle initial produit `book-notes/book-not-found` ; une note absente lors
@@ -47,7 +51,7 @@ utilisent donc jsdom pour exercer exactement la politique du navigateur.
 
 ## Concurrence et règles locales
 
-Les écritures ne visent qu'une note. Les patchs de champs distincts se combinent ;
+Les écritures CRUD ne visent qu'une note. Les patchs de champs distincts se combinent ;
 deux modifications du même champ suivent l'ordre d'arrivée serveur. Aucun champ
 `library/{bookId}` n'est écrit : `note`, `rating`, `review`, `updatedAt` et les
 autres métadonnées du livre restent intacts.
@@ -86,9 +90,10 @@ La lecture de toute la liste est actuellement non paginée ; une pagination pour
 
 ## Compatibilité historique : contrat v1, émulateur uniquement
 
-`library/{bookId}/note` reste inchangé, lu et écrit par l'interface actuelle.
-Le nouveau service lit exclusivement `bookNotes`. Aucune lecture ni opération CRUD
-ne déclenche de migration. L'API explicite `migrateLegacyBookNote(uid, bookId)`
+`library/{bookId}/note` reste inchangé. La nouvelle interface ne l'écrit plus.
+Les lectures CRUD portent sur `bookNotes` ; la lecture d'affichage consulte aussi
+la source historique et son marqueur pour la compatibilité. Aucune lecture ni
+opération CRUD ne déclenche de migration. L'API explicite `migrateLegacyBookNote(uid, bookId)`
 permet une conversion paresseuse par livre, seulement dans l'environnement isolé.
 Elle retourne le marqueur après traitement et refuse tout appel hors émulateur
 avec `book-notes/emulator-only`, avant toute lecture ou écriture Firebase.
@@ -178,8 +183,8 @@ même si la liste des notes est vide.
 
 - Le traitement est un instantané unique : les modifications ultérieures du champ
   historique ne sont pas recopiées, même après un résultat `empty`. L'interface
-  actuelle continue à écrire ce champ ; elle devra cesser cette saisie historique
-  dans le parcours des notes multiples. Aucun changement React n'est inclus ici.
+  multiple a supprimé la saisie historique ; les anciennes versions de l'application
+  ou d'autres clients peuvent encore l'écrire selon leurs propres autorisations.
 - Les règles vérifient le schéma et le lien atomique, mais ne peuvent pas exécuter
   DOMPurify ni prouver que le HTML envoyé est exactement la sanitation de la source.
   Le service effectue cette transformation, et les lectures assainissent à nouveau.
@@ -197,6 +202,104 @@ même si la liste des notes est vide.
 
 Verdict de périmètre : contrat utilisable pour l'intégration React en émulateur ;
 activation en production interdite par la garde et non validée.
+
+## Interface React locale
+
+`BookPersonalSpace` présente « Mon évaluation » avant « Mes notes ». Les étoiles
+restent visibles uniquement pour les livres terminés, selon la condition existante.
+« Mes notes » est disponible pour tous les statuts. L'éditeur « Mon avis » est
+retiré ; aucun parcours React n'appelle les anciennes écritures `updateBookReview`
+ou `libraryService.updateBookNote`. Les champs `review` et `note` restent intacts.
+`useBookNotes` charge les données avec `getBookNotesForDisplay` et délègue toutes
+les écritures au service existant. Les opérations de notes multiples sont désactivées
+hors de l'environnement émulateur : aucune lecture supplémentaire ni action de note
+multiple n'est lancée sur la production. Un message remplace cette section.
+
+Chaque carte possède son propre brouillon, ses erreurs et sa sauvegarde ; une
+opération sur une note ne bloque pas les autres cartes ni les étoiles.
+« Annuler » ferme l'éditeur sans écriture et conserve son brouillon en mémoire ;
+rouvrir l'éditeur permet de le reprendre. Quitter le livre ou recharger la page
+perd ces brouillons : aucun stockage persistant de brouillon n'est ajouté.
+Les nouvelles notes prennent le jour civil local à l'ouverture du formulaire ;
+le titre est facultatif et la date reste modifiable. La copie historique porte
+une explication de la date technique initialisée pendant sa conversion.
+
+Les cartes sont repliées par défaut. Leur en-tête présente le titre facultatif,
+la date et un chevron. Une seule carte (y compris historique) ou le formulaire
+de création peut être ouverte à la fois. Fermer une carte ou en ouvrir une autre
+conserve son brouillon en mémoire. La liste utilise l'ordre chronologique
+décroissant du service ; les éléments historiques sans date restent séparés.
+Les boutons réutilisent `Button`, les champs `Input`/`Select`, les tokens existants
+et l'animation `dp-menu-enter`, sans nouvelles couleurs ni dépendances.
+
+### Ancien avis : consultation seule, aucune conversion
+
+`BookHistoricalNotes` reçoit `libraryBook.review` déjà chargé par la Book Page et
+le présente dans une unique carte « Ancien avis » en lecture seule. Le sanitizer
+existant est appliqué à l'affichage. Une valeur non textuelle est signalée sans
+la transformer en HTML. Aucune date historique n'est déduite de `updatedAt`.
+Cette consultation reste disponible hors émulateur, sans lecture Firebase
+supplémentaire, à partir des props de la page. Aucun ancien service d'écriture
+n'est appelé et aucun marqueur ou champ de migration d'avis n'est créé.
+
+Si les deux sources historiques encore en lecture seule, `note` et `review`, ont
+exactement le même HTML après sanitation, une seule carte les présente avec les
+deux origines explicites. Ce regroupement est uniquement visuel, sans effet sur
+les données. Aucun lien de conversion n'est déduit entre `review` et une note
+modifiable : cette déduction pourrait faire réapparaître un avis après suppression
+d'une note. Les corps de cartes ne sont rendus que lorsqu'elles sont ouvertes,
+ce qui évite de présenter simultanément un même contenu historique à deux endroits.
+La source de l'ancien `note` continue à respecter son marqueur existant.
+Une éventuelle conversion future de `review` exigera un contrat persistant
+distinct ; elle n'est ni implémentée ni déclenchée par cette interface.
+
+### Calendrier civil
+
+`CivilDatePicker` est un calendrier léger sans dépendance ajoutée. Le composant
+existant `BookFinalStatusDate` ne proposant qu'un mois/une année avec une limite
+de récence, il n'est pas réutilisé pour les jours de notes.
+Le calendrier garde une chaîne `YYYY-MM-DD`, années 0001–9999. Le service et le
+calendrier partagent le validateur civil dans `civilDateUtils`. L'arithmétique
+et l'affichage utilisent explicitement UTC pour éviter les décalages de jour,
+mais la date initiale d'un nouveau brouillon reste le jour civil local.
+
+Les sélecteurs de mois et d'année permettent l'accès direct aux dates anciennes.
+Les flèches déplacent le focus d'un jour ou d'une semaine ; Début/Fin restent
+dans la semaine ; Page préc./suiv. changent de mois, et Maj + Page préc./suiv.
+d'année. Entrée/Espace sélectionnent, Échap ferme et restitue le focus au bouton.
+Le focus initial va au jour sélectionné ; Tab reste dans le dialogue ouvert.
+Le clic extérieur ferme sans voler le focus à sa cible. Une navigation de mois
+ou d'année ne modifie la valeur qu'après sélection explicite d'un jour.
+
+La lecture consulte les notes puis le marqueur. Si la lecture du marqueur échoue,
+aucun fallback historique n'est affiché. Un marqueur observé masque définitivement
+le fallback pour ce livre dans le hook, y compris après une suppression locale ou
+une actualisation ultérieure. `legacy-note-v1` sans marqueur est un conflit :
+une seule carte est affichée, en lecture seule, avec un message explicite.
+Une source historique invalide est signalée sans tenter de l'afficher.
+Aucune comparaison approximative de contenus n'est utilisée pour fusionner des
+notes indépendantes, et aucune fonction de migration n'est appelée par React.
+
+Les lectures ne sont pas un abonnement temps réel entre clients. Le bouton
+« Actualiser » permet de récupérer les changements d'un autre client. Une copie
+créée entre la lecture des notes et celle du marqueur peut manquer temporairement
+dans la liste ; le fallback est néanmoins masqué et une nouvelle actualisation
+affichera la copie. Une écriture acquittée est appliquée localement sans seconde
+lecture susceptible de faire passer une création réussie pour un échec et de
+provoquer un doublon au réessai. Les timestamps techniques affichés dans l'ordre
+local des nouvelles cartes sont provisoires jusqu'à la prochaine lecture serveur.
+
+### Aperçu sans Firebase
+
+Avec le serveur de développement existant, ouvrir `/preview/book-notes.html`
+(en mode émulateur : `http://127.0.0.1:5501/preview/book-notes.html`). Cette entrée
+de développement importe uniquement `BookNotesView`, les styles et l'i18n : aucun
+SDK Firebase, service de données ou fournisseur d'authentification. Ses opérations
+sont en mémoire. Elle permet de vérifier les variantes vide, plusieurs notes,
+historique, copie supprimée, conflit, source invalide, chargement et erreur, ainsi
+que les brouillons, les dates, la confirmation et les erreurs de sauvegarde.
+Elle est réservée à une origine locale en développement et ne fait pas partie
+de l'entrée de build de production. Aucun port ou réglage Vite n'est changé.
 
 ## Vérification locale
 

@@ -6,7 +6,7 @@ vi.mock('firebase/database', () => ({
   get: vi.fn(), ref: vi.fn((_db, path) => path), push: vi.fn(() => ({ key: '-stable-id' })),
   remove: vi.fn(), serverTimestamp: vi.fn(() => ({ '.sv': 'timestamp' })), set: vi.fn(), update: vi.fn(),
 }))
-vi.mock('../services/firebase.js', () => ({ database: {} }))
+vi.mock('../services/firebase.js', () => ({ database: {}, isFirebaseEmulator: false }))
 const snapshot = (value) => ({ exists: () => value !== null, val: () => value })
 const input = { contentHtml: '<p><b>Texte</b><font size="4">grand</font><br></p>', date: '2024-02-29' }
 
@@ -16,6 +16,37 @@ beforeEach(() => {
 })
 
 describe('book notes service', () => {
+  it('reads display state without returning raw marker content or writing anything', async () => {
+    get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b>' }))
+      .mockResolvedValueOnce(snapshot(null))
+      .mockResolvedValueOnce(snapshot({ sourceHtml: '<script>RAW_MARKER</script>', version: 1 }))
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'processed' } })
+    expect(set).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+    expect(remove).not.toHaveBeenCalled()
+  })
+  it('sanitizes the unprocessed source and reads the marker last', async () => {
+    get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b><img src=x><script>bad()</script>' }))
+      .mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot(null))
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: '<b>Historical</b>' } })
+    expect(get.mock.calls.map(([path]) => path)).toEqual(['users/owner/library/book', 'users/owner/bookNotes/book', 'users/owner/bookNotesLegacy/book'])
+  })
+  it('reports an ID collision once without showing the source a second time', async () => {
+    get.mockResolvedValueOnce(snapshot({ note: '<b>Historical</b>' }))
+      .mockResolvedValueOnce(snapshot({ 'legacy-note-v1': { date: '2026-01-01', contentHtml: '<b>Existing</b>' } })).mockResolvedValueOnce(snapshot(null))
+    const result = await notes.getBookNotesForDisplay('owner', 'book')
+    expect(result.legacy).toEqual({ status: 'conflict' })
+    expect(result.notes).toHaveLength(1)
+  })
+  it.each([42, 'A\u0001B', 'x'.repeat(200001)])('reports invalid historical content without writes: %#', async (note) => {
+    get.mockResolvedValueOnce(snapshot({ note })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot(null))
+    expect(await notes.getBookNotesForDisplay('owner', 'book')).toEqual({ notes: [], legacy: { status: 'invalid' } })
+    expect(update).not.toHaveBeenCalled()
+  })
+  it('fails closed when marker access fails', async () => {
+    get.mockResolvedValueOnce(snapshot({ note: 'Historical' })).mockResolvedValueOnce(snapshot(null)).mockRejectedValueOnce(new Error('permission denied'))
+    await expect(notes.getBookNotesForDisplay('owner', 'book')).rejects.toThrow('permission denied')
+  })
   it('creates a stable ID with optional title, allowed HTML and server timestamps only at the note path', async () => {
     await expect(notes.createBookNote('owner', 'book', input)).resolves.toBe('-stable-id')
     expect(push).toHaveBeenCalledWith('users/owner/bookNotes/book')

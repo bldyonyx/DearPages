@@ -231,6 +231,19 @@ describe('book notes CRUD and server rules', () => {
 })
 
 describe('atomic emulator-only legacy conversion', () => {
+  it('reads a safe historical fallback without migration, then suppresses it permanently after deletion', async () => {
+    const before = await service.getBookNotesForDisplay(uid, bookId)
+    expect(before).toEqual({ notes: [], legacy: { status: 'unprocessed', contentHtml: original.note } })
+    expect(await readMarker()).toBeNull()
+    await service.migrateLegacyBookNote(uid, bookId)
+    const copied = await service.getBookNotesForDisplay(uid, bookId)
+    expect(copied.legacy).toEqual({ status: 'processed' })
+    expect(copied.notes).toHaveLength(1)
+    await service.deleteBookNote(uid, bookId, 'legacy-note-v1')
+    expect(await service.getBookNotesForDisplay(uid, bookId)).toEqual({ notes: [], legacy: { status: 'processed' } })
+    expect(await readBook()).toEqual(original)
+  })
+
   it('preserves a pre-contract collision at the reserved ID and refuses conversion', async () => {
     // Seed an otherwise unreachable historical fixture through the LOCAL emulator
     // admin interface, only after beforeAll verifies the demo project and Hub.

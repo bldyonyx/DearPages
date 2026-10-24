@@ -2,9 +2,13 @@
 import { get, push, ref, remove, serverTimestamp, set, update } from 'firebase/database'
 import { database, isFirebaseEmulator } from './firebase.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
+import { isCivilDate as isBookNoteDate } from '../utils/civilDateUtils.js'
+
+export { isBookNoteDate }
 
 export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 })
 export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
+export const isBookNotesUiEnabled = isFirebaseEmulator === true
 
 function failure(code, message) {
   return Object.assign(new Error(message), { code: `book-notes/${code}` })
@@ -18,14 +22,6 @@ function identifier(value) {
     throw failure('invalid-argument', 'Invalid user, book or note identifier.')
   }
   return value
-}
-
-export function isBookNoteDate(value) {
-  if (typeof value !== 'string' || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value)) return false
-  const [year, month, day] = value.split('-').map(Number)
-  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
-  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]
 }
 
 function fields(input, partial = false) {
@@ -76,12 +72,43 @@ function record(id, value) {
   return { ...value, id, contentHtml: sanitizeNoteHtml(value.contentHtml) }
 }
 
+export function compareBookNotes(a, b) {
+  return b.date.localeCompare(a.date) || b.createdAt - a.createdAt || a.id.localeCompare(b.id)
+}
+
+async function readNotes(notesRef) {
+  const snapshot = await get(notesRef)
+  return Object.entries(snapshot.val() || {}).map(([id, value]) => record(id, value))
+    .sort(compareBookNotes)
+}
+
 export async function getBookNotes(uid, bookId) {
   const location = paths(uid, bookId)
   await requireBook(location.book)
-  const snapshot = await get(location.notes)
-  return Object.entries(snapshot.val() || {}).map(([id, value]) => record(id, value))
-    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt || a.id.localeCompare(b.id))
+  return readNotes(location.notes)
+}
+
+/** Read-only display contract. Never returns marker.sourceHtml or converts data.
+ * Read the marker AFTER notes: a completed conversion suppresses the fallback,
+ * even when its note has already been deleted. A failed marker read fails closed.
+ */
+export async function getBookNotesForDisplay(uid, bookId) {
+  const location = paths(uid, bookId)
+  const book = await get(location.book)
+  if (!book.exists()) throw failure('book-not-found', 'Book no longer exists in the library.')
+  const notes = await readNotes(location.notes)
+  const marker = await get(ref(database, `users/${uid}/bookNotesLegacy/${bookId}`))
+  if (marker.exists()) return { notes, legacy: { status: 'processed' } }
+  if (notes.some((note) => note.id === LEGACY_BOOK_NOTE_ID)) {
+    return { notes, legacy: { status: 'conflict' } }
+  }
+  const source = book.val().note ?? ''
+  try {
+    const { contentHtml } = fields({ contentHtml: source }, true)
+    return { notes, legacy: { status: source === '' ? 'empty' : 'unprocessed', contentHtml } }
+  } catch {
+    return { notes, legacy: { status: 'invalid' } }
+  }
 }
 
 export async function getBookNote(uid, bookId, noteId) {

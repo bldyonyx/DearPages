@@ -9,13 +9,11 @@ import {
   BOOK_STATUSES,
   updateBookAbandonedAt,
   updateBookFinishedAt,
-  updateBookNote,
   updateBookRating,
-  updateBookReview,
 } from '../../services/libraryService.js'
 
 import BookFinalStatusDate from './BookFinalStatusDate.jsx'
-import BookNotesEditor from './BookNotesEditor.jsx'
+import BookNotesSection from './BookNotesSection.jsx'
 import { bookLarge } from './bookResponsive.js'
 
 function BookPersonalSpace({
@@ -26,8 +24,6 @@ function BookPersonalSpace({
 }) {
   const { t } = useTranslation()
 
-  const [note, setNote] = useState(libraryBook?.note || '')
-  const [review, setReview] = useState(libraryBook?.review || '')
   const [rating, setRating] = useState(libraryBook?.rating || 0)
 
   const [isSaving, setIsSaving] = useState(false)
@@ -41,14 +37,6 @@ function BookPersonalSpace({
   ] = useState(false)
 
   const status = libraryBook?.status
-
-  useEffect(() => {
-    setNote(libraryBook?.note || '')
-  }, [libraryBook?.note, bookId, userId])
-
-  useEffect(() => {
-    setReview(libraryBook?.review || '')
-  }, [libraryBook?.review, bookId, userId])
 
   useEffect(() => {
     setRating(libraryBook?.rating || 0)
@@ -87,52 +75,6 @@ function BookPersonalSpace({
     }
   }, [bookId, userId])
 
-  async function handleSaveNote() {
-    setIsSaving(true)
-    setMessage('')
-    setError('')
-
-    try {
-      await updateBookNote(userId, bookId, note)
-
-      onLibraryBookChange((currentBook) => currentBook && ({
-        ...currentBook,
-        note,
-        updatedAt: Date.now(),
-      }))
-
-      setMessage(t('bookPage.personal.noteSaved'))
-    } catch (firebaseError) {
-      console.error(firebaseError)
-      setError(t('bookPage.personal.noteSaveError'))
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  async function handleSaveReview() {
-    setIsSaving(true)
-    setMessage('')
-    setError('')
-
-    try {
-      await updateBookReview(userId, bookId, review)
-
-      onLibraryBookChange((currentBook) => currentBook && ({
-        ...currentBook,
-        review,
-        updatedAt: Date.now(),
-      }))
-
-      setMessage(t('bookPage.personal.reviewSaved'))
-    } catch (firebaseError) {
-      console.error(firebaseError)
-      setError(t('bookPage.personal.reviewSaveError'))
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   async function handleRatingChange(newRating) {
     setIsSaving(true)
     setMessage('')
@@ -150,7 +92,7 @@ function BookPersonalSpace({
       }))
     } catch (firebaseError) {
       console.error(firebaseError)
-      setError(t('bookPage.personal.noteSaveError'))
+      setError(t('bookPage.personal.ratingSaveError'))
     } finally {
       setIsSaving(false)
     }
@@ -221,14 +163,6 @@ function BookPersonalSpace({
       setIsSaving(false)
     }
   }
-
-  const showsNotes =
-    status === BOOK_STATUSES.TO_READ ||
-    status === BOOK_STATUSES.READING
-
-  const showsReview =
-    status === BOOK_STATUSES.FINISHED ||
-    status === BOOK_STATUSES.ABANDONED
 
   const showsRating =
     status === BOOK_STATUSES.FINISHED
@@ -351,93 +285,6 @@ function BookPersonalSpace({
           </button>
         </div>
 
-        {showsNotes && (
-          <div>
-            <h3
-              className={`
-                mb-4
-                font-heading text-2xl
-                font-bold text-darkwood
-                ${bookLarge.personalSubheading}
-              `}
-            >
-              {t('bookPage.personal.notesTitle')}
-            </h3>
-
-            <BookNotesEditor
-              value={note}
-              onChange={setNote}
-              disabled={isSaving}
-              placeholder={
-                status === BOOK_STATUSES.TO_READ
-                  ? t('bookPage.personal.noteToReadPlaceholder')
-                  : t('bookPage.personal.noteReadingPlaceholder')
-              }
-            />
-
-            <div
-              className="
-                mt-4 flex flex-wrap
-                items-center justify-between
-                gap-3
-              "
-            >
-              <div>
-                {message && (
-                  <p
-                    className={`
-                      font-handwritten text-lg leading-6 text-forest
-                      ${bookLarge.handwritten}
-                    `}
-                  >
-                    {message}
-                  </p>
-                )}
-
-                {error && (
-                  <p
-                    role="alert"
-                    className={`
-                      font-ui text-sm text-red-700
-                      ${bookLarge.personalText}
-                    `}
-                  >
-                    {error}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveNote}
-                disabled={isSaving}
-                className={`
-                  w-full
-                  rounded-xl
-                  border border-olive/15
-                  bg-lime
-                  px-5 py-2.5
-                  font-ui text-sm
-                  font-bold text-darkwood
-                  shadow-[0_3px_10px_rgba(83,55,76,0.06)]
-                  transition-[transform,filter,box-shadow] duration-200 ease-out
-                  hover:-translate-y-0.5
-                  hover:brightness-95
-                  hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                  sm:w-auto
-                  ${bookLarge.personalControl}
-                `}
-              >
-                {isSaving
-                  ? t('common.saving')
-                  : t('common.save')}
-              </button>
-            </div>
-          </div>
-        )}
-
         {showsRating && (
           <div>
             <h3
@@ -464,8 +311,9 @@ function BookPersonalSpace({
                       { count: star }
                     )}
                     className={`
-                      transition
-                      hover:-translate-y-0.5
+                      rounded-lg transition-colors duration-200 ease-out
+                      hover:text-dustyrose active:text-dustyrose
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35
                       disabled:cursor-not-allowed
                       ${
                         isSelected
@@ -511,98 +359,12 @@ function BookPersonalSpace({
           />
         )}
 
-        {showsReview && (
-          <div
-            className={
-              showsRating || showsAbandonedDate
-                ? 'mt-8'
-                : ''
-            }
-          >
-            <h3
-              className={`
-                mb-4
-                font-heading text-2xl
-                font-bold text-darkwood
-                ${bookLarge.personalSubheading}
-              `}
-            >
-              {t('bookPage.personal.reviewTitle')}
-            </h3>
+        {message && <p role="status" className="mt-4 font-handwritten text-lg text-forest">{message}</p>}
+        {error && <p role="alert" className="mt-4 font-ui text-sm text-red-700">{error}</p>}
 
-            <BookNotesEditor
-              value={review}
-              onChange={setReview}
-              disabled={isSaving}
-              placeholder={
-                status === BOOK_STATUSES.ABANDONED
-                  ? t('bookPage.personal.reviewAbandonedPlaceholder')
-                  : t('bookPage.personal.reviewFinishedPlaceholder')
-              }
-            />
-
-            <div
-              className="
-                mt-4 flex flex-wrap
-                items-center justify-between
-                gap-3
-              "
-            >
-              <div>
-                {message && (
-                  <p
-                    className={`
-                      font-handwritten text-lg leading-6 text-forest
-                      ${bookLarge.handwritten}
-                    `}
-                  >
-                    {message}
-                  </p>
-                )}
-
-                {error && (
-                  <p
-                    role="alert"
-                    className={`
-                      font-ui text-sm text-red-700
-                      ${bookLarge.personalText}
-                    `}
-                  >
-                    {error}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveReview}
-                disabled={isSaving}
-                className={`
-                  w-full
-                  rounded-xl
-                  border border-olive/15
-                  bg-lime
-                  px-5 py-2.5
-                  font-ui text-sm
-                  font-bold text-darkwood
-                  shadow-[0_3px_10px_rgba(83,55,76,0.06)]
-                  transition-[transform,filter,box-shadow] duration-200 ease-out
-                  hover:-translate-y-0.5
-                  hover:brightness-95
-                  hover:shadow-[0_5px_14px_rgba(83,55,76,0.09)]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                  sm:w-auto
-                  ${bookLarge.personalControl}
-                `}
-              >
-                {isSaving
-                  ? t('common.saving')
-                  : t('common.save')}
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="mt-8">
+          <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} historicalReview={libraryBook?.review} />
+        </div>
       </div>
 
       <BookCollectionsModal

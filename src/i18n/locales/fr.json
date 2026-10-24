@@ -414,7 +414,7 @@
       "reviewTitle": "Mon avis",
       "reviewAbandonedPlaceholder": "Pourquoi as-tu arrêté ce livre ?",
       "reviewFinishedPlaceholder": "Qu’est-ce que tu en as pensé ?",
-      "ratingTitle": "Ma note",
+      "ratingTitle": "Mon évaluation",
       "starLabel_one": "{{count}} étoile",
       "starLabel_other": "{{count}} étoiles",
       "noteSaved": "Note enregistrée ♡",
@@ -428,7 +428,39 @@
       "abandonedDateRemoved": "Date d’abandon retirée.",
       "abandonedDateError": "Impossible d’enregistrer la date d’abandon.",
       "finishedTitle": "Lecture terminée",
-      "abandonedTitle": "Lecture abandonnée"
+      "abandonedTitle": "Lecture abandonnée",
+      "ratingSaveError": "Impossible d’enregistrer ton évaluation."
+    },
+    "notes": {
+      "add": "Ajouter une note",
+      "newNote": "Nouvelle note",
+      "optionalTitle": "Titre (facultatif)",
+      "date": "Date de la note",
+      "content": "Contenu de la note",
+      "untitled": "Note sans titre",
+      "edit": "Modifier",
+      "empty": "Tes prochaines pensées trouveront leur place ici ♡",
+      "loading": "Chargement de tes notes…",
+      "loadError": "Impossible de charger tes notes et leur état historique.",
+      "retry": "Réessayer",
+      "refresh": "Actualiser",
+      "saveError": "Impossible d’enregistrer cette note. Ton brouillon est conservé.",
+      "deleteError": "Impossible de supprimer cette note. Réessaie dans un instant.",
+      "invalidInput": "Vérifie le titre (200 caractères maximum, sans balises), la date et le contenu de la note.",
+      "missingNote": "Cette note n’existe plus. Ton brouillon est conservé ; actualise la liste pour vérifier.",
+      "deleteTitle": "Supprimer cette note ?",
+      "deleteBody": "Cette note sera définitivement supprimée. Tes autres notes et ton avis resteront intacts.",
+      "draftHint": "Tes brouillons restent disponibles tant que tu restes sur cette page.",
+      "legacyTitle": "Ancienne note",
+      "legacyReadOnly": "Note historique non convertie, en lecture seule. Sa date de rédaction est inconnue.",
+      "legacyInvalid": "Cette ancienne note ne peut pas être affichée : son format ou sa taille est invalide. Les données sont conservées.",
+      "legacyConflict": "L’ancienne note présente un conflit d’identifiant. Elle est conservée, sans conversion ni modification automatique.",
+      "migratedDate": "Note issue de l’ancienne saisie. La date a été initialisée lors de la conversion et peut avoir été modifiée ; la date historique est inconnue.",
+      "emulatorOnly": "Les notes multiples sont disponibles uniquement dans l’environnement local de test pour le moment.",
+      "legacyReviewTitle": "Ancien avis",
+      "legacyCombinedTitle": "Ancienne note et ancien avis",
+      "legacyReviewReadOnly": "Avis historique conservé en lecture seule. Sa date de rédaction est inconnue. Il n’est ni converti ni modifié.",
+      "legacyReviewInvalid": "Cet ancien avis a un format invalide. Il est conservé sans modification."
     },
     "date": {
       "unknown": "Date inconnue",
@@ -646,5 +678,13 @@
     "continue": "Continuer",
     "sessionError": "Impossible de retrouver ta session. Reconnecte-toi puis réessaie.",
     "saveError": "Impossible d'enregistrer tes préférences pour le moment."
+  },
+  "calendar": {
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "month": "Mois",
+    "year": "Année",
+    "chooseDate": "Choisir une date",
+    "keyboardHint": "Flèches : jour ou semaine. Début/Fin : semaine. Page préc./suiv. : mois ; avec Maj : année. Échap : fermer."
   }
 }

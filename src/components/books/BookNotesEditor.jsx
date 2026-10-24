@@ -26,6 +26,7 @@ function BookNotesEditor({
   onChange,
   placeholder = '',
   disabled = false,
+  label,
 }) {
   const { t } = useTranslation()
   const editorPlaceholder =
@@ -142,6 +143,11 @@ function BookNotesEditor({
     <div
       className="
         overflow-visible rounded-2xl
+        [&_button]:focus-visible:outline-none
+        [&_button]:focus-visible:ring-2
+        [&_button]:focus-visible:ring-olive/35
+        [&_button]:disabled:pointer-events-none
+        [&_button]:active:bg-lime/40
         border border-walnut/15
         bg-cream/70
         shadow-[0_4px_16px_rgba(83,55,76,0.05)]
@@ -286,6 +292,8 @@ function BookNotesEditor({
                         text-left
                         font-ui text-xs
                         transition
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35
+                        active:bg-lime/40
                         ${
                           isSelected
                             ? 'bg-lime/60 text-darkwood'
@@ -327,6 +335,10 @@ function BookNotesEditor({
 
         <div
           ref={editorRef}
+          role="textbox"
+          aria-label={label || t('bookPage.editor.defaultPlaceholder')}
+          aria-multiline="true"
+          aria-disabled={disabled}
           contentEditable={!disabled}
           suppressContentEditableWarning
           onInput={handleInput}

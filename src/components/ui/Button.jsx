@@ -6,10 +6,10 @@ function Button({
 }) {
     const variants = {
     primary:
-        'bg-darkwood text-cream hover:bg-walnut',
+        'bg-darkwood text-cream enabled:hover:bg-walnut',
 
     secondary:
-        'bg-cream text-darkwood border border-walnut/20 hover:border-walnut/40',
+        'bg-cream text-darkwood border border-walnut/20 enabled:hover:border-walnut/40',
     }
 
   return (
@@ -20,6 +20,7 @@ function Button({
         font-ui
         text-sm
         transition-colors duration-200 ease-out
+        enabled:active:brightness-95
         cursor-pointer
         focus-visible:outline-none
         focus-visible:ring-2
