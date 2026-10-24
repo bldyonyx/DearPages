@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   CalendarDays,
@@ -13,6 +13,7 @@ import {
   getReadingMonthYear,
 } from '../../utils/readingDateUtils.js'
 import FloatingMenu from '../ui/FloatingMenu.jsx'
+import IconButton from '../ui/IconButton.jsx'
 
 function BookFinalStatusDate({
   title,
@@ -20,8 +21,10 @@ function BookFinalStatusDate({
   disabled = false,
   isSaving = false,
   onSave,
+  className = 'mt-8',
 }) {
   const { t } = useTranslation()
+  const editorId = useId()
   const currentYear = new Date().getFullYear()
   const monthLabels = Array.from(
     { length: 12 },
@@ -113,14 +116,14 @@ function BookFinalStatusDate({
       year
     )
 
-    await onSave(timestamp)
+    if (await onSave(timestamp) === false) return
 
     setOpenDropdown(null)
     setIsEditing(false)
   }
 
   async function handleUnknown() {
-    await onSave(null)
+    if (await onSave(null) === false) return
 
     setOpenDropdown(null)
     setIsEditing(false)
@@ -147,55 +150,22 @@ function BookFinalStatusDate({
   `
 
   return (
-    <div className="mt-8">
-      <h3 className="font-heading text-2xl font-bold text-darkwood">
-        {title}
-      </h3>
-
-      {!isEditing ? (
-        <button
-          type="button"
-          onClick={() => setIsEditing(true)}
-          disabled={isDisabled}
-          className="
-            mt-3 inline-flex
-            items-center gap-2
-            rounded-xl
-            border border-walnut/15
-            bg-mintcream/45
-            px-4 py-2.5
-            font-ui text-sm
-            font-medium text-darkwood
-            transition-[border-color,background-color] duration-200 ease-out
-            hover:border-olive/30
-            hover:bg-mintcream/70
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-          "
-        >
-          <CalendarDays
-            size={17}
-            strokeWidth={1.7}
-            className="text-olive"
-            aria-hidden="true"
-          />
-
-          <span>
-            {currentDate
-              ? `${monthLabels[currentDate.month]} ${currentDate.year}`
-              : t('bookPage.date.unknown')}
-          </span>
-
-          <Pencil
-            size={14}
-            strokeWidth={1.7}
-            className="ml-1 text-walnut/55"
-            aria-hidden="true"
-          />
-        </button>
-      ) : (
+    <div className={className}>
+      <div className="flex min-w-0 items-center gap-2 text-walnut/65">
+        <CalendarDays size={16} strokeWidth={1.7} className="shrink-0 text-olive/75" aria-hidden="true" />
+        <p className="min-w-0 flex-1 font-ui text-xs leading-5 sm:flex-initial sm:text-sm">
+          <span>{title}</span><span aria-hidden="true"> · </span>
+          {currentDate ? <time className="whitespace-nowrap" dateTime={`${currentDate.year}-${String(currentDate.month + 1).padStart(2, '0')}`}>{`${monthLabels[currentDate.month]} ${currentDate.year}`}</time> : <span>{t('bookPage.date.unknown')}</span>}
+        </p>
+        <IconButton label={t(currentDate ? 'bookPage.date.editReading' : 'bookPage.date.addReading', { title })} disabled={isDisabled || isEditing}
+          aria-expanded={isEditing} aria-controls={isEditing ? editorId : undefined} onClick={() => setIsEditing(true)}>
+          <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
+        </IconButton>
+      </div>
+      {isEditing && (
         <div
           ref={editorRef}
+          id={editorId}
           aria-busy={isSaving}
           className="
             mt-3
@@ -267,6 +237,7 @@ function BookFinalStatusDate({
                   anchorRef={monthDropdownRef}
                   menuRef={monthMenuRef}
                   matchAnchorWidth
+                  maxHeight={224}
                   className={`
                     dp-menu-enter
                     z-40
@@ -385,6 +356,7 @@ function BookFinalStatusDate({
                   menuRef={yearMenuRef}
                   align="right"
                   matchAnchorWidth
+                  maxHeight={224}
                   className={`
                     dp-menu-enter
                     z-40

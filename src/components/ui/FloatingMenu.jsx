@@ -13,6 +13,7 @@ function getMenuPosition({
   align,
   matchAnchorWidth,
   offset,
+  maxHeight,
 }) {
   const rect = anchor.getBoundingClientRect()
   const viewportWidth = window.innerWidth
@@ -25,9 +26,15 @@ function getMenuPosition({
           viewportWidth - VIEWPORT_GAP
         )
 
+  const below = Math.max(0, window.innerHeight - rect.bottom - offset - VIEWPORT_GAP)
+  const above = Math.max(0, rect.top - offset - VIEWPORT_GAP)
+  const opensAbove = maxHeight !== undefined && below < maxHeight && above > below
+  const height = maxHeight === undefined ? undefined : Math.min(maxHeight, opensAbove ? above : below)
+
   return {
+    ...(height === undefined ? {} : { maxHeight: height }),
     position: 'fixed',
-    top: rect.bottom + offset,
+    top: opensAbove ? rect.top - offset - height : rect.bottom + offset,
     ...(align === 'right' ? { right: left } : { left }),
     width: matchAnchorWidth ? rect.width : undefined,
   }
@@ -40,6 +47,7 @@ function FloatingMenu({
   align = 'left',
   matchAnchorWidth = false,
   offset = 8,
+  maxHeight,
   menuRef,
   role,
   ariaLabel,
@@ -61,6 +69,7 @@ function FloatingMenu({
           align,
           matchAnchorWidth,
           offset,
+          maxHeight,
         })
       )
     }
@@ -74,7 +83,7 @@ function FloatingMenu({
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [align, anchorRef, matchAnchorWidth, offset])
+  }, [align, anchorRef, matchAnchorWidth, offset, maxHeight])
 
   if (!style) {
     return null

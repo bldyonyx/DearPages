@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import '../i18n/index.js'
 import '../index.css'
 import BookNotesView from '../components/books/BookNotesView.jsx'
+import BookRatingsView from '../components/books/BookRatingsView.jsx'
+import BookDetails from '../components/books/BookDetails.jsx'
+import RemoveBookModal from '../components/books/RemoveBookModal.jsx'
+import usePreviewRatings from './usePreviewRatings.js'
 import { compareBookNotes } from '../utils/bookNotesOrder.js'
 import { todayCivilDate } from '../utils/civilDateUtils.js'
 
@@ -20,7 +23,12 @@ export default function BookNotesPreview() {
   const [notes, setNotes] = useState(examples)
   const [errors, setErrors] = useState({})
   const [fail, setFail] = useState(false)
-  const [rating, setRating] = useState(3)
+  const ratingsModel = usePreviewRatings(fail)
+  const [readingStatus, setReadingStatus] = useState('finished')
+  const [inLibrary, setInLibrary] = useState(true)
+  const [removing, setRemoving] = useState(false)
+  const [abandonedAt, setAbandonedAt] = useState(() => new Date(2026, 2, 1, 12).getTime())
+  const [finishedAt, setFinishedAt] = useState(() => new Date(2024, 5, 1, 12).getTime())
   const [processed, setProcessed] = useState({})
   const [conversionStatus, setConversionStatus] = useState('')
   const review = '<p>Une lecture pleine de tendresse.</p>'
@@ -52,8 +60,11 @@ export default function BookNotesPreview() {
     },
     reload: async () => { if (scenario === 'error') setScenario('empty') },
   }
+  const previewBook = { id: 'preview-book', title: 'Le Petit Prince', authors: ['Antoine de Saint-Exupéry'], categories: [], cover: null }
+  const previewLibraryBook = inLibrary ? { ...previewBook, status: readingStatus, finishedAt, abandonedAt } : null
+  const statusOptions = ['to-read', 'reading', 'finished', 'abandoned'].map(value => ({ value, labelKey: `status.${value}` }))
   return (
-    <main className="min-h-screen bg-cream px-4 py-8 sm:px-8">
+    <main data-book-notes-preview className="min-h-screen bg-cream px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-4xl">
         <aside aria-label="Commandes de l’aperçu" className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-walnut/15 bg-mintcream/35 p-4 font-ui text-xs text-walnut">
           <p>Aperçu local · données fictives · aucune connexion Firebase</p>
@@ -64,20 +75,22 @@ export default function BookNotesPreview() {
             {Object.entries(scenarios).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select></label>
           <label><input type="checkbox" checked={fail} onChange={(event) => setFail(event.target.checked)} /> Simuler un échec</label>
+          <label><input type="checkbox" checked={ratingsModel.historical} onChange={event => ratingsModel.setHistorical(event.target.checked)} /> Ancienne évaluation à convertir</label>
           <label>Langue <select value={i18n.resolvedLanguage} onChange={(event) => i18n.changeLanguage(event.target.value)} className="rounded-lg border border-walnut/20 bg-cream p-2"><option value="fr">FR</option><option value="en">EN</option></select></label>
         </aside>
-        <p className="font-handwritten text-xl text-olive">Dear Pages</p>
-        <h1 className="font-heading text-4xl font-bold text-darkwood">Le Petit Prince</h1>
-        <p className="mt-2 font-ui text-sm text-walnut">Antoine de Saint-Exupéry</p>
-        <section className="mt-10">
+        <header aria-label="Informations du livre">
+          <BookDetails book={previewBook} libraryBook={previewLibraryBook} statusOptions={statusOptions}
+            onStatusChange={status => { setReadingStatus(status); setInLibrary(true) }} onAddToLibrary={() => { setReadingStatus('to-read'); setInLibrary(true) }}
+            onRemoveFromLibrary={() => setRemoving(true)}
+            onReadingDateChange={async value => { if (readingStatus === 'finished') setFinishedAt(value); else setAbandonedAt(value) }} />
+        </header>
+        <RemoveBookModal isOpen={removing} isRemoving={false} onCancel={() => setRemoving(false)} onConfirm={() => { setInLibrary(false); setRemoving(false) }} />
+        <section aria-label="Mon espace de lecture" className="mt-10">
           <p className="font-handwritten text-lg text-olive">entre toi et les pages ♡</p>
           <h2 className="mb-5 font-heading text-3xl font-bold text-darkwood">Mon espace</h2>
           <div className="rounded-3xl border border-darkwood/10 bg-cream/80 p-6 shadow-[0_8px_30px_rgba(83,55,76,0.07)] sm:p-7">
-            <div className="mb-8">
-              <h3 className="font-heading text-2xl font-bold text-darkwood">{t('bookPage.personal.ratingTitle')}</h3>
-              <div className="mt-3 flex gap-1">{[1, 2, 3, 4, 5].map((star) => <button key={star} type="button" aria-label={`${star} étoiles`} onClick={() => setRating(star)} className={star <= rating ? 'text-dustyrose' : 'text-walnut/35'}><Star size={30} fill={star <= rating ? 'currentColor' : 'none'} strokeWidth={1.6} /></button>)}</div>
-            </div>
-            <BookNotesView key={scenario} model={model} historicalReview={review} />
+            {inLibrary && readingStatus === 'finished' && <div className="mb-8"><BookRatingsView model={ratingsModel} /></div>}
+            {inLibrary ? <BookNotesView key={scenario} model={model} historicalReview={review} /> : <p className="font-ui text-sm text-walnut">{t('bookPage.personal.locked')}</p>}
           </div>
         </section>
       </div>

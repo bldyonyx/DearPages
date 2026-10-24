@@ -1,6 +1,7 @@
 function Button({
   children,
   variant = 'primary',
+  size = 'default',
   className = '',
   ...props
 }) {
@@ -8,6 +9,8 @@ function Button({
     primary:
         'bg-darkwood text-cream enabled:hover:bg-walnut',
 
+    ghost:
+        'bg-transparent text-walnut/65 enabled:hover:bg-mintcream/60 enabled:hover:text-darkwood',
     secondary:
         'bg-cream text-darkwood border border-walnut/20 enabled:hover:border-walnut/40',
     }
@@ -16,7 +19,7 @@ function Button({
     <button
     className={`
         rounded-lg
-        px-4 py-2
+        ${size === 'icon' ? 'size-11 shrink-0 p-0' : size === 'compact' ? 'min-h-11 px-2 py-1' : 'px-4 py-2'}
         font-ui
         text-sm
         transition-colors duration-200 ease-out

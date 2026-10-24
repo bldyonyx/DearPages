@@ -1,7 +1,8 @@
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import Button from '../ui/Button.jsx'
+import IconButton from '../ui/IconButton.jsx'
 import Modal from '../ui/Modal.jsx'
 import BookNoteCard from './BookNoteCard.jsx'
 import BookNoteForm from './BookNoteForm.jsx'
@@ -67,8 +68,8 @@ export default function BookNotesView({ model, historicalReview }) {
         </div>
       </Modal>
       {enabled && loaded && !loadError && <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-        <p className="font-ui text-xs leading-5 text-walnut/60">{t('bookPage.notes.draftHint')}</p>
-        <Button type="button" variant="secondary" onClick={model.reload} disabled={loading || Object.values(pending).some(Boolean)}>{t('bookPage.notes.refresh')}</Button>
+        <p className="min-w-0 flex-1 font-ui text-xs leading-5 text-walnut/60">{t('bookPage.notes.draftHint')}</p>
+        <IconButton label={t('bookPage.notes.refreshLabel')} hint={t('bookPage.notes.refreshHint')} onClick={model.reload} disabled={loading || Object.values(pending).some(Boolean)}><RefreshCw size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
       </div>}
     </section>
   )

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { GOOGLE_COVER_PAGE_WIDTH } from '../../services/books/coverUtils.js'
 import BookCover from './BookCover.jsx'
 import BookStatusSelect from './BookStatusSelect.jsx'
+import BookReadingDate from './BookReadingDate.jsx'
 import { bookLarge } from './bookResponsive.js'
 
 const CATEGORY_LABEL_KEYS = {
@@ -124,6 +125,9 @@ function BookDetails({
   isLibraryLoading = false,
   isSaving,
   libraryError,
+  isReadingDateSaving = false,
+  readingDateMessage = '',
+  onReadingDateChange,
   statusOptions,
   onAddToLibrary,
   onStatusChange,
@@ -346,7 +350,7 @@ function BookDetails({
                       flex w-full max-w-xl
                       flex-col gap-3
                       xl:flex-row
-                      xl:items-center
+                      xl:items-start
                       ${bookLarge.libraryControls}
                     `}
                   >
@@ -357,6 +361,8 @@ function BookDetails({
                         disabled={isLibraryActionDisabled}
                         onChange={onStatusChange}
                       />
+                      <BookReadingDate libraryBook={libraryBook} disabled={isLibraryActionDisabled} isSaving={isReadingDateSaving} onSave={onReadingDateChange} />
+                      {readingDateMessage && <p role="status" className="mt-2 font-ui text-xs text-forest">{readingDateMessage}</p>}
                     </div>
 
                     <button

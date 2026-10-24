@@ -92,6 +92,9 @@ function BookPage() {
     setLibraryBook,
     isLibraryLoading,
     isSaving,
+    isReadingDateSaving,
+    readingDateMessage,
+    handleReadingDateChange,
     isRemoveModalOpen,
     libraryError,
     handleAddToLibrary,
@@ -148,6 +151,9 @@ function BookPage() {
               shouldAnimate={false}
               isLibraryLoading={isLibraryLoading}
               isSaving={isSaving}
+              isReadingDateSaving={isReadingDateSaving}
+              readingDateMessage={readingDateMessage}
+              onReadingDateChange={handleReadingDateChange}
               libraryError={libraryError}
               statusOptions={STATUS_OPTIONS}
               onAddToLibrary={handleAddToLibrary}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -7,6 +7,8 @@ import {
   getLibraryBook,
   removeBookFromLibrary,
   updateBookStatus,
+  updateBookFinishedAt,
+  updateBookAbandonedAt,
 } from '../services/libraryService.js'
 import {
   getBookRouteId,
@@ -21,6 +23,15 @@ export function useBookLibraryState({
   userId,
 }) {
   const { t } = useTranslation()
+  const dateScope = useMemo(() => ({ bookId, routeKey, userId }), [bookId, routeKey, userId])
+  const dateControl = useRef(null)
+  const [dateState, setDateState] = useState(() => ({ scope: dateScope, saving: false, message: '' }))
+  const isReadingDateSaving = dateState.scope === dateScope && dateState.saving
+  useEffect(() => {
+    const control = { scope: dateScope, active: true, locked: false }
+    dateControl.current = control
+    return () => { control.active = false }
+  }, [dateScope])
   const optimisticLibraryBook = useMemo(
     () => getRouteStateLibraryBook(routeState, bookId),
     [bookId, routeState]
@@ -147,8 +158,35 @@ export function useBookLibraryState({
     })
   }
 
+  async function handleReadingDateChange(value) {
+    const control = dateControl.current
+    const status = libraryBook?.status
+    if (!userId || !book || !libraryBook || isLibraryLoading || isSaving || !control?.active ||
+        control.scope !== dateScope || control.locked || ![BOOK_STATUSES.FINISHED, BOOK_STATUSES.ABANDONED].includes(status)) return false
+    control.locked = true
+    setDateState({ scope: dateScope, status, saving: true, message: '' })
+    setLibraryError('')
+    const finished = status === BOOK_STATUSES.FINISHED
+    const field = finished ? 'finishedAt' : 'abandonedAt'
+    try {
+      await (finished ? updateBookFinishedAt : updateBookAbandonedAt)(userId, currentBookId, value)
+      if (!control.active) return false
+      setLibraryBook(current => current && current.status === status ? { ...current, [field]: value, updatedAt: Date.now() } : current)
+      setDateState({ scope: dateScope, status, saving: true, message: t(value
+        ? (finished ? 'bookPage.personal.readingDateSaved' : 'bookPage.personal.abandonedDateSaved')
+        : (finished ? 'bookPage.personal.readingDateRemoved' : 'bookPage.personal.abandonedDateRemoved')) })
+      return true
+    } catch {
+      if (control.active) setLibraryError(t(finished ? 'bookPage.personal.readingDateError' : 'bookPage.personal.abandonedDateError'))
+      return false
+    } finally {
+      control.locked = false
+      if (control.active) setDateState(current => current.scope === dateScope ? { ...current, saving: false } : current)
+    }
+  }
+
   async function handleAddToLibrary() {
-    if (!userId || !book) {
+    if (!userId || !book || dateControl.current?.locked) {
       return
     }
 
@@ -180,7 +218,7 @@ export function useBookLibraryState({
   }
 
   async function handleStatusChange(newStatus) {
-    if (!userId || !book || !newStatus) {
+    if (!userId || !book || !newStatus || dateControl.current?.locked) {
       return
     }
 
@@ -223,12 +261,13 @@ export function useBookLibraryState({
   }
 
   function handleOpenRemoveModal() {
+    if (isSaving || dateControl.current?.locked) return
     setLibraryError('')
     setRemoveModalBookId(bookId)
   }
 
   function handleCloseRemoveModal() {
-    if (isSaving) {
+    if (isSaving || dateControl.current?.locked) {
       return
     }
 
@@ -236,7 +275,7 @@ export function useBookLibraryState({
   }
 
   async function handleConfirmRemove() {
-    if (!userId || !book || !libraryBook) {
+    if (!userId || !book || !libraryBook || dateControl.current?.locked) {
       return
     }
 
@@ -265,7 +304,10 @@ export function useBookLibraryState({
     libraryBook,
     setLibraryBook,
     isLibraryLoading,
-    isSaving,
+    isSaving: isSaving || isReadingDateSaving,
+    isReadingDateSaving,
+    readingDateMessage: dateState.scope === dateScope && dateState.status === libraryBook?.status ? dateState.message : '',
+    handleReadingDateChange,
     isRemoveModalOpen,
     libraryError,
     handleAddToLibrary,

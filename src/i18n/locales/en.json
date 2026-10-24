@@ -431,7 +431,42 @@
       "abandonedTitle": "Abandoned reading",
       "ratingSaveError": "We couldn’t save your rating."
     },
+    "ratings": {
+      "impression": "Short impression (optional)",
+      "impressionHint": "{{count}}/160",
+
+      "addShort": "Add",
+      "delete": "Delete rating",
+      "refresh": "Refresh ratings",
+      "refreshHint": "Get rating changes from another device. This does not save your draft.",
+
+      "legacyValue": "Original rating: {{value}}/5",
+      "add": "Add a rating",
+      "edit": "Edit rating",
+      "value": "Rating value",
+      "date": "Rating date",
+      "entry": "Rating",
+      "history": "View my previous ratings ({{count}})",
+      "hideHistory": "Hide my previous ratings ({{count}})",
+      "loading": "Loading ratings…",
+      "loadError": "Couldn’t load your ratings. Refresh to try again.",
+      "empty": "No ratings yet.",
+      "saveError": "Couldn’t save. Your draft is kept; refresh or try again.",
+      "conflict": "This rating, book or source has changed. Refresh before trying again; your draft is kept.",
+      "invalid": "Check the stars, date and impression (160 characters maximum).",
+      "legacy": "Original rating kept with the book, with no known date. You can copy it into this history.",
+      "legacyConflict": "The original rating is invalid or its destination is occupied. Conversion is unavailable.",
+      "convert": "Convert original rating",
+      "convertBody": "Copy this rating with an unknown date? The original value, reading date and written notes will stay intact. This conversion happens only once.",
+      "converted": "Conversion saved. The original value is kept.",
+      "convertedRefresh": "Conversion saved. Refresh to display the copy; deleted copies will not be recreated.",
+      "deleteTitle": "Delete this rating?",
+      "deleteBody": "Other ratings, the reading date and written notes will be kept."
+    },
     "notes": {
+      "refreshLabel": "Refresh notes",
+      "refreshHint": "Get note changes from another device. Drafts stay on this page.",
+
       "pin": "Pin note",
       "unpin": "Unpin note",
       "pinError": "Couldn’t update the pin. Please try again.",
@@ -483,6 +518,9 @@
       "convertedAbsent": "This source has already been processed. Its copy is absent and will not be recreated."
     },
     "date": {
+      "addReading": "Add date · {{title}}",
+      "editReading": "Edit date · {{title}}",
+
       "unknown": "Unknown date",
       "forgot": "I don't remember",
       "saving": "Saving the date..."

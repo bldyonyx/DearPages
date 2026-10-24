@@ -7,13 +7,11 @@ import { getUserCollections } from '../../services/collectionsService.js'
 
 import {
   BOOK_STATUSES,
-  updateBookAbandonedAt,
-  updateBookFinishedAt,
   updateBookRating,
 } from '../../services/libraryService.js'
 
-import BookFinalStatusDate from './BookFinalStatusDate.jsx'
 import BookNotesSection from './BookNotesSection.jsx'
+import BookRatingsSection from './BookRatingsSection.jsx'
 import { bookLarge } from './bookResponsive.js'
 
 function BookPersonalSpace({
@@ -27,7 +25,6 @@ function BookPersonalSpace({
   const [rating, setRating] = useState(libraryBook?.rating || 0)
 
   const [isSaving, setIsSaving] = useState(false)
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [collectionCount, setCollectionCount] = useState(0)
 
@@ -77,7 +74,6 @@ function BookPersonalSpace({
 
   async function handleRatingChange(newRating) {
     setIsSaving(true)
-    setMessage('')
     setError('')
 
     try {
@@ -98,80 +94,8 @@ function BookPersonalSpace({
     }
   }
 
-  async function handleFinishedDateChange(finishedAt) {
-    setIsSaving(true)
-    setMessage('')
-    setError('')
-
-    try {
-      await updateBookFinishedAt(
-        userId,
-        bookId,
-        finishedAt
-      )
-
-      onLibraryBookChange((currentBook) => currentBook && ({
-        ...currentBook,
-        finishedAt,
-        updatedAt: Date.now(),
-      }))
-
-      setMessage(
-        finishedAt
-          ? t('bookPage.personal.readingDateSaved')
-          : t('bookPage.personal.readingDateRemoved')
-      )
-    } catch (firebaseError) {
-      console.error(firebaseError)
-      setError(t('bookPage.personal.readingDateError'))
-
-      throw firebaseError
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  async function handleAbandonedDateChange(abandonedAt) {
-    setIsSaving(true)
-    setMessage('')
-    setError('')
-
-    try {
-      await updateBookAbandonedAt(
-        userId,
-        bookId,
-        abandonedAt
-      )
-
-      onLibraryBookChange((currentBook) => currentBook && ({
-        ...currentBook,
-        abandonedAt,
-        updatedAt: Date.now(),
-      }))
-
-      setMessage(
-        abandonedAt
-          ? t('bookPage.personal.abandonedDateSaved')
-          : t('bookPage.personal.abandonedDateRemoved')
-      )
-    } catch (firebaseError) {
-      console.error(firebaseError)
-      setError(t('bookPage.personal.abandonedDateError'))
-
-      throw firebaseError
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   const showsRating =
     status === BOOK_STATUSES.FINISHED
-
-  const showsFinishedDate =
-    status === BOOK_STATUSES.FINISHED
-
-  const showsAbandonedDate =
-    status === BOOK_STATUSES.ABANDONED
 
   return (
     <section
@@ -286,7 +210,7 @@ function BookPersonalSpace({
         </div>
 
         {showsRating && (
-          <div>
+          <BookRatingsSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} legacyControl={<div>
             <h3
               className={`
                 font-heading text-2xl font-bold text-darkwood
@@ -336,30 +260,9 @@ function BookPersonalSpace({
                 )
               })}
             </div>
-          </div>
+          </div>} />
         )}
 
-        {showsFinishedDate && (
-          <BookFinalStatusDate
-            title={t('bookPage.personal.finishedTitle')}
-            value={libraryBook?.finishedAt}
-            disabled={isSaving}
-            isSaving={isSaving}
-            onSave={handleFinishedDateChange}
-          />
-        )}
-
-        {showsAbandonedDate && (
-          <BookFinalStatusDate
-            title={t('bookPage.personal.abandonedTitle')}
-            value={libraryBook?.abandonedAt}
-            disabled={isSaving}
-            isSaving={isSaving}
-            onSave={handleAbandonedDateChange}
-          />
-        )}
-
-        {message && <p role="status" className="mt-4 font-handwritten text-lg text-forest">{message}</p>}
         {error && <p role="alert" className="mt-4 font-ui text-sm text-red-700">{error}</p>}
 
         <div className="mt-8">

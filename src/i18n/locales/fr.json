@@ -431,7 +431,42 @@
       "abandonedTitle": "Lecture abandonnée",
       "ratingSaveError": "Impossible d’enregistrer ton évaluation."
     },
+    "ratings": {
+      "impression": "Petite phrase (facultative)",
+      "impressionHint": "{{count}}/160",
+
+      "addShort": "Ajouter",
+      "delete": "Supprimer l’évaluation",
+      "refresh": "Actualiser les évaluations",
+      "refreshHint": "Récupérer les évaluations enregistrées sur un autre appareil, sans enregistrer le brouillon ouvert.",
+
+      "legacyValue": "Ancienne évaluation : {{value}}/5",
+      "add": "Ajouter une évaluation",
+      "edit": "Modifier l’évaluation",
+      "value": "Valeur de l’évaluation",
+      "date": "Date de l’évaluation",
+      "entry": "Évaluation",
+      "history": "Voir mes anciennes évaluations ({{count}})",
+      "hideHistory": "Masquer mes anciennes évaluations ({{count}})",
+      "loading": "Chargement des évaluations…",
+      "loadError": "Impossible de charger tes évaluations. Actualise pour réessayer.",
+      "empty": "Pas encore d’évaluation.",
+      "saveError": "Impossible d’enregistrer. Ton brouillon est conservé ; actualise ou réessaie.",
+      "conflict": "Cette évaluation, le livre ou la source a changé. Actualise avant de réessayer ; ton brouillon est conservé.",
+      "invalid": "Vérifie les étoiles, la date et la phrase (160 caractères maximum).",
+      "legacy": "Ancienne évaluation conservée dans le livre, sans date connue. Tu peux en créer une copie dans cet historique.",
+      "legacyConflict": "L’ancienne évaluation est invalide ou sa destination est occupée. Aucune conversion possible.",
+      "convert": "Convertir l’ancienne évaluation",
+      "convertBody": "Créer une copie de cette évaluation avec une date inconnue ? La valeur historique, la date de lecture et les notes écrites resteront intactes. Cette conversion ne sera effectuée qu’une fois.",
+      "converted": "Conversion enregistrée. La source historique est conservée.",
+      "convertedRefresh": "Conversion enregistrée. Actualise pour afficher la copie ; elle ne sera pas recréée si elle a été supprimée.",
+      "deleteTitle": "Supprimer cette évaluation ?",
+      "deleteBody": "Les autres évaluations, la date de lecture et les notes écrites seront conservées."
+    },
     "notes": {
+      "refreshLabel": "Actualiser les notes",
+      "refreshHint": "Récupérer les notes enregistrées sur un autre appareil, sans enregistrer le brouillon ouvert.",
+
       "pin": "Épingler la note",
       "unpin": "Désépingler la note",
       "pinError": "Impossible de modifier l’épinglage. Réessaie.",
@@ -483,6 +518,9 @@
       "convertedAbsent": "Cette source a déjà été traitée. Sa copie est absente ; elle ne sera pas recréée."
     },
     "date": {
+      "addReading": "Ajouter la date · {{title}}",
+      "editReading": "Modifier la date · {{title}}",
+
       "unknown": "Date inconnue",
       "forgot": "Je ne sais plus",
       "saving": "Enregistrement de la date..."
