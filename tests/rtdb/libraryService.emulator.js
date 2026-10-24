@@ -44,7 +44,10 @@ afterAll(async () => {
   for (const client of clients) {
     goOnline(client.database)
   }
-  if (clients[1] && uid) await set(ref(clients[1].database, `users/${uid}`), null)
+  if (clients[1] && uid) {
+    await set(ref(clients[1].database, `users/${uid}/library`), null)
+    await set(ref(clients[1].database, `users/${uid}/collections`), null)
+  }
   for (const client of clients) {
     goOffline(client.database)
     await deleteApp(client.app)

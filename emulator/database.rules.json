@@ -2,8 +2,37 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+        "bookNotes": {
+          "$bookId": {
+            ".read": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('library').child($bookId).exists()",
+            "$noteId": {
+              ".write": "auth != null && auth.uid === $uid && $uid.length > 0 && $uid.length <= 128 && !$uid.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $bookId.length > 0 && $bookId.length <= 128 && !$bookId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $noteId.length > 0 && $noteId.length <= 128 && !$noteId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && root.child('users').child($uid).child('library').child($bookId).exists() && newData.parent().parent().parent().child('library').child($bookId).exists() && (data.exists() || newData.exists())",
+              ".validate": "newData.hasChildren(['title', 'contentHtml', 'date', 'createdAt', 'updatedAt']) && newData.getPriority() === null && newData.child('updatedAt').val() === now",
+              "title": {
+                ".validate": "newData.isString() && newData.val().length <= 200 && !newData.val().matches(/[\u0000-\u001f\u007f<>]/)"
+              },
+              "contentHtml": {
+                ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/)"
+              },
+              "date": {
+                ".validate": "newData.isString() && !newData.val().beginsWith('0000') && newData.val().matches(/^([0-9]{4}-((01|03|05|07|08|10|12)-(0[1-9]|[12][0-9]|3[01])|(04|06|09|11)-(0[1-9]|[12][0-9]|30)|02-(0[1-9]|1[0-9]|2[0-8]))|([0-9]{2}(0[48]|[2468][048]|[13579][26])|(0[48]|[2468][048]|[13579][26])00)-02-29)$/)"
+              },
+              "createdAt": {
+                ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || (data.exists() && newData.val() === data.val()))"
+              },
+              "updatedAt": {
+                ".validate": "newData.isNumber() && newData.val() === now && newData.val() >= newData.parent().child('createdAt').val()"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        },
+        "$other": {
+          ".read": "auth != null && auth.uid === $uid && $other !== 'bookNotes'",
+          ".write": "auth != null && auth.uid === $uid && $other !== 'bookNotes'"
+        }
       }
     }
   }
