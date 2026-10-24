@@ -5,6 +5,7 @@ import { getDatabase, connectDatabaseEmulator, ref, set, get, goOffline } from '
 import { emulator, emulatorEnv } from '../src/config/firebaseEmulator.js'
 import { assertEmulatorProject, assertEmulatorsReady } from './emulatorSafety.mjs'
 import { createServer } from 'vite'
+import { spawn } from 'node:child_process'
 
 await assertEmulatorProject()
 await assertEmulatorsReady()
@@ -53,6 +54,13 @@ try {
   goOffline(database)
   await deleteApp(app)
 }
+await new Promise((resolve, reject) => {
+  const child = spawn(process.execPath, ['node_modules/vitest/vitest.mjs', 'run', '--config', 'vitest.rtdb.config.js'], {
+    stdio: 'inherit', env: { ...process.env, CI: 'true' },
+  })
+  child.once('error', reject)
+  child.once('exit', (code) => code === 0 ? resolve() : reject(new Error(`RTDB tests failed: ${code}`)))
+})
 // SDK background retry timers can outlive deleteApp in Node. All checks and cleanup
 // above are awaited; explicitly finish so emulators:exec can stop its processes.
 process.exit(0)

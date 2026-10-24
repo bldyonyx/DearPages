@@ -44,14 +44,15 @@ function BookPersonalSpace({
 
   useEffect(() => {
     setNote(libraryBook?.note || '')
+  }, [libraryBook?.note, bookId, userId])
+
+  useEffect(() => {
     setReview(libraryBook?.review || '')
+  }, [libraryBook?.review, bookId, userId])
+
+  useEffect(() => {
     setRating(libraryBook?.rating || 0)
-  }, [
-    libraryBook?.note,
-    libraryBook?.review,
-    libraryBook?.rating,
-    bookId,
-  ])
+  }, [libraryBook?.rating, bookId, userId])
 
   useEffect(() => {
     let isActive = true
@@ -94,7 +95,7 @@ function BookPersonalSpace({
     try {
       await updateBookNote(userId, bookId, note)
 
-      onLibraryBookChange((currentBook) => ({
+      onLibraryBookChange((currentBook) => currentBook && ({
         ...currentBook,
         note,
         updatedAt: Date.now(),
@@ -117,7 +118,7 @@ function BookPersonalSpace({
     try {
       await updateBookReview(userId, bookId, review)
 
-      onLibraryBookChange((currentBook) => ({
+      onLibraryBookChange((currentBook) => currentBook && ({
         ...currentBook,
         review,
         updatedAt: Date.now(),
@@ -142,7 +143,7 @@ function BookPersonalSpace({
 
       setRating(newRating)
 
-      onLibraryBookChange((currentBook) => ({
+      onLibraryBookChange((currentBook) => currentBook && ({
         ...currentBook,
         rating: newRating,
         updatedAt: Date.now(),
@@ -167,7 +168,7 @@ function BookPersonalSpace({
         finishedAt
       )
 
-      onLibraryBookChange((currentBook) => ({
+      onLibraryBookChange((currentBook) => currentBook && ({
         ...currentBook,
         finishedAt,
         updatedAt: Date.now(),
@@ -200,7 +201,7 @@ function BookPersonalSpace({
         abandonedAt
       )
 
-      onLibraryBookChange((currentBook) => ({
+      onLibraryBookChange((currentBook) => currentBook && ({
         ...currentBook,
         abandonedAt,
         updatedAt: Date.now(),

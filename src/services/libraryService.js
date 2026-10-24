@@ -1,7 +1,7 @@
 import {
   get,
   ref,
-  set,
+  runTransaction,
   update,
 } from 'firebase/database'
 
@@ -80,7 +80,35 @@ export async function addBookToLibrary(
     `users/${userId}/library/${bookId}`
   )
 
-  await set(bookRef, createLibraryBook(book, status))
+  const newBook = createLibraryBook(book, status)
+  await runTransaction(bookRef, (storedBook) => {
+    // Abort an existing entry, including after a concurrent creation retry.
+    if (storedBook !== null) return undefined
+    return newBook
+  }, { applyLocally: false })
+}
+
+/**
+ * Patches an existing book using the latest server state on every retry.
+ * Returning null for an empty local cache lets RTDB compare with the server
+ * and retry for a cold-cache book. A confirmed missing book remains absent.
+ * An initial get() followed by update() would leave a deletion race.
+ */
+async function patchExistingBook(bookRef, makePatch) {
+  let patch
+  const result = await runTransaction(bookRef, (storedBook) => {
+    patch = null
+    if (storedBook === null) return null
+    patch = makePatch(storedBook)
+    return patch ? { ...storedBook, ...patch } : undefined
+  }, { applyLocally: false })
+
+  if (!result.snapshot.exists()) {
+    const error = new Error('Book no longer exists in the library.')
+    error.code = 'library/book-not-found'
+    throw error
+  }
+  return patch
 }
 
 /**
@@ -170,39 +198,34 @@ export async function updateBookStatus(
     `users/${userId}/library/${bookId}`
   )
 
-  const snapshot = await get(bookRef)
-  const storedBook = snapshot.exists()
-    ? snapshot.val()
-    : null
+  return patchExistingBook(bookRef, (storedBook) => {
+    if (storedBook?.status === status) {
+      return null
+    }
 
-  if (storedBook?.status === status) {
-    return null
-  }
+    const updatedBook = {
+      status,
+      updatedAt: Date.now(),
+    }
 
-  const updatedBook = {
-    status,
-    updatedAt: Date.now(),
-  }
+    if (status === BOOK_STATUSES.FINISHED) {
+      updatedBook.finishedAt = Date.now()
+    } else if (
+      storedBook?.status === BOOK_STATUSES.FINISHED
+    ) {
+      updatedBook.finishedAt = null
+    }
 
-  if (status === BOOK_STATUSES.FINISHED) {
-    updatedBook.finishedAt = Date.now()
-  } else if (
-    storedBook?.status === BOOK_STATUSES.FINISHED
-  ) {
-    updatedBook.finishedAt = null
-  }
+    if (status === BOOK_STATUSES.ABANDONED) {
+      updatedBook.abandonedAt = Date.now()
+    } else if (
+      storedBook?.status === BOOK_STATUSES.ABANDONED
+    ) {
+      updatedBook.abandonedAt = null
+    }
 
-  if (status === BOOK_STATUSES.ABANDONED) {
-    updatedBook.abandonedAt = Date.now()
-  } else if (
-    storedBook?.status === BOOK_STATUSES.ABANDONED
-  ) {
-    updatedBook.abandonedAt = null
-  }
-
-  await update(bookRef, updatedBook)
-
-  return updatedBook
+    return updatedBook
+  })
 }
 
 /**
@@ -232,10 +255,10 @@ export async function updateBookFinishedAt(
     `users/${userId}/library/${bookId}`
   )
 
-  await update(bookRef, {
+  await patchExistingBook(bookRef, () => ({
     finishedAt: finishedAt ?? null,
     updatedAt: Date.now(),
-  })
+  }))
 }
 
 /**
@@ -265,10 +288,10 @@ export async function updateBookAbandonedAt(
     `users/${userId}/library/${bookId}`
   )
 
-  await update(bookRef, {
+  await patchExistingBook(bookRef, () => ({
     abandonedAt: abandonedAt ?? null,
     updatedAt: Date.now(),
-  })
+  }))
 }
 
 /**
@@ -348,10 +371,11 @@ export async function updateBookNote(
     `users/${userId}/library/${bookId}`
   )
 
-  await update(bookRef, {
-    note: sanitizeNoteHtml(note),
+  const sanitizedNote = sanitizeNoteHtml(note)
+  await patchExistingBook(bookRef, () => ({
+    note: sanitizedNote,
     updatedAt: Date.now(),
-  })
+  }))
 }
 
 /**
@@ -380,10 +404,11 @@ export async function updateBookReview(
     `users/${userId}/library/${bookId}`
   )
 
-  await update(bookRef, {
-    review: sanitizeNoteHtml(review),
+  const sanitizedReview = sanitizeNoteHtml(review)
+  await patchExistingBook(bookRef, () => ({
+    review: sanitizedReview,
     updatedAt: Date.now(),
-  })
+  }))
 }
 
 /**
@@ -405,7 +430,7 @@ export async function updateBookRating(
     )
   }
 
-  if (rating < 1 || rating > 5) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     throw new Error(
       'Rating must be between 1 and 5.'
     )
@@ -416,8 +441,8 @@ export async function updateBookRating(
     `users/${userId}/library/${bookId}`
   )
 
-  await update(bookRef, {
+  await patchExistingBook(bookRef, () => ({
     rating,
     updatedAt: Date.now(),
-  })
+  }))
 }
