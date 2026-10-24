@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "emulators:start": "node scripts/startEmulators.mjs",
+    "dev:emulator": "vite --mode emulator",
+    "test:emulator": "vitest run src/test/firebaseEmulator.test.js",
+    "test:emulator:deploy-guard": "node --test scripts/testEmulatorDeployGuard.mjs",
+    "test:emulator:integration": "node scripts/startEmulators.mjs --test",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",

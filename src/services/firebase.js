@@ -1,6 +1,20 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getDatabase } from 'firebase/database'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { getDatabase, connectDatabaseEmulator } from 'firebase/database'
+import { emulator, validateEmulatorEnv } from '../config/firebaseEmulator.js'
+
+const isolated = validateEmulatorEnv(import.meta.env, import.meta.env.MODE, import.meta.env.PROD)
+if (isolated) {
+  if (globalThis.location?.origin !== `http://${emulator.host}:${emulator.vite}`) {
+    throw new Error('Firebase emulator requires the dedicated local Vite origin')
+  }
+  const health = await fetch('/__emulator_health', {
+    cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(3000),
+  })
+  if (!health.ok || (await health.json()).projectId !== emulator.projectId) {
+    throw new Error('Local Firebase emulators unavailable; refusing Firebase initialization')
+  }
+}
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -24,6 +38,7 @@ const app = initializeApp(firebaseConfig)
  * such as Google.
  */
 export const auth = getAuth(app)
+if (isolated) connectAuthEmulator(auth, `http://${emulator.host}:${emulator.auth}`)
 
 /**
  * Firebase Realtime Database instance.
@@ -32,5 +47,6 @@ export const auth = getAuth(app)
  * preferences and reviews.
  */
 export const database = getDatabase(app)
+if (isolated) connectDatabaseEmulator(database, emulator.host, emulator.database)
 
 export default app

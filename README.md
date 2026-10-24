@@ -139,6 +139,11 @@ own little reading space every time you come back.
 
 ---
 
+## Local Firebase development
+
+See [the isolated Firebase Emulator setup](emulator/README.md) for PowerShell commands,
+isolation checks, tests, and limitations.
+
 <p align="center">
   made with ♡ one book at a time
   <br>
