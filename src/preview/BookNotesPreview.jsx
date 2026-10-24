@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import '../i18n/index.js'
 import '../index.css'
 import BookNotesView from '../components/books/BookNotesView.jsx'
+import { compareBookNotes } from '../utils/bookNotesOrder.js'
 import { todayCivilDate } from '../utils/civilDateUtils.js'
 
 // This entry imports the pure view only. No Firebase SDK, service or auth provider.
@@ -26,9 +27,9 @@ export default function BookNotesPreview() {
   const legacy = processed.note ? { status: 'processed' } : scenario === 'historical' ? { status: 'unprocessed', contentHtml: '<p><b>Ma toute première pensée sur ce livre.</b></p><p>Cette note est conservée en lecture seule.</p>', sourceVersion: 'a'.repeat(64) }
     : { status: scenario === 'deleted' ? 'processed' : scenario === 'invalid' ? 'invalid' : scenario === 'conflict' ? 'conflict' : 'empty' }
   const legacyReview = processed.review ? { status: 'processed' } : { status: 'unprocessed', contentHtml: review, sourceVersion: 'b'.repeat(64) }
-  const perform = (key, next) => {
-    if (fail) { setErrors((current) => ({ ...current, [key]: key === 'delete' ? 'deleteError' : 'saveError' })); return false }
-    setErrors({}); setNotes([...next].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id))); return true
+  const perform = (key, next, error = 'saveError') => {
+    if (fail) { setErrors((current) => ({ ...current, [key]: error })); return false }
+    setErrors({}); setNotes([...next].sort(compareBookNotes)); return true
   }
   const model = {
     enabled: true, loaded: scenario !== 'loading' && scenario !== 'error', loading: scenario === 'loading', loadError: scenario === 'error',
@@ -38,11 +39,12 @@ export default function BookNotesPreview() {
       if (processed[kind]) return true
       const id = kind === 'note' ? 'legacy-note-v1' : 'legacy-review-v1'
       const source = kind === 'note' ? legacy : legacyReview
-      setNotes((current) => [...current.filter((note) => note.id !== id), { id, title: options.title || '', date: todayCivilDate(), contentHtml: source.contentHtml }].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id)))
+      setNotes((current) => [...current.filter((note) => note.id !== id), { id, title: options.title || '', date: todayCivilDate(), contentHtml: source.contentHtml }].sort(compareBookNotes))
       setProcessed((current) => ({ ...current, [kind]: true }))
       setConversionStatus('converted'); setErrors({}); return true
     },
     create: async (input) => perform('new', [...notes, { ...input, id: crypto.randomUUID() }]),
+    pin: async (id, isPinned) => perform(id, notes.map((note) => note.id === id ? { ...note, isPinned } : note), 'pinError'),
     save: async (id, input) => perform(id, notes.map((note) => note.id === id ? { ...note, ...input } : note)),
     remove: async (id) => {
       if (fail) { setErrors((current) => ({ ...current, [id]: 'deleteError' })); return false }

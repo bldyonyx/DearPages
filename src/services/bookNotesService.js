@@ -5,7 +5,9 @@ import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 import { isCivilDate as isBookNoteDate } from '../utils/civilDateUtils.js'
 import { todayCivilDate } from '../utils/civilDateUtils.js'
 
-export { isBookNoteDate }
+import { compareBookNotes } from '../utils/bookNotesOrder.js'
+
+export { isBookNoteDate, compareBookNotes }
 
 export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 })
 export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
@@ -71,11 +73,7 @@ async function requireBook(book) {
 
 /** Reads sanitize HTML again: stored data must never be trusted at rendering time. */
 function record(id, value) {
-  return { ...value, id, contentHtml: sanitizeNoteHtml(value.contentHtml) }
-}
-
-export function compareBookNotes(a, b) {
-  return b.date.localeCompare(a.date) || b.createdAt - a.createdAt || a.id.localeCompare(b.id)
+  return { ...value, id, isPinned: value.isPinned === true, contentHtml: sanitizeNoteHtml(value.contentHtml) }
 }
 
 async function readNotes(notesRef) {
@@ -146,7 +144,7 @@ export async function createBookNote(uid, bookId, input) {
   const values = fields(input)
   await requireBook(location.book)
   const note = push(location.notes)
-  await set(note, { ...values, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+  await set(note, { ...values, isPinned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   return note.key
 }
 
@@ -158,6 +156,19 @@ export async function updateBookNote(uid, bookId, noteId, patch) {
   if (!(await get(location.notes)).exists()) throw failure('note-not-found', 'Note no longer exists.')
   // The local rules enforce existence again at commit; this preflight is only for clearer errors.
   await update(location.notes, { ...values, updatedAt: serverTimestamp() })
+}
+
+/** Targeted idempotent assignment: concurrent content patches remain intact.
+ * Rules recheck existence at commit and allow unchanged historical timestamps.
+ */
+export async function updateBookNotePinned(uid, bookId, noteId, isPinned) {
+  if (isFirebaseEmulator !== true) throw failure('emulator-only', 'Pinning is disabled outside the isolated emulator.')
+  identifier(noteId)
+  if (typeof isPinned !== 'boolean') throw failure('invalid-argument', 'Expected a boolean pin state.')
+  const location = paths(uid, bookId, noteId)
+  await requireBook(location.book)
+  if (!(await get(location.notes)).exists()) throw failure('note-not-found', 'Note no longer exists.')
+  await update(location.notes, { isPinned })
 }
 
 export async function deleteBookNote(uid, bookId, noteId) {
@@ -228,7 +239,7 @@ async function convertLegacy(uid, bookId, kind, options) {
   const writes = { [`${markerBranch}/${bookId}`]: marker }
   if (marker.outcome === 'copied') {
     writes[`bookNotes/${bookId}/${noteId}`] = {
-      ...values, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      ...values, isPinned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     }
   }
   try {

@@ -432,6 +432,10 @@
       "ratingSaveError": "Impossible d’enregistrer ton évaluation."
     },
     "notes": {
+      "pin": "Épingler la note",
+      "unpin": "Désépingler la note",
+      "pinError": "Impossible de modifier l’épinglage. Réessaie.",
+
       "add": "Ajouter une note",
       "newNote": "Nouvelle note",
       "optionalTitle": "Titre (facultatif)",

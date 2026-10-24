@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   compareBookNotes, createBookNote, deleteBookNote, getBookNotesForDisplay,
-  isBookNotesUiEnabled, updateBookNote,
+  isBookNotesUiEnabled, updateBookNote, updateBookNotePinned,
   getBookNote, migrateLegacyBookNote, migrateLegacyBookReview,
 } from '../services/bookNotesService.js'
 
@@ -110,6 +110,8 @@ export default function useBookNotes(userId, bookId) {
       (notes, id) => [...notes, { ...input, id, createdAt: Date.now() }], 'saveError'),
     save: (id, input) => operate(id, () => updateBookNote(userId, bookId, id, input),
       (notes) => notes.map((note) => note.id === id ? { ...note, ...input } : note), 'saveError'),
+    pin: (id, isPinned) => operate(id, () => updateBookNotePinned(userId, bookId, id, isPinned),
+      (notes) => notes.map((note) => note.id === id ? { ...note, isPinned } : note), 'pinError'),
     remove: (id) => operate(id, () => deleteBookNote(userId, bookId, id),
       (notes) => notes.filter((note) => note.id !== id), 'deleteError'),
   }

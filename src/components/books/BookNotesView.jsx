@@ -47,7 +47,7 @@ export default function BookNotesView({ model, historicalReview }) {
       <div className="space-y-3">{notes.map((note) => <BookNoteCard key={note.id} note={note} pending={pending[note.id] || loading || !canWrite}
         expanded={openId === `note:${note.id}`} onToggle={() => toggle(`note:${note.id}`)}
         isLegacyCopy={(note.id === 'legacy-note-v1' && legacy?.status === 'processed') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'processed')}
-        error={errors[note.id]} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'conflict')} />)}</div>
+        error={errors[note.id]} onPin={model.pin} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'conflict')} />)}</div>
       <div className="space-y-3"><BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
         legacyReview={enabled ? (loaded && !loadError ? legacyReview : { status: 'unknown' }) : null}
         review={enabled ? undefined : historicalReview} openId={openId} onToggle={toggle} pending={pending} canConvert={canWrite}

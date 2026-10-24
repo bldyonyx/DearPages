@@ -10,8 +10,8 @@ import * as library from '../services/libraryService.js'
 const fixture = vi.hoisted(() => ({ enabled: true, notes: [], legacy: { status: 'empty' }, legacyReview: { status: 'empty' } }))
 vi.mock('../services/bookNotesService.js', () => ({
   get isBookNotesUiEnabled() { return fixture.enabled },
-  compareBookNotes: (a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id),
-  getBookNotesForDisplay: vi.fn(), getBookNote: vi.fn(), createBookNote: vi.fn(), updateBookNote: vi.fn(), deleteBookNote: vi.fn(), migrateLegacyBookNote: vi.fn(), migrateLegacyBookReview: vi.fn(),
+  compareBookNotes: (a, b) => Number(b.isPinned === true) - Number(a.isPinned === true) || b.date.localeCompare(a.date) || a.id.localeCompare(b.id),
+  updateBookNotePinned: vi.fn(), getBookNotesForDisplay: vi.fn(), getBookNote: vi.fn(), createBookNote: vi.fn(), updateBookNote: vi.fn(), deleteBookNote: vi.fn(), migrateLegacyBookNote: vi.fn(), migrateLegacyBookReview: vi.fn(),
 }))
 vi.mock('../services/libraryService.js', () => ({
   BOOK_STATUSES: { TO_READ: 'to-read', READING: 'reading', FINISHED: 'finished', ABANDONED: 'abandoned' },
@@ -595,4 +595,35 @@ describe('independence from book ratings and reviews', () => {
     expect(library.updateBookReview).not.toHaveBeenCalled()
     expect(library.updateBookNote).not.toHaveBeenCalled()
   })
+})
+
+it('pins without toggling the accordion, disables during writing, and preserves the open card', async () => {
+  fixture.notes = [note('a'), note('b', 'Deuxième')]
+  const writing = pending()
+  service.updateBookNotePinned.mockReturnValueOnce(writing.promise)
+  render(<BookNotesSection userId="user" bookId="book" />)
+  await waitFor(() => expect(addButton()).toBeEnabled())
+  expand(card('Deuxième'))
+  const pin = within(card('Deuxième')).getByRole('button', { name: 'Épingler la note' })
+  pin.focus()
+  expect(pin).toHaveFocus()
+  expect(pin.tagName).toBe('BUTTON')
+  fireEvent.click(pin)
+  expect(pin).toBeDisabled()
+  expect(card('Deuxième').querySelector('[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
+  await act(async () => writing.resolve())
+  expect(screen.getAllByRole('article')[0]).toBe(card('Deuxième'))
+  expect(within(card('Deuxième')).getByRole('button', { name: 'Désépingler la note' })).toHaveAttribute('aria-pressed', 'true')
+  fireEvent.click(within(card('Deuxième')).getByRole('button', { name: 'Désépingler la note' }))
+  await waitFor(() => expect(service.updateBookNotePinned).toHaveBeenLastCalledWith('user', 'book', 'b', false))
+})
+it('reports a pin error on a collapsed card and allows retry without altering its content', async () => {
+  fixture.notes = [note('a')]
+  service.updateBookNotePinned.mockRejectedValueOnce(new Error('network'))
+  render(<BookNotesSection userId="user" bookId="book" />)
+  await waitFor(() => expect(addButton()).toBeEnabled())
+  fireEvent.click(screen.getByRole('button', { name: 'Épingler la note' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de modifier l’épinglage')
+  expect(card().querySelector('[aria-expanded]')).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.getByRole('button', { name: 'Épingler la note' })).toBeEnabled()
 })

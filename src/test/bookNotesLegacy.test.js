@@ -103,7 +103,7 @@ describe('explicit legacy conversion', () => {
     expect(Object.keys(writes).sort()).toEqual(['bookNotes/book/legacy-note-v1', 'bookNotesLegacy/book'])
     expect(writes['bookNotes/book/legacy-note-v1']).toEqual({
       title: '', contentHtml: '<b>Old</b>', date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-      createdAt: { '.sv': 'timestamp' }, updatedAt: { '.sv': 'timestamp' },
+      isPinned: false, createdAt: { '.sv': 'timestamp' }, updatedAt: { '.sv': 'timestamp' },
     })
     expect(writes['bookNotesLegacy/book']).toMatchObject({ version: 1, outcome: 'copied', sourceHtml: '<b>Old</b><img src=x><script>bad()</script>' })
   })

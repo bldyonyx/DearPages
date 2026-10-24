@@ -375,3 +375,33 @@ les règles locales lorsqu'elles changent. Sans émulateurs démarrés,
 `npm run test:emulator:integration` démarre l'environnement isolé et exécute aussi
 ces suites. Les tests créent uniquement des utilisateurs et livres fictifs sur
 l'émulateur. Aucune commande de déploiement n'est utilisée.
+
+## Épinglage individuel (émulateur uniquement)
+
+Chaque note stocke `isPinned: false` à la création, conversions comprises. Une
+ancienne valeur absente est lue comme `false`, sans migration ni écriture à la lecture.
+`updateBookNotePinned` exige un booléen et écrit uniquement `isPinned` au chemin
+`users/{uid}/bookNotes/{bookId}/{noteId}`. La garde interdit cet appel hors émulateur.
+Aucun titre, HTML, date, `createdAt` ou `updatedAt` n'est modifié par cette action.
+Les règles permettent de conserver `updatedAt` uniquement quand les autres champs
+rédactionnels restent identiques ; les éditions ordinaires exigent encore `now`.
+Une écriture partielle après suppression échoue car le schéma complet est requis.
+Les marqueurs et protections des deux identifiants réservés restent inchangés.
+
+Le tri pur `bookNotesOrder.js`, commun au service et à la preview sans Firebase,
+place toutes les punaises en premier, puis garde date civile décroissante,
+`createdAt` décroissant et identifiant croissant. Aucun ordre ne dépend du moment
+d'épinglage. Les conventions visuelles des Collections (Pin 1.8, darkwood,
+walnut/65, hover lime/30) sont reprises sans importer leurs services ou hooks.
+Le focus utilise l'anneau olive existant des cartes de notes. Pas de nouvelle section.
+
+Après acquittement, le hook fusionne uniquement le booléen et retrie ; clés React
+et identifiant ouvert restent stables, comme les brouillons. Le verrou par note
+s'applique aussi à Modifier/Supprimer. Le bouton natif expose `aria-pressed`,
+un libellé FR/EN et reste visible carte repliée. Il est frère du déclencheur,
+avec arrêt de propagation. Erreurs visibles aussi carte repliée, réessai explicite.
+Deux clients modifiant des champs distincts ne s'écrasent pas ; deux affectations
+concurrentes du même pin suivent l'ordre des commits serveur (dernier gagne).
+L'actualisation reste explicite entre clients, sans abonnement temps réel ajouté.
+La preview effectue le même tri et le même pin en mémoire, sans connexion Firebase.
+Production toujours **NO-GO** jusqu'à la fin de l'audit Firebase global.

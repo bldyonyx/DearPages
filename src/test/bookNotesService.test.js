@@ -53,7 +53,7 @@ describe('book notes service', () => {
     await expect(notes.createBookNote('owner', 'book', input)).resolves.toBe('-stable-id')
     expect(push).toHaveBeenCalledWith('users/owner/bookNotes/book')
     expect(set).toHaveBeenCalledWith({ key: '-stable-id' }, {
-      ...input, title: '', createdAt: { '.sv': 'timestamp' }, updatedAt: { '.sv': 'timestamp' },
+      ...input, title: '', isPinned: false, createdAt: { '.sv': 'timestamp' }, updatedAt: { '.sv': 'timestamp' },
     })
     expect(serverTimestamp).toHaveBeenCalledTimes(2)
   })
@@ -80,8 +80,8 @@ describe('book notes service', () => {
       b: { date: '2025-01-01', createdAt: 1, contentHtml: '<img src=x><i>B</i>' },
     }))
     expect(await notes.getBookNotes('owner', 'book')).toEqual([
-      { id: 'b', date: '2025-01-01', createdAt: 1, contentHtml: '<i>B</i>' },
-      { id: 'a', date: '2024-02-29', createdAt: 2, contentHtml: '<b>A</b>' },
+      { id: 'b', isPinned: false, date: '2025-01-01', createdAt: 1, contentHtml: '<i>B</i>' },
+      { id: 'a', isPinned: false, date: '2024-02-29', createdAt: 2, contentHtml: '<b>A</b>' },
     ])
     get.mockResolvedValueOnce(snapshot({})).mockResolvedValueOnce(snapshot(null))
     expect(await notes.getBookNote('owner', 'book', 'missing')).toBeNull()
@@ -152,4 +152,10 @@ describe('book notes service', () => {
     get.mockRejectedValueOnce(error)
     await expect(notes.getBookNotes('owner', 'book')).rejects.toBe(error)
   })
+})
+it('refuses pin writes outside the emulator before accessing Firebase', async () => {
+  await expect(notes.updateBookNotePinned('owner', 'book', 'note', true)).rejects.toMatchObject({ code: 'book-notes/emulator-only' })
+  expect(ref).not.toHaveBeenCalled()
+  expect(get).not.toHaveBeenCalled()
+  expect(update).not.toHaveBeenCalled()
 })

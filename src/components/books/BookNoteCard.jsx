@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Pencil, Trash2, Pin } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import Modal from '../ui/Modal.jsx'
 import BookNoteForm from './BookNoteForm.jsx'
@@ -8,7 +8,7 @@ import { sanitizeNoteHtml } from '../../utils/noteHtmlSanitizer.js'
 import { bookLarge } from './bookResponsive.js'
 import { formatCivilDate, isCivilDate } from '../../utils/civilDateUtils.js'
 
-export default function BookNoteCard({ note, pending, error, onSave, onDelete, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions }) {
+export default function BookNoteCard({ note, pending, error, onSave, onDelete, onPin, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions }) {
   const { t, i18n } = useTranslation()
   const id = useId()
   const [editing, setEditing] = useState(false)
@@ -17,7 +17,8 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, r
   const label = isCivilDate(note.date) ? formatCivilDate(note.date, i18n?.resolvedLanguage || 'fr') : t('bookPage.date.unknown')
   return (
     <article aria-label={note.title || t('bookPage.notes.untitled')} aria-busy={pending || undefined} className="min-w-0 rounded-2xl border border-walnut/15 bg-cream/70">
-      <h4>
+      <div className="flex items-center">
+      <h4 className="min-w-0 flex-1">
         <button id={`${id}-trigger`} type="button" aria-expanded={Boolean(expanded)} aria-controls={`${id}-panel`} onClick={onToggle}
           aria-label={`${note.title || t('bookPage.notes.untitled')} · ${label}`}
           className="flex w-full items-center justify-between gap-3 rounded-2xl p-4 text-left transition-colors duration-200 ease-out hover:bg-mintcream/55 active:bg-mintcream/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 sm:px-5">
@@ -28,6 +29,13 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, r
           <ChevronDown size={18} aria-hidden="true" className={`shrink-0 text-olive transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
         </button>
       </h4>
+      {!readOnly && onPin && <button type="button" disabled={pending} aria-pressed={note.isPinned === true}
+        aria-label={t(note.isPinned ? 'bookPage.notes.unpin' : 'bookPage.notes.pin')}
+        onClick={(event) => { event.stopPropagation(); onPin(note.id, !note.isPinned) }}
+        className={`mr-3 shrink-0 cursor-pointer rounded-xl p-2 transition-colors hover:bg-lime/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 disabled:cursor-wait disabled:opacity-50 ${note.isPinned ? 'text-darkwood' : 'text-walnut/65'}`}>
+        <Pin size={16} strokeWidth={1.8} fill={note.isPinned ? 'currentColor' : 'none'} aria-hidden="true" />
+      </button>}
+      </div>
       {!expanded && pending && <p role="status" className="px-4 pb-3 font-ui text-xs text-walnut">{t('common.saving')}</p>}
       {!expanded && error && <p role="alert" className="px-4 pb-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
       <div id={`${id}-panel`} role="region" aria-labelledby={`${id}-trigger`} hidden={!expanded}>

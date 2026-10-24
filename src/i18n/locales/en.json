@@ -432,6 +432,10 @@
       "ratingSaveError": "We couldn’t save your rating."
     },
     "notes": {
+      "pin": "Pin note",
+      "unpin": "Unpin note",
+      "pinError": "Couldn’t update the pin. Please try again.",
+
       "add": "Add a note",
       "newNote": "New note",
       "optionalTitle": "Title (optional)",
