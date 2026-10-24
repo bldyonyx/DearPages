@@ -4,6 +4,8 @@ import { getDatabase, connectDatabaseEmulator } from 'firebase/database'
 import { emulator, validateEmulatorEnv } from '../config/firebaseEmulator.js'
 
 const isolated = validateEmulatorEnv(import.meta.env, import.meta.env.MODE, import.meta.env.PROD)
+// True only after the existing strict demo configuration/origin/health guards succeed.
+export const isFirebaseEmulator = isolated
 if (isolated) {
   if (globalThis.location?.origin !== `http://${emulator.host}:${emulator.vite}`) {
     throw new Error('Firebase emulator requires the dedicated local Vite origin')

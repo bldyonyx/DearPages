@@ -1,13 +1,14 @@
 # Notes multiples : couche de données
 
 Cette étape ajoute uniquement un service et des règles **locales**. Aucun composant
-ne l'appelle encore. Aucune migration, suppression de champ historique, écriture
+ne l'appelle encore. Aucune migration réelle, suppression de champ historique, écriture
 en production, modification de configuration Vite ou de ports n'est nécessaire.
 
 ## Contrat
 
 Chemin : `users/{uid}/bookNotes/{bookId}/{noteId}`. L'identité stable est la clé
 Firebase push, exposée comme `id` à la lecture, sans duplication dans le document.
+Exception réservée : `legacy-note-v1` identifie la copie historique décrite ci-dessous.
 
 | Champ | Contrat |
 | --- | --- |
@@ -83,25 +84,119 @@ n'est ajouté. Réinsérer le même identifiant de livre rend ces notes accessib
 La lecture de toute la liste est actuellement non paginée ; une pagination pourra
 être ajoutée si les volumes l'exigent, sans fixer de limite métier.
 
-## Compatibilité historique : stratégie uniquement
+## Compatibilité historique : contrat v1, émulateur uniquement
 
 `library/{bookId}/note` reste inchangé, lu et écrit par l'interface actuelle.
-Le nouveau service lit exclusivement `bookNotes` et ne mélange jamais les deux
-sources : aucune lecture ne déclenche de migration.
+Le nouveau service lit exclusivement `bookNotes`. Aucune lecture ni opération CRUD
+ne déclenche de migration. L'API explicite `migrateLegacyBookNote(uid, bookId)`
+permet une conversion paresseuse par livre, seulement dans l'environnement isolé.
+Elle retourne le marqueur après traitement et refuse tout appel hors émulateur
+avec `book-notes/emulator-only`, avant toute lecture ou écriture Firebase.
+`isFirebaseEmulator` vient de l'initialisation Firebase existante : configuration
+exacte `demo-dear-pages`, origine locale, contrôle de santé et connexions aux
+émulateurs Auth/RTDB. Aucun paramètre de l'appelant ne permet de lever cette garde.
+Les tests remplacent cette dépendance exclusivement par leurs SDK locaux vérifiés.
 
-Pour une étape ultérieure, prévoir un adaptateur présentant la note historique
-comme entrée virtuelle en lecture seule, avec une identité réservée distincte des
-clés push. La date historique n'est pas connue : ne pas déduire une date de note
-de `library.updatedAt`, qui sert aussi aux étoiles, avis et statuts. Présenter
-cette absence explicitement ou demander une date lors de la conversion.
+### Marqueur persistant et immuable
 
-Une conversion future devra être explicite et idempotente : clé déterministe
-réservée, transaction sur la destination qui n'écrit que si elle est absente,
-préservation exacte du champ source, sanitation et contrôle d'existence du livre.
-Prévoir les réessais, les doublons et les modifications concurrentes de la source,
-avec un marqueur/version de conversion conçu et validé avant tout changement de
-schéma. Aucun de ces mécanismes n'est exécuté ou implémenté ici. Ne jamais copier
-une note vers `review`, ni introduire d'historique de `rating`.
+Chemin séparé : `users/{uid}/bookNotesLegacy/{bookId}`. Il ne fait jamais partie
+de la liste des notes et n'est pas supprimé par `deleteBookNote`.
+
+| Champ | Signification |
+| --- | --- |
+| `version` | Nombre constant `1`. |
+| `outcome` | `copied` si la chaîne source n'est pas vide ; `empty` si elle est absente, nulle ou vide. |
+| `sourceHtml` | Copie exacte de la chaîne source observée, ou `''` en l'absence de source. Maximum 200 000 unités UTF-16. |
+| `processedAt` | Timestamp serveur du traitement, jamais une date de rédaction historique. |
+
+`sourceHtml` sert à comparer la source observée à la source au moment du commit
+dans les règles. C'est un instantané technique brut, potentiellement dangereux :
+**ne jamais le rendre en HTML ni le présenter comme une autre note**. La copie
+utilisable est uniquement `bookNotes/{bookId}/legacy-note-v1`, après sanitation.
+Cette redondance est volontaire : RTDB ne fournit pas de calcul de hash dans les
+règles pour vérifier un condensat envoyé par le client.
+
+### Opération atomique et concurrence
+
+1. Vérifier l'émulateur, les identifiants et l'existence du livre.
+2. Si le marqueur existe, le retourner sans inspecter ni écrire la destination.
+3. Si `legacy-note-v1` existe sans marqueur, lever `book-notes/legacy-conflict`.
+   Ne jamais écraser une collision ni prétendre qu'elle représente la source.
+4. Valider et assainir la source avec les validations existantes. Une source
+   invalide ou trop longue est refusée sans marqueur et sans perte de données.
+5. Envoyer un seul `update` multi-chemins : marqueur et, pour `copied`, note
+   déterministe. Pour `empty`, seul le marqueur est envoyé.
+
+Les règles locales font office de comparaison-et-échange serveur : le marqueur
+ne peut être créé que s'il est absent ; il ne peut ensuite être modifié ou
+supprimé. Les règles comparent `sourceHtml` au champ historique **avant commit**,
+exigent un livre existant avant/après commit et refusent une destination déjà
+existante. Elles imposent ensemble marqueur `copied` + destination ou marqueur
+`empty` + absence de destination. Une copie sans marqueur et un marqueur `copied`
+sans copie sont refusés. Aucun droit d'écriture d'ancêtre n'est ajouté.
+Cette stratégie utilise la vue fusionnée `newData` et la validation atomique des
+[règles RTDB](https://firebase.google.com/docs/database/security/rules-conditions).
+
+Un concurrent perdant reçoit un refus serveur ; le service relit alors le
+marqueur et retourne celui du gagnant. Sans marqueur, le refus reste visible
+(par exemple source modifiée pendant la copie). Les appels simultanés d'une même
+instance SDK partagent une promesse par utilisateur/livre pour éviter de lire le
+marqueur optimiste non acquitté d'une autre tentative locale. Les livres distincts
+restent indépendants. La garantie entre instances vient des règles serveur.
+
+Une coupure avant commit ne laisse aucune moitié d'opération ; une coupure après
+commit mais avant acquittement peut remonter une erreur malgré le succès serveur.
+Un réessai est sûr dans les deux cas. Le SDK peut garder une écriture hors ligne
+en attente jusqu'à reconnexion : aucune promesse de délai ou d'annulation n'est
+faite. Les erreurs réseau ne sont pas transformées en succès ni réessayées
+automatiquement. Une fermeture du client avant envoi nécessite un réessai explicite.
+
+### Dates, conservation et non-résurrection
+
+La copie utilise `title: ''`. Sa `date` civile est le jour local de la tentative
+de migration, modifiable ensuite. C'est une **valeur technique par défaut**, pas
+une date historique connue. `createdAt` et `updatedAt` de la copie sont les
+timestamps serveur de sa création technique. Aucun champ n'utilise le
+`updatedAt` du livre. Une future interface devra rendre explicite cette origine
+pour `legacy-note-v1`, et ne pas inventer de date historique.
+
+Après modification ou suppression, le marqueur reste inchangé ; toute nouvelle
+conversion est une lecture seule. Les règles interdisent également la recréation
+directe de `legacy-note-v1` une fois le marqueur présent et la note supprimée.
+Une tentative ancienne encore en vol ne peut ni écraser la version modifiée ni
+rétablir la version supprimée, car son écriture du marqueur est refusée et
+l'opération entière est atomique.
+
+La migration n'écrit jamais dans `library` et ne touche aucune autre note. Les
+champs historiques `note`, `review`, `rating`, `updatedAt`, `status` et toutes les
+métadonnées restent intacts. Elle ne remplace jamais le champ source par du HTML
+assaini. Ne jamais présenter simultanément une entrée virtuelle historique et sa
+copie ; dès que le marqueur existe, ne plus utiliser la source comme fallback,
+même si la liste des notes est vide.
+
+### Limites et préparation de la production
+
+- Le traitement est un instantané unique : les modifications ultérieures du champ
+  historique ne sont pas recopiées, même après un résultat `empty`. L'interface
+  actuelle continue à écrire ce champ ; elle devra cesser cette saisie historique
+  dans le parcours des notes multiples. Aucun changement React n'est inclus ici.
+- Les règles vérifient le schéma et le lien atomique, mais ne peuvent pas exécuter
+  DOMPurify ni prouver que le HTML envoyé est exactement la sanitation de la source.
+  Le service effectue cette transformation, et les lectures assainissent à nouveau.
+- Les règles existantes de `library` gardent leurs droits propriétaire ; elles ne
+  rendent pas le champ historique immuable pour les autres parcours. La garantie
+  de non-écriture du livre concerne l'opération de migration et ses chemins.
+- Une collision réservée nécessite une décision explicite ultérieure. Aucun
+  rapprochement par contenu, déplacement ou écrasement automatique n'est prévu.
+- Supprimer puis réinsérer le même identifiant de livre conserve le marqueur.
+  Seule une intervention privilégiée hors contrat pourrait le retirer ; les
+  garanties ne couvrent pas une modification administrative des données/règles.
+- Les règles restent un candidat **local** : le problème déjà documenté de
+  suppression globale du compte doit être résolu avant un éventuel déploiement.
+  Aucun déploiement ni activation production n'est autorisé par cette étape.
+
+Verdict de périmètre : contrat utilisable pour l'intégration React en émulateur ;
+activation en production interdite par la garde et non validée.
 
 ## Vérification locale
 

@@ -1,9 +1,10 @@
 /* eslint-disable no-control-regex -- Validation intentionally rejects control characters. */
 import { get, push, ref, remove, serverTimestamp, set, update } from 'firebase/database'
-import { database } from './firebase.js'
+import { database, isFirebaseEmulator } from './firebase.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 
 export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 })
+export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
 
 function failure(code, message) {
   return Object.assign(new Error(message), { code: `book-notes/${code}` })
@@ -117,4 +118,65 @@ export async function deleteBookNote(uid, bookId, noteId) {
   await requireBook(location.book)
   if (!(await get(location.notes)).exists()) throw failure('note-not-found', 'Note no longer exists.')
   await remove(location.notes)
+}
+
+/** Explicit emulator-only lazy conversion. Reads and ordinary CRUD never invoke it.
+ * The immutable marker is the compare-and-set lock enforced by local RTDB rules.
+ * A lost acknowledgement is safe: retry reads the marker without rewriting a note.
+ */
+const legacyConversions = new Map()
+
+export async function migrateLegacyBookNote(uid, bookId) {
+  // Share a pending conversion in this SDK instance: get() may otherwise observe
+  // another local conversion's optimistic, not-yet-acknowledged marker.
+  identifier(uid)
+  identifier(bookId)
+  const key = `${uid}/${bookId}`
+  if (legacyConversions.has(key)) return legacyConversions.get(key)
+  const conversion = convertLegacyBookNote(uid, bookId)
+  legacyConversions.set(key, conversion)
+  try {
+    return await conversion
+  } finally {
+    legacyConversions.delete(key)
+  }
+}
+
+async function convertLegacyBookNote(uid, bookId) {
+  if (isFirebaseEmulator !== true) {
+    throw failure('emulator-only', 'Legacy conversion is disabled outside the isolated emulator.')
+  }
+  const location = paths(uid, bookId, LEGACY_BOOK_NOTE_ID)
+  const markerRef = ref(database, `users/${uid}/bookNotesLegacy/${bookId}`)
+  const book = await get(location.book)
+  if (!book.exists()) throw failure('book-not-found', 'Book no longer exists in the library.')
+  const previous = await get(markerRef)
+  if (previous.exists()) return previous.val()
+  if ((await get(location.notes)).exists()) {
+    throw failure('legacy-conflict', 'Reserved legacy note already exists without its marker.')
+  }
+  const sourceHtml = book.val().note ?? ''
+  // Validate before committing anything. Invalid/oversized historical data stays untouched.
+  const today = new Date()
+  const date = `${today.getFullYear().toString().padStart(4, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const values = fields({ contentHtml: sourceHtml, date })
+  const marker = { version: 1, outcome: sourceHtml === '' ? 'empty' : 'copied', sourceHtml, processedAt: serverTimestamp() }
+  const writes = { [`bookNotesLegacy/${bookId}`]: marker }
+  if (marker.outcome === 'copied') {
+    writes[`bookNotes/${bookId}/${LEGACY_BOOK_NOTE_ID}`] = {
+      ...values, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    }
+  }
+  try {
+    // Atomic multi-location CAS: immutable marker + reserved destination + source check.
+    await update(ref(database, `users/${uid}`), writes)
+  } catch (error) {
+    // Only a server rule rejection can be a concurrent winner. Network failures stay visible.
+    if (/permission[ _-]denied/i.test(error.code || error.message || '')) {
+      const winner = await get(markerRef)
+      if (winner.exists()) return winner.val()
+    }
+    throw error
+  }
+  return (await get(markerRef)).val()
 }

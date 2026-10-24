@@ -6,7 +6,7 @@
           "$bookId": {
             ".read": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('library').child($bookId).exists()",
             "$noteId": {
-              ".write": "auth != null && auth.uid === $uid && $uid.length > 0 && $uid.length <= 128 && !$uid.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $bookId.length > 0 && $bookId.length <= 128 && !$bookId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $noteId.length > 0 && $noteId.length <= 128 && !$noteId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && root.child('users').child($uid).child('library').child($bookId).exists() && newData.parent().parent().parent().child('library').child($bookId).exists() && (data.exists() || newData.exists())",
+              ".write": "auth != null && auth.uid === $uid && $uid.length > 0 && $uid.length <= 128 && !$uid.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $bookId.length > 0 && $bookId.length <= 128 && !$bookId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $noteId.length > 0 && $noteId.length <= 128 && !$noteId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && root.child('users').child($uid).child('library').child($bookId).exists() && newData.parent().parent().parent().child('library').child($bookId).exists() && (data.exists() || newData.exists()) && ($noteId !== 'legacy-note-v1' || data.exists() || (!root.child('users').child($uid).child('bookNotesLegacy').child($bookId).exists() && newData.parent().parent().parent().child('bookNotesLegacy').child($bookId).child('outcome').val() === 'copied'))",
               ".validate": "newData.hasChildren(['title', 'contentHtml', 'date', 'createdAt', 'updatedAt']) && newData.getPriority() === null && newData.child('updatedAt').val() === now",
               "title": {
                 ".validate": "newData.isString() && newData.val().length <= 200 && !newData.val().matches(/[\u0000-\u001f\u007f<>]/)"
@@ -30,8 +30,30 @@
           }
         },
         "$other": {
-          ".read": "auth != null && auth.uid === $uid && $other !== 'bookNotes'",
-          ".write": "auth != null && auth.uid === $uid && $other !== 'bookNotes'"
+          ".read": "auth != null && auth.uid === $uid && $other !== 'bookNotes' && $other !== 'bookNotesLegacy'",
+          ".write": "auth != null && auth.uid === $uid && $other !== 'bookNotes' && $other !== 'bookNotesLegacy'"
+        },
+        "bookNotesLegacy": {
+          "$bookId": {
+            ".read": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('library').child($bookId).exists()",
+            ".write": "auth != null && auth.uid === $uid && $uid.length > 0 && $uid.length <= 128 && !$uid.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $bookId.length > 0 && $bookId.length <= 128 && !$bookId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && !data.exists() && newData.exists() && root.child('users').child($uid).child('library').child($bookId).exists() && newData.parent().parent().child('library').child($bookId).exists()",
+            ".validate": "newData.hasChildren(['version', 'outcome', 'sourceHtml', 'processedAt']) && newData.getPriority() === null && ((newData.child('sourceHtml').val() === '' && (!root.child('users').child($uid).child('library').child($bookId).child('note').exists() || root.child('users').child($uid).child('library').child($bookId).child('note').val() === '')) || newData.child('sourceHtml').val() === root.child('users').child($uid).child('library').child($bookId).child('note').val()) && !root.child('users').child($uid).child('bookNotes').child($bookId).child('legacy-note-v1').exists() && ((newData.child('outcome').val() === 'empty' && newData.child('sourceHtml').val() === '' && !newData.parent().parent().child('bookNotes').child($bookId).child('legacy-note-v1').exists()) || (newData.child('outcome').val() === 'copied' && newData.child('sourceHtml').val() !== '' && newData.parent().parent().child('bookNotes').child($bookId).child('legacy-note-v1').exists()))",
+            "version": {
+              ".validate": "newData.val() === 1"
+            },
+            "outcome": {
+              ".validate": "newData.val() === 'empty' || newData.val() === 'copied'"
+            },
+            "sourceHtml": {
+              ".validate": "newData.isString() && newData.val().length <= 200000"
+            },
+            "processedAt": {
+              ".validate": "newData.isNumber() && newData.val() === now"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
         }
       }
     }
