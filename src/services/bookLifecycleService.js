@@ -56,7 +56,8 @@ export function createBookLifecycleService(database) {
     const token = await auth.currentUser.getIdToken()
     // SDK get() can fall back to cached or optimistic data. A no-cache REST GET
     // gives explicit server evidence for idempotency/uncertain acknowledgements.
-    const url = new URL(`http://${emulator.host}:${emulator.database}/${path}.json`)
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/')
+    const url = new URL(`http://${emulator.host}:${emulator.database}/${encodedPath}.json`)
     url.searchParams.set('ns', emulator.projectId)
     url.searchParams.set('auth', token)
     let response

@@ -1,0 +1,159 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        "bookProtocol": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['version', 'state']) && newData.getPriority() === null",
+          "version": {
+            ".validate": "newData.val() === 2"
+          },
+          "state": {
+            ".validate": "newData.val() === 'ready'"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "bookLifecycle": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$bookId": {
+            ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().child('bookProtocol/state').val() === 'ready' && newData.exists() && ((!data.exists() && newData.child('generation').val() === 1 && newData.child('state').val() === 'creating' && !newData.parent().parent().child('bookData').child($bookId).exists()) || (data.child('state').val() === 'creating' && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'active' && newData.parent().parent().child('bookData').child($bookId).child(data.child('generation').val() + '').child('library').exists()) || ((data.child('state').val() === 'creating' || data.child('state').val() === 'active') && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'deleting') || (data.child('state').val() === 'deleting' && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'deleted' && !newData.parent().parent().child('bookData').child($bookId).exists()) || (data.child('state').val() === 'deleted' && data.child('generation').val() < 2147483647 && newData.child('generation').val() === data.child('generation').val() + 1 && newData.child('state').val() === 'creating' && !newData.parent().parent().child('bookData').child($bookId).exists()))",
+            ".validate": "newData.hasChildren(['generation', 'state']) && newData.getPriority() === null",
+            "generation": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647"
+            },
+            "state": {
+              ".validate": "newData.val() === 'creating' || newData.val() === 'active' || newData.val() === 'deleting' || newData.val() === 'deleted'"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "bookData": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$bookId": {
+            "$g": {
+              ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'deleting' && (newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'deleting' || newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'deleted') && !newData.exists()",
+              ".validate": "newData.hasChildren(['library']) && newData.getPriority() === null",
+              "library": {
+                ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && ((root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && data.exists()) || (root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'creating' && !data.exists())) && (newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' || newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'creating') && newData.exists()",
+                ".validate": "newData.hasChildren(['id', 'title', 'status', 'addedAt']) && newData.getPriority() === null",
+                "title": {
+                  ".validate": "newData.isString() && newData.val().length <= 200"
+                },
+                "status": {
+                  ".validate": "newData.val() === 'to-read' || newData.val() === 'reading' || newData.val() === 'finished' || newData.val() === 'abandoned'"
+                },
+                "$other": {
+                  ".validate": false
+                },
+                "id": {
+                  ".validate": "newData.isString() && newData.val() === $bookId && newData.getPriority() === null"
+                },
+                "googleBooksId": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "isbn": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "cover": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "publishedDate": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "description": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "source": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "openLibraryId": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "authors": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "isbns": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "categories": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "startedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "finishedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "abandonedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "addedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null && newData.val() >= 0 && (!data.exists() || newData.val() === data.val())"
+                },
+                "updatedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null && newData.val() >= 0"
+                },
+                "note": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "review": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "rating": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 5 && newData.getPriority() === null"
+                }
+              },
+              "bookNotes": {
+                "$noteId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists()",
+                  ".validate": "newData.hasChildren(['text']) && newData.getPriority() === null",
+                  "text": {
+                    ".validate": "newData.isString() && newData.val().length <= 200"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                }
+              },
+              "bookRatings": {
+                "$ratingId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists()",
+                  ".validate": "newData.hasChildren(['value']) && newData.getPriority() === null",
+                  "value": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 5"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                }
+              },
+              "collectionMemberships": {
+                "$collectionId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active'",
+                  ".validate": "newData.val() === true && newData.getPriority() === null"
+                }
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
