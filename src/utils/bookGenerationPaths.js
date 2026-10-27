@@ -44,3 +44,24 @@ export function bookRatingsPath(context, ratingId) {
 export function bookCollectionMembershipsPath(context, collectionId) {
   return childPath(context, 'collectionMemberships', collectionId)
 }
+
+/** Generation-scoped singleton markers, independent for each historical source. */
+export function bookNotesLegacyPath(context) {
+  return `${bookDataPath(context)}/bookNotesLegacy`
+}
+
+export function bookReviewsLegacyPath(context) {
+  return `${bookDataPath(context)}/bookReviewsLegacy`
+}
+
+export function bookRatingsLegacyPath(context) {
+  return `${bookDataPath(context)}/bookRatingsLegacy`
+}
+
+/** Catalog metadata is user-scoped, not tied to a book generation. Raw SDK path;
+ * omit collectionId for the catalog. URL encoding belongs to the REST boundary.
+ */
+export function collectionCatalogPath(uid, collectionId) {
+  const root = `users/${validateRtdbPathSegment(uid)}/collectionCatalog`
+  return collectionId === undefined ? root : `${root}/${validateRtdbPathSegment(collectionId)}`
+}
