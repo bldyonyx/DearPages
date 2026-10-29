@@ -1,0 +1,349 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        "bookProtocol": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['version', 'state']) && newData.getPriority() === null",
+          "version": {
+            ".validate": "newData.val() === 2"
+          },
+          "state": {
+            ".validate": "newData.val() === 'ready'"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "bookLifecycle": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$bookId": {
+            ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().child('bookProtocol/state').val() === 'ready' && newData.exists() && ((!data.exists() && newData.child('generation').val() === 1 && newData.child('state').val() === 'creating' && !newData.parent().parent().child('bookData').child($bookId).exists()) || (data.child('state').val() === 'creating' && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'active' && newData.parent().parent().child('bookData').child($bookId).child(data.child('generation').val() + '').child('library').exists()) || ((data.child('state').val() === 'creating' || data.child('state').val() === 'active') && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'deleting') || (data.child('state').val() === 'deleting' && newData.child('generation').val() === data.child('generation').val() && newData.child('state').val() === 'deleted' && !newData.parent().parent().child('bookData').child($bookId).exists()) || (data.child('state').val() === 'deleted' && data.child('generation').val() < 2147483647 && newData.child('generation').val() === data.child('generation').val() + 1 && newData.child('state').val() === 'creating' && !newData.parent().parent().child('bookData').child($bookId).exists()))",
+            ".validate": "newData.hasChildren(['generation', 'state']) && newData.getPriority() === null",
+            "generation": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647"
+            },
+            "state": {
+              ".validate": "newData.val() === 'creating' || newData.val() === 'active' || newData.val() === 'deleting' || newData.val() === 'deleted'"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "bookData": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$bookId": {
+            "$g": {
+              ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'deleting' && (newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'deleting' || newData.parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'deleted') && !newData.exists()",
+              ".validate": "newData.hasChildren(['library']) && newData.getPriority() === null",
+              "library": {
+                ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && ((root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && data.exists()) || (root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'creating' && !data.exists())) && (newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' || newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'creating') && newData.exists() && (root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'creating' || (newData.child('note').val() === data.child('note').val() && newData.child('review').val() === data.child('review').val()))",
+                ".validate": "newData.hasChildren(['id', 'title', 'status', 'addedAt']) && newData.getPriority() === null",
+                "title": {
+                  ".validate": "newData.isString() && newData.val().length <= 200"
+                },
+                "status": {
+                  ".validate": "newData.val() === 'to-read' || newData.val() === 'reading' || newData.val() === 'finished' || newData.val() === 'abandoned'"
+                },
+                "$other": {
+                  ".validate": false
+                },
+                "id": {
+                  ".validate": "newData.isString() && newData.val() === $bookId && newData.getPriority() === null"
+                },
+                "googleBooksId": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "isbn": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "cover": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "publishedDate": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "description": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "source": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "openLibraryId": {
+                  ".validate": "newData.isString() && newData.getPriority() === null"
+                },
+                "authors": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "isbns": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "categories": {
+                  ".validate": "newData.hasChildren() && newData.getPriority() === null",
+                  "$index": {
+                    ".validate": "$index.matches(/^(0|[1-9][0-9]*)$/) && newData.isString() && newData.getPriority() === null"
+                  }
+                },
+                "startedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "finishedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "abandonedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null"
+                },
+                "addedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null && newData.val() >= 0 && (!data.exists() || newData.val() === data.val())"
+                },
+                "updatedAt": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -8640000000000000 && newData.val() <= 8640000000000000 && newData.getPriority() === null && newData.val() >= 0"
+                },
+                "note": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "review": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "rating": {
+                  ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 5 && newData.getPriority() === null"
+                }
+              },
+              "bookNotes": {
+                "$noteId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists() && (!data.child('deleted').exists() || (newData.child('deleted').val() === true && newData.child('createdAt').val() === data.child('createdAt').val())) && ($noteId !== 'legacy-note-v1' || data.exists() || (!root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookNotesLegacy').exists() && newData.parent().parent().child('bookNotesLegacy/outcome').val() === 'copied' && newData.child('creation').val() === newData.parent().parent().child('bookNotesLegacy/intent').val() && newData.child('createdAt').val() === newData.parent().parent().child('bookNotesLegacy/processedAt').val())) && ($noteId !== 'legacy-review-v1' || data.exists() || (!root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookReviewsLegacy').exists() && newData.parent().parent().child('bookReviewsLegacy/outcome').val() === 'copied' && newData.child('creation').val() === newData.parent().parent().child('bookReviewsLegacy/intent').val() && newData.child('createdAt').val() === newData.parent().parent().child('bookReviewsLegacy/processedAt').val())) && $noteId.length > 0 && $noteId.length <= 128 && !$noteId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/) && $noteId !== '__proto__' && $noteId !== 'constructor' && $noteId !== 'prototype'",
+                  ".validate": "newData.getPriority() === null && ((data.exists() && newData.child('deleted').val() === true && newData.hasChildren(['deleted', 'createdAt']) && !newData.child('title').exists() && !newData.child('contentHtml').exists() && !newData.child('date').exists() && !newData.child('isPinned').exists() && !newData.child('updatedAt').exists() && !newData.child('creation').exists() && !newData.child('fieldRevisions').exists()) || (!newData.child('deleted').exists() && newData.hasChildren(['title', 'contentHtml', 'date', 'isPinned', 'createdAt', 'updatedAt', 'creation', 'fieldRevisions']) && (newData.child('updatedAt').val() === now || (data.exists() && newData.child('title').val() === data.child('title').val() && newData.child('contentHtml').val() === data.child('contentHtml').val() && newData.child('date').val() === data.child('date').val() && newData.child('updatedAt').val() === data.child('updatedAt').val())))) && (newData.child('deleted').val() === true || (((!data.exists() && newData.child('fieldRevisions/title').val() === 1) || (data.exists() && ((newData.child('title').val() === data.child('title').val() && newData.child('fieldRevisions/title').val() === data.child('fieldRevisions/title').val()) || (!(newData.child('title').val() === data.child('title').val()) && data.child('fieldRevisions/title').val() < 9007199254740991 && newData.child('fieldRevisions/title').val() === data.child('fieldRevisions/title').val() + 1)))) && ((!data.exists() && newData.child('fieldRevisions/contentHtml').val() === 1) || (data.exists() && ((newData.child('contentHtml').val() === data.child('contentHtml').val() && newData.child('fieldRevisions/contentHtml').val() === data.child('fieldRevisions/contentHtml').val()) || (!(newData.child('contentHtml').val() === data.child('contentHtml').val()) && data.child('fieldRevisions/contentHtml').val() < 9007199254740991 && newData.child('fieldRevisions/contentHtml').val() === data.child('fieldRevisions/contentHtml').val() + 1)))) && ((!data.exists() && newData.child('fieldRevisions/date').val() === 1) || (data.exists() && ((newData.child('date').val() === data.child('date').val() && newData.child('fieldRevisions/date').val() === data.child('fieldRevisions/date').val()) || (!(newData.child('date').val() === data.child('date').val()) && data.child('fieldRevisions/date').val() < 9007199254740991 && newData.child('fieldRevisions/date').val() === data.child('fieldRevisions/date').val() + 1))))))",
+                  "title": {
+                    ".validate": "newData.isString() && newData.val().length <= 200 && !newData.val().matches(/[\u0000-\u001f\u007f<>]/) && newData.getPriority() === null"
+                  },
+                  "contentHtml": {
+                    ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                  },
+                  "date": {
+                    ".validate": "newData.isString() && !newData.val().beginsWith('0000') && newData.val().matches(/^([0-9]{4}-((01|03|05|07|08|10|12)-(0[1-9]|[12][0-9]|3[01])|(04|06|09|11)-(0[1-9]|[12][0-9]|30)|02-(0[1-9]|1[0-9]|2[0-8]))|([0-9]{2}(0[48]|[2468][048]|[13579][26])|(0[48]|[2468][048]|[13579][26])00)-02-29)$/) && newData.getPriority() === null"
+                  },
+                  "createdAt": {
+                    ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || (data.exists() && newData.val() === data.val())) && newData.getPriority() === null"
+                  },
+                  "updatedAt": {
+                    ".validate": "newData.isNumber() && newData.val() >= newData.parent().child('createdAt').val() && (newData.val() === now || (data.exists() && newData.val() === data.val())) && newData.getPriority() === null"
+                  },
+                  "$other": {
+                    ".validate": false
+                  },
+                  "isPinned": {
+                    ".validate": "newData.isBoolean() && newData.getPriority() === null"
+                  },
+                  "creation": {
+                    ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/) && (!data.exists() || newData.val() === data.val()) && newData.getPriority() === null && newData.getPriority() === null"
+                  },
+                  "deleted": {
+                    ".validate": "newData.val() === true && newData.getPriority() === null"
+                  },
+                  "fieldRevisions": {
+                    ".validate": "newData.hasChildren(['title','contentHtml','date']) && newData.getPriority() === null",
+                    "$other": {
+                      ".validate": false
+                    },
+                    "title": {
+                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.getPriority() === null && ((!data.exists() && newData.val() === 1) || (data.exists() && ((newData.parent().parent().child('title').val() === data.parent().parent().child('title').val() && newData.val() === data.val()) || (!(newData.parent().parent().child('title').val() === data.parent().parent().child('title').val()) && data.val() < 9007199254740991 && newData.val() === data.val() + 1))))"
+                    },
+                    "contentHtml": {
+                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.getPriority() === null && ((!data.exists() && newData.val() === 1) || (data.exists() && ((newData.parent().parent().child('contentHtml').val() === data.parent().parent().child('contentHtml').val() && newData.val() === data.val()) || (!(newData.parent().parent().child('contentHtml').val() === data.parent().parent().child('contentHtml').val()) && data.val() < 9007199254740991 && newData.val() === data.val() + 1))))"
+                    },
+                    "date": {
+                      ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.getPriority() === null && ((!data.exists() && newData.val() === 1) || (data.exists() && ((newData.parent().parent().child('date').val() === data.parent().parent().child('date').val() && newData.val() === data.val()) || (!(newData.parent().parent().child('date').val() === data.parent().parent().child('date').val()) && data.val() < 9007199254740991 && newData.val() === data.val() + 1))))"
+                    }
+                  }
+                }
+              },
+              "bookRatings": {
+                "$ratingId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists() && data.child('deleted').val() !== true && ((data.exists() && newData.child('deleted').val() === true) || (root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library/status').val() === 'finished' && newData.parent().parent().child('library/status').val() === 'finished')) && ($ratingId.matches(/^-[A-Za-z0-9_-]{19}$/) || ($ratingId === 'legacy-rating-v1' && (data.exists() || (!root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookRatingsLegacy').exists() && newData.parent().parent().child('bookRatingsLegacy/sourceValue').val() === newData.child('value').val()))))",
+                  ".validate": "newData.getPriority() === null && ((newData.hasChildren(['value', 'date', 'revision', 'createdAt', 'updatedAt']) && !newData.child('deleted').exists()) || (newData.hasChildren(['deleted', 'revision', 'createdAt', 'updatedAt']) && data.exists() && newData.child('deleted').val() === true && !newData.child('value').exists() && !newData.child('date').exists() && !newData.child('impression').exists())) && ((!data.exists() && newData.child('revision').val() === 1 && newData.child('createdAt').val() === now) || (data.exists() && data.child('revision').val() < 9007199254740991 && newData.child('revision').val() === data.child('revision').val() + 1 && newData.child('createdAt').val() === data.child('createdAt').val())) && newData.child('updatedAt').val() === now",
+                  "value": {
+                    ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5 && newData.val() % 1 === 0 && newData.getPriority() === null"
+                  },
+                  "date": {
+                    ".validate": "newData.isString() && ((newData.val() === '' && $ratingId === 'legacy-rating-v1' && (!data.exists() || data.val() === '')) || (!newData.val().beginsWith('0000') && newData.val().matches(/^([0-9]{4}-((01|03|05|07|08|10|12)-(0[1-9]|[12][0-9]|3[01])|(04|06|09|11)-(0[1-9]|[12][0-9]|30)|02-(0[1-9]|1[0-9]|2[0-8]))|([0-9]{2}(0[48]|[2468][048]|[13579][26])|(0[48]|[2468][048]|[13579][26])00)-02-29)$/))) && newData.getPriority() === null"
+                  },
+                  "revision": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1)) && newData.val() >= 1 && newData.val() <= 9007199254740991 && newData.getPriority() === null"
+                  },
+                  "createdAt": {
+                    ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || (data.exists() && newData.val() === data.val())) && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 9007199254740991 && newData.getPriority() === null"
+                  },
+                  "updatedAt": {
+                    ".validate": "newData.isNumber() && newData.val() === now && newData.val() >= newData.parent().child('createdAt').val() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 9007199254740991 && newData.getPriority() === null"
+                  },
+                  "deleted": {
+                    ".validate": "data.parent().exists() && newData.val() === true && newData.getPriority() === null"
+                  },
+                  "$other": {
+                    ".validate": false
+                  },
+                  "impression": {
+                    ".validate": "newData.isString() && newData.val().length <= 160 && !newData.val().matches(/[\u0000-\u001f\u007f]/) && ($ratingId !== 'legacy-rating-v1' || data.parent().exists()) && newData.getPriority() === null"
+                  }
+                }
+              },
+              "$other": {
+                ".validate": false
+              },
+              "bookNotesLegacy": {
+                ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists() && !data.exists()",
+                ".validate": "newData.hasChildren(['version','sourceHtml','intent','outcome','processedAt']) && newData.getPriority() === null && !root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookNotes').child('legacy-note-v1').exists() && ((newData.child('sourceHtml').val() === '' && !root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('note').exists()) || newData.child('sourceHtml').val() === root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('note').val()) && newData.parent().child('library').child('note').val() === root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('note').val() && ((newData.child('outcome').val() === 'empty' && newData.child('sourceHtml').val() === '' && !newData.parent().child('bookNotes').child('legacy-note-v1').exists()) || (newData.child('outcome').val() === 'copied' && newData.child('sourceHtml').val() !== '' && newData.parent().child('bookNotes').child('legacy-note-v1').child('creation').val() === newData.child('intent').val() && newData.parent().child('bookNotes').child('legacy-note-v1').child('createdAt').val() === newData.child('processedAt').val() && newData.parent().child('bookNotes').child('legacy-note-v1').child('isPinned').val() === false))",
+                "version": {
+                  ".validate": "newData.val() === 1"
+                },
+                "intent": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+                },
+                "outcome": {
+                  ".validate": "newData.val() === 'empty' || newData.val() === 'copied'"
+                },
+                "sourceHtml": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "processedAt": {
+                  ".validate": "newData.val() === now"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              },
+              "bookReviewsLegacy": {
+                ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists() && !data.exists()",
+                ".validate": "newData.hasChildren(['version','sourceHtml','intent','outcome','processedAt']) && newData.getPriority() === null && !root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookNotes').child('legacy-review-v1').exists() && ((newData.child('sourceHtml').val() === '' && !root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('review').exists()) || newData.child('sourceHtml').val() === root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('review').val()) && newData.parent().child('library').child('review').val() === root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').child('review').val() && ((newData.child('outcome').val() === 'empty' && newData.child('sourceHtml').val() === '' && !newData.parent().child('bookNotes').child('legacy-review-v1').exists()) || (newData.child('outcome').val() === 'copied' && newData.child('sourceHtml').val() !== '' && newData.parent().child('bookNotes').child('legacy-review-v1').child('creation').val() === newData.child('intent').val() && newData.parent().child('bookNotes').child('legacy-review-v1').child('createdAt').val() === newData.child('processedAt').val() && newData.parent().child('bookNotes').child('legacy-review-v1').child('isPinned').val() === false))",
+                "version": {
+                  ".validate": "newData.val() === 1"
+                },
+                "intent": {
+                  ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+                },
+                "outcome": {
+                  ".validate": "newData.val() === 'empty' || newData.val() === 'copied'"
+                },
+                "sourceHtml": {
+                  ".validate": "newData.isString() && newData.val().length <= 200000 && !newData.val().matches(/[\u0000-\b\u000b\f\u000e-\u001f\u007f]/) && newData.val().matches(/^([^<]|<(b|strong|i|em|div|p)>|<\\/(b|strong|i|em|font|div|p)>|<br>|<font( size=\"[2-5]\")?>)*$/) && newData.getPriority() === null"
+                },
+                "processedAt": {
+                  ".validate": "newData.val() === now"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              },
+              "bookRatingsLegacy": {
+                ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.exists() && !data.exists() && root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library/status').val() === 'finished' && newData.parent().child('library/status').val() === 'finished'",
+                ".validate": "newData.hasChildren(['version','sourceValue','processedAt']) && newData.getPriority() === null && newData.child('sourceValue').val() === root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library/rating').val() && newData.child('sourceValue').val() === newData.parent().child('library/rating').val() && !root.child('users').child($uid).child('bookData').child($bookId).child($g).child('bookRatings/legacy-rating-v1').exists() && newData.parent().child('bookRatings/legacy-rating-v1').child('value').val() === newData.child('sourceValue').val() && newData.parent().child('bookRatings/legacy-rating-v1').child('date').val() === '' && newData.parent().child('bookRatings/legacy-rating-v1').child('revision').val() === 1 && !newData.parent().child('bookRatings/legacy-rating-v1').child('impression').exists() && newData.parent().child('bookRatings/legacy-rating-v1').child('createdAt').val() === newData.child('processedAt').val() && newData.parent().child('bookRatings/legacy-rating-v1').child('updatedAt').val() === newData.child('processedAt').val()",
+                "version": {
+                  ".validate": "newData.val() === 1 && newData.getPriority() === null"
+                },
+                "sourceValue": {
+                  ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5 && newData.val() % 1 === 0 && newData.getPriority() === null"
+                },
+                "processedAt": {
+                  ".validate": "newData.isNumber() && newData.val() === now && newData.getPriority() === null"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              },
+              "collectionMemberships": {
+                "$collectionId": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/version').val() === 2 && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().parent().parent().parent().child('bookProtocol/version').val() === 2 && newData.parent().parent().parent().parent().parent().child('bookProtocol/state').val() === 'ready' && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('generation').val() + '' === $g && root.child('users').child($uid).child('bookLifecycle').child($bookId).child('state').val() === 'active' && newData.parent().parent().parent().parent().parent().child('bookLifecycle').child($bookId).child('state').val() === 'active' && root.child('users').child($uid).child('bookData').child($bookId).child($g).child('library').exists() && newData.parent().parent().child('library').exists() && root.child('users').child($uid).child('collectionCatalog').child($collectionId).exists() && newData.parent().parent().parent().parent().parent().child('collectionCatalog').child($collectionId).exists() && root.child('users').child($uid).child('collectionCatalog').child($collectionId).child('deleted').val() !== true && newData.parent().parent().parent().parent().parent().child('collectionCatalog').child($collectionId).child('deleted').val() !== true && root.child('users').child($uid).child('collectionCatalog').child($collectionId).child('membershipEpoch').val() === newData.child('epoch').val() && newData.parent().parent().parent().parent().parent().child('collectionCatalog').child($collectionId).child('membershipEpoch').val() === newData.child('epoch').val() && newData.exists() && $collectionId.length > 0 && $collectionId.length <= 128 && $collectionId !== '__proto__' && $collectionId !== 'constructor' && $collectionId !== 'prototype'",
+                  ".validate": "newData.hasChildren(['epoch','present','revision']) && newData.getPriority() === null && (((!data.exists() || (data.hasChildren(['epoch','present','revision']) && data.child('epoch').isNumber() && data.child('epoch').val() % 1 === 0 && data.child('epoch').val() >= 1 && data.child('epoch').val() <= 2147483647 && data.child('present').isBoolean() && data.child('revision').isNumber() && data.child('revision').val() % 1 === 0 && data.child('revision').val() >= 1 && data.child('revision').val() <= 2147483647 && data.child('epoch').val() < newData.child('epoch').val())) && newData.child('present').val() === true && newData.child('revision').val() === 1) || (data.hasChildren(['epoch','present','revision']) && data.child('epoch').isNumber() && data.child('epoch').val() % 1 === 0 && data.child('epoch').val() >= 1 && data.child('epoch').val() <= 2147483647 && data.child('present').isBoolean() && data.child('revision').isNumber() && data.child('revision').val() % 1 === 0 && data.child('revision').val() >= 1 && data.child('revision').val() <= 2147483647 && data.child('epoch').val() === newData.child('epoch').val() && ((newData.child('present').val() === data.child('present').val() && newData.child('revision').val() === data.child('revision').val()) || (newData.child('present').val() !== data.child('present').val() && data.child('revision').val() < 2147483647 && newData.child('revision').val() === data.child('revision').val() + 1))))",
+                  "present": {
+                    ".validate": "newData.isBoolean() && newData.getPriority() === null"
+                  },
+                  "$other": {
+                    ".validate": false
+                  },
+                  "epoch": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+                  },
+                  "revision": {
+                    ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "collectionCatalog": {
+          ".read": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready'",
+          "$collectionId": {
+            ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('bookProtocol/version').val() === 2 && root.child('users').child($uid).child('bookProtocol/state').val() === 'ready' && newData.parent().parent().child('bookProtocol/version').val() === 2 && newData.parent().parent().child('bookProtocol/state').val() === 'ready' && $collectionId.length > 0 && $collectionId.length <= 128 && $collectionId !== '__proto__' && $collectionId !== 'constructor' && $collectionId !== 'prototype' && newData.exists() && data.child('deleted').val() !== true && $collectionId.length > 0 && $collectionId.length <= 128 && !$collectionId.matches(/[.#$\\[\\]\\/\u0000- \u007f]/)",
+            ".validate": "newData.getPriority() === null && ((!newData.child('deleted').exists() && newData.hasChildren(['name','description','icon','pinned','membershipEpoch','revision','createdAt','updatedAt','creation','fieldRevisions']) && newData.child('revision').val() <= 2147483646 && ((!data.exists() && newData.child('updatedAt').val() === now) || (data.exists() && ((newData.child('membershipEpoch').val() === data.child('membershipEpoch').val() && newData.child('updatedAt').val() === now) || (newData.child('membershipEpoch').val() === data.child('membershipEpoch').val() + 1 && newData.child('updatedAt').val() === data.child('updatedAt').val())))) && newData.child('updatedAt').val() >= newData.child('createdAt').val() && ((newData.child('membershipEpoch').val() === 1 && !newData.child('lastClearId').exists() && !newData.child('lastClearFrom').exists()) || (newData.child('membershipEpoch').val() > 1 && newData.hasChildren(['lastClearId','lastClearFrom']) && newData.child('lastClearFrom').val() === newData.child('membershipEpoch').val() - 1)) && ((!data.exists() && newData.child('membershipEpoch').val() === 1 && newData.child('revision').val() === 1 && newData.child('pinned').val() === false && newData.child('createdAt').val() === now && !newData.child('lastClearId').exists() && !newData.child('lastClearFrom').exists() && newData.child('fieldRevisions/name').val() === 1 && newData.child('fieldRevisions/description').val() === 1 && newData.child('fieldRevisions/icon').val() === 1 && newData.child('fieldRevisions/pinned').val() === 1) || (data.exists() && data.child('revision').val() < 2147483646 && newData.child('revision').val() === data.child('revision').val() + 1 && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('creation').val() === data.child('creation').val() && ((newData.child('membershipEpoch').val() === data.child('membershipEpoch').val() && newData.child('lastClearId').val() === data.child('lastClearId').val() && newData.child('lastClearFrom').val() === data.child('lastClearFrom').val() && (((newData.child('fieldRevisions/name').val() === data.child('fieldRevisions/name').val() && newData.child('name').val() === data.child('name').val()) || (data.child('fieldRevisions/name').val() < 2147483647 && newData.child('fieldRevisions/name').val() === data.child('fieldRevisions/name').val() + 1)) && ((newData.child('fieldRevisions/description').val() === data.child('fieldRevisions/description').val() && newData.child('description').val() === data.child('description').val()) || (data.child('fieldRevisions/description').val() < 2147483647 && newData.child('fieldRevisions/description').val() === data.child('fieldRevisions/description').val() + 1)) && ((newData.child('fieldRevisions/icon').val() === data.child('fieldRevisions/icon').val() && newData.child('icon').val() === data.child('icon').val()) || (data.child('fieldRevisions/icon').val() < 2147483647 && newData.child('fieldRevisions/icon').val() === data.child('fieldRevisions/icon').val() + 1)) && ((newData.child('fieldRevisions/pinned').val() === data.child('fieldRevisions/pinned').val() && newData.child('pinned').val() === data.child('pinned').val()) || (data.child('fieldRevisions/pinned').val() < 2147483647 && newData.child('fieldRevisions/pinned').val() === data.child('fieldRevisions/pinned').val() + 1))) && (newData.child('fieldRevisions/name').val() === data.child('fieldRevisions/name').val() + 1 || newData.child('fieldRevisions/description').val() === data.child('fieldRevisions/description').val() + 1 || newData.child('fieldRevisions/icon').val() === data.child('fieldRevisions/icon').val() + 1 || newData.child('fieldRevisions/pinned').val() === data.child('fieldRevisions/pinned').val() + 1)) || (data.child('membershipEpoch').val() < 2147483647 && newData.child('membershipEpoch').val() === data.child('membershipEpoch').val() + 1 && newData.child('lastClearFrom').val() === data.child('membershipEpoch').val() && newData.child('lastClearId').exists() && newData.child('lastClearId').val() !== data.child('lastClearId').val() && (newData.child('name').val() === data.child('name').val() && newData.child('description').val() === data.child('description').val() && newData.child('icon').val() === data.child('icon').val() && newData.child('pinned').val() === data.child('pinned').val()) && (newData.child('fieldRevisions/name').val() === data.child('fieldRevisions/name').val() && newData.child('fieldRevisions/description').val() === data.child('fieldRevisions/description').val() && newData.child('fieldRevisions/icon').val() === data.child('fieldRevisions/icon').val() && newData.child('fieldRevisions/pinned').val() === data.child('fieldRevisions/pinned').val())))))) || (data.exists() && newData.child('deleted').val() === true && newData.hasChildren(['deleted','createdAt','membershipEpoch','revision']) && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('membershipEpoch').val() === data.child('membershipEpoch').val() && data.child('revision').val() < 2147483647 && newData.child('revision').val() === data.child('revision').val() + 1 && !newData.child('name').exists() && !newData.child('description').exists() && !newData.child('icon').exists() && !newData.child('pinned').exists() && !newData.child('updatedAt').exists() && !newData.child('creation').exists() && !newData.child('fieldRevisions').exists() && !newData.child('lastClearId').exists() && !newData.child('lastClearFrom').exists()))",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && (!newData.val().matches(/^[\b-\u000e \u00a0\u1680\u2000-\u200a\u2027-\u202a\u202f\u205f\u3000\ufeff]*$/) || newData.val().contains('\b') || newData.val().contains('\u000e') || newData.val().contains('\u2027') || newData.val().contains('\u202a')) && newData.getPriority() === null"
+            },
+            "description": {
+              ".validate": "newData.isString() && newData.getPriority() === null"
+            },
+            "icon": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.getPriority() === null"
+            },
+            "pinned": {
+              ".validate": "newData.isBoolean() && newData.getPriority() === null"
+            },
+            "creation": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/) && newData.getPriority() === null"
+            },
+            "lastClearId": {
+              ".validate": "newData.isString() && newData.val().matches(/^-[A-Za-z0-9_-]{19}$/) && newData.getPriority() === null"
+            },
+            "lastClearFrom": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() < 2147483647 && newData.getPriority() === null"
+            },
+            "deleted": {
+              ".validate": "newData.val() === true && newData.getPriority() === null"
+            },
+            "$other": {
+              ".validate": false
+            },
+            "membershipEpoch": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+            },
+            "revision": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+            },
+            "createdAt": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 9007199254740991 && newData.getPriority() === null"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 9007199254740991 && newData.getPriority() === null"
+            },
+            "fieldRevisions": {
+              ".validate": "newData.hasChildren(['name','description','icon','pinned']) && newData.getPriority() === null",
+              "$other": {
+                ".validate": false
+              },
+              "name": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+              },
+              "description": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+              },
+              "icon": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+              },
+              "pinned": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 2147483647 && newData.getPriority() === null"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
