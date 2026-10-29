@@ -1,5 +1,4 @@
 import { getBookRouteId } from './bookPageUtils.js'
-import { sanitizeNoteHtml } from './noteHtmlSanitizer.js'
 
 export const GENERATION_BOOK_STATUSES = Object.freeze({
   TO_READ: 'to-read', READING: 'reading', FINISHED: 'finished', ABANDONED: 'abandoned',
@@ -69,20 +68,24 @@ export function validateGenerationLibraryRecord(context, input) {
   return result
 }
 
-/** Only existing scalar mutations plus explicit optional startedAt. Status goes
- * through makeGenerationStatusPatch so its historical date behavior is retained.
+/** Historical note/review are initialization-only sources, never patch fields.
+ * Reject the whole patch before any mutation, including mixed/no-op/null patches.
+ * Status goes through makeGenerationStatusPatch to retain its date behavior.
  */
-export function validateGenerationLibraryPatch(input, sanitize = true) {
+export function validateGenerationLibraryPatch(input) {
   plain(input)
   const keys = Object.keys(input)
+  if (keys.some(key => ['note', 'review'].includes(key))) {
+    throw Object.assign(new TypeError('generation-library/historical-source-readonly'),
+      { code: 'generation-library/historical-source-readonly' })
+  }
   if (!keys.length || keys.some(key => !mutable.includes(key))) fail()
   const patch = {}
   for (const key of keys) {
     const value = input[key]
     validateField(key, value)
     if (key === 'rating' && value === null) fail() // Legacy API accepts only 1..5.
-    if (['note', 'review'].includes(key) && value === null) fail()
-    patch[key] = sanitize && ['note', 'review'].includes(key) ? sanitizeNoteHtml(value) : value
+    patch[key] = value
   }
   return patch
 }

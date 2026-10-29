@@ -1,0 +1,290 @@
+{
+  "project": "demo-dear-pages",
+  "sources": [
+    {
+      "path": "experiments/book-lifecycle/database.rules.json",
+      "sha256": "5be57c10fd2ae7b26d15cb1b7aa4c619c638e668b13c9a202270e4bedef5b467"
+    },
+    {
+      "path": "experiments/generation-library/database.rules.json",
+      "sha256": "c131b941356a58c5a3741d7f38a936da3d4a6ef448895659dc440baf64ed1947"
+    },
+    {
+      "path": "experiments/generation-notes/database.rules.json",
+      "sha256": "dea01e5f1ad7a097b0e6f1aea1d18ed6e514c90119ff52e83c1697e2e8b05822"
+    },
+    {
+      "path": "experiments/generation-ratings/database.rules.json",
+      "sha256": "42a2c075d45a559846d4509992271df1a965b02a61c4cf0d6da6750ce92e0ab2"
+    },
+    {
+      "path": "experiments/generation-collection-catalog/database.rules.json",
+      "sha256": "cd123328143673bd9a36291de300adb4e562f885468ccf95449aae42fb4a763d"
+    },
+    {
+      "path": "experiments/generation-collection-memberships/database.rules.json",
+      "sha256": "fd2ae1b8c6bd757059fd8f93ab8a5399e6311d51bb54ab3f4bcdcc872d43368e"
+    }
+  ],
+  "comparisons": [
+    {
+      "from": "book-lifecycle",
+      "to": "generation-library",
+      "changes": [
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/.write",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/.validate",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/id",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/googleBooksId",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/isbn",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/cover",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/publishedDate",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/description",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/source",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/openLibraryId",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/authors",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/isbns",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/categories",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/startedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/finishedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/abandonedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/addedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/updatedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/note",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/review",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/rating",
+          "change": "added"
+        }
+      ]
+    },
+    {
+      "from": "generation-library",
+      "to": "generation-notes",
+      "changes": [
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/library/.write",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/.write",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/.validate",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/text",
+          "change": "removed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/title",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/contentHtml",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/date",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/createdAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/updatedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/isPinned",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/creation",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/deleted",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotes/$noteId/fieldRevisions",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookNotesLegacy",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookReviewsLegacy",
+          "change": "added"
+        }
+      ]
+    },
+    {
+      "from": "generation-notes",
+      "to": "generation-ratings",
+      "changes": [
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/.write",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/.validate",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/value/.validate",
+          "change": "changed"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/date",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/revision",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/createdAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/updatedAt",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/deleted",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatings/$ratingId/impression",
+          "change": "added"
+        },
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/bookRatingsLegacy",
+          "change": "added"
+        }
+      ]
+    },
+    {
+      "from": "generation-ratings",
+      "to": "generation-collection-catalog",
+      "changes": [
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/collectionMemberships",
+          "change": "removed"
+        },
+        {
+          "path": "/rules/users/$uid/collectionCatalog",
+          "change": "added"
+        }
+      ]
+    },
+    {
+      "from": "generation-collection-catalog",
+      "to": "generation-collection-memberships",
+      "changes": [
+        {
+          "path": "/rules/users/$uid/bookData/$bookId/$g/collectionMemberships",
+          "change": "added"
+        }
+      ]
+    }
+  ],
+  "branchSources": {
+    "protocol": "book-lifecycle",
+    "lifecycle": "book-lifecycle",
+    "purge": "book-lifecycle",
+    "librarySchema": "generation-library",
+    "libraryWrite": "generation-notes",
+    "notes": "generation-notes",
+    "ratings": "generation-ratings",
+    "catalog": "generation-collection-catalog",
+    "memberships": "generation-collection-memberships"
+  },
+  "contractConflicts": [
+    {
+      "path": "library/.write",
+      "api": [
+        "updateBookNote",
+        "updateBookReview",
+        "updateLibraryFields({note|review})"
+      ],
+      "advertisedBy": "experiments/generation-library/README.md",
+      "frozenBy": "experiments/generation-notes/README.md",
+      "resolution": "resolved: library patches and compatibility setters reject locally with generation-library/historical-source-readonly; creating-only initialization and explicit conversions preserved"
+    }
+  ],
+  "ancestorAudit": {
+    "userWrite": false,
+    "bookDataWrite": false,
+    "bookWrite": false,
+    "collectionCatalogWrite": false,
+    "childCollectionWrite": false,
+    "generationWrite": "unchanged durable deleting lock + full null purge only"
+  },
+  "combinedRulesSha256": "edd145b4d8ec32868fa184e221e982a0b2a9cf85d7b583de359f469d52d1100d"
+}

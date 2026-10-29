@@ -70,8 +70,9 @@ that same captured epoch as `{ context, book }`, with `patch` added for mutation
 | `getActiveBooks(uid)` | Discovers active contexts/books, newest addedAt first. Does not retarget any existing mutation. Lifecycle races fail; caller may explicitly reload. |
 | `updateBookStatus(context, status, options?)` | Preserves legacy final-date behavior and unrelated fields. Same status is a no-op. |
 | `updateBookStartedAt`, `updateBookFinishedAt`, `updateBookAbandonedAt` | Explicit integer timestamp or null/undefined removal, plus optional field expectations. Nullish normalization preserves the old date setters; no month/year conversion is introduced. |
-| `updateBookNote`, `updateBookReview`, `updateBookRating` | Only legacy scalar fields inside library. Existing HTML sanitizer/rating range retained. No multiple-note/rating integration. |
-| `updateLibraryFields(context, patch, options?)` | Dates and legacy scalar fields only. Rejects identity, catalog metadata, technical timestamps, status and unknown patch keys. |
+| `updateBookNote`, `updateBookReview` | Compatibility rejection APIs: `generation-library/historical-source-readonly`, before RTDB access. |
+| `updateBookRating` | Scalar library rating, integer 1..5. No multiple-rating integration. |
+| `updateLibraryFields(context, patch, options?)` | Dates and scalar rating only. Rejects historical note/review, identity, catalog metadata, technical timestamps, status and unknown patch keys. |
 | `deleteGeneration`, `resumeDeletion` | Delegation to 8B.3.2 lifecycle only; no second deletion algorithm, no old removeBookFromLibrary replacement. |
 
 `createGenerationLibraryBook(book, status)` is a pure initial projection.
@@ -79,7 +80,7 @@ It reuses `getBookRouteId`. Because the existing `createLibraryBook` export is i
 a module that imports the application Firebase singleton, it is not imported by
 the new runtime service. Unit parity tests instead pin both projection and all
 16 status transitions to the existing service, with Firebase mocked only there.
-The existing `sanitizeNoteHtml` is reused for note/review writes; its Node fallback
+The existing `sanitizeNoteHtml` is reused for creating-only note/review initialization; its Node fallback
 and browser DOMPurify behavior remain unchanged.
 
 `startedAt` is a new optional explicit field; the legacy service has no start-date
@@ -135,3 +136,16 @@ limit covers REST reads, not an offline write acknowledgement deadline.
 No hooks/pages, Dashboard/My Library, multiple notes/pins, rating impressions/
 tombstones, collection membership catalog, account deletion or real migration is
 implemented or declared production-ready by this phase.
+
+## Integrated historical-source contract (8B.3.5 correction)
+
+Historical `note` and `review` remain readable and may be supplied to
+`initializeLibrary` only while creating. Initialization sanitizes these sources;
+explicit generation notes conversions copy them without altering the sources.
+`updateLibraryFields` rejects any patch containing either key, including null,
+no-op and mixed patches, with `generation-library/historical-source-readonly`
+before any RTDB read/write. `updateBookNote` and `updateBookReview` remain solely
+as compatibility rejection APIs with the same error. Earlier writable-source
+examples are superseded. Dates, statuses and scalar rating remain supported;
+metadata is preserved, not arbitrarily patchable. No rules are relaxed. The older
+standalone rules are not the immutable-source integrated security profile.

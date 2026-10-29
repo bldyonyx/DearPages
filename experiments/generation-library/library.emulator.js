@@ -164,22 +164,27 @@ it.each([['Started', 'startedAt'], ['Finished', 'finishedAt'], ['Abandoned', 'ab
   },
 )
 
-it('updates legacy note/review/rating without touching multiple-record branches', async () => {
+it('rejects historical setters locally while preserving scalar rating and multiple-record branches', async () => {
   const context = await active()
   await set(location(`${bookDataPath(context)}/bookNotes/n`), { text: 'Multiple note' })
   await set(location(`${bookDataPath(context)}/bookRatings/r`), { value: 5 })
-  await svc().updateBookNote(context, '<b>New note</b>')
-  await svc().updateBookReview(context, 'New review')
+  runTransaction.mockClear()
+  const fetchSpy = vi.spyOn(globalThis, 'fetch')
+  await expect(svc().updateBookNote(context, '<b>New note</b>')).rejects.toMatchObject({ code: 'generation-library/historical-source-readonly' })
+  await expect(svc().updateBookReview(context, 'New review')).rejects.toMatchObject({ code: 'generation-library/historical-source-readonly' })
+  expect(runTransaction).not.toHaveBeenCalled()
+  expect(fetchSpy).not.toHaveBeenCalled()
+  fetchSpy.mockRestore()
   await svc().updateBookRating(context, 2)
-  expect(await observed(bookLibraryPath(context))).toMatchObject({ note: 'New note', review: 'New review', rating: 2 })
+  expect(await observed(bookLibraryPath(context))).toMatchObject({ note: 'Keep note', review: 'Keep review', rating: 2 })
   expect(await observed(`${bookDataPath(context)}/bookNotes/n`)).toEqual({ text: 'Multiple note' })
   expect(await observed(`${bookDataPath(context)}/bookRatings/r`)).toEqual({ value: 5 })
 })
 
 it('merges simultaneous distinct-field edits without losing metadata or dates', async () => {
   const context = await active()
-  await Promise.all([svc().updateBookFinishedAt(context, 1234), svc(1).updateBookReview(context, 'Concurrent review')])
-  expect(await observed(bookLibraryPath(context))).toMatchObject({ finishedAt: 1234, review: 'Concurrent review',
+  await Promise.all([svc().updateBookFinishedAt(context, 1234), svc(1).updateBookStartedAt(context, 321)])
+  expect(await observed(bookLibraryPath(context))).toMatchObject({ finishedAt: 1234, startedAt: 321, review: 'Keep review',
     title: 'Fictional book', authors: ['Author'], note: 'Keep note', addedAt: 1000 })
 })
 
@@ -208,7 +213,7 @@ it('supports explicit same-field compare-and-set conflicts', async () => {
 
 it('serializes a mutation with deletion lock; accepted data is then completely purged', async () => {
   const context = await active()
-  const results = await Promise.allSettled([svc().updateBookReview(context, 'Concurrent'), life(1).lockDeletion(context)])
+  const results = await Promise.allSettled([svc().updateBookRating(context, 2), life(1).lockDeletion(context)])
   expect(results[1].status).toBe('fulfilled')
   if (results[0].status === 'rejected') expect(results[0].reason).toBeInstanceOf(Error)
   expect((await observed(bookLifecyclePath(context))).state).toBe('deleting')
@@ -222,7 +227,7 @@ it('rejects a generation-1 write delivered after readd without touching generati
     await readd(old)
     return sdk.runTransaction(...args)
   })
-  await expect(svc().updateBookNote(old, 'Stale')).rejects.toThrow()
+  await expect(svc().updateBookStartedAt(old, 999)).rejects.toThrow()
   const next = ctx(2)
   expect(await observed(bookDataPath(old))).toBeNull()
   expect(await observed(bookLibraryPath(next))).toMatchObject({ title: 'New generation', note: 'Keep note' })
@@ -321,4 +326,38 @@ it('fails visibly on read network failure without any SDK transaction', async ()
   await expect(svc().updateBookRating(context, 1)).rejects.toThrow('network-error')
   expect(runTransaction).not.toHaveBeenCalled()
   expect((await observed(bookLibraryPath(context))).rating).toBe(4)
+})
+
+
+it.each([{ note: 'Keep note' }, { review: 'Keep review' }, { note: null }, { review: undefined },
+  { startedAt: 987, note: 'Changed' }, { rating: 2, review: 'Changed' },
+  { startedAt: 987, note: 'Changed', review: 'Changed' }])('rejects the entire historical patch locally %#', async patch => {
+  const context = await active(), before = await observed(bookDataPath(context))
+  runTransaction.mockClear()
+  const fetchSpy = vi.spyOn(globalThis, 'fetch')
+  try {
+    await expect(svc().updateLibraryFields(context, patch)).rejects.toMatchObject({ code: 'generation-library/historical-source-readonly' })
+    expect(runTransaction).not.toHaveBeenCalled()
+    expect(fetchSpy).not.toHaveBeenCalled()
+  } finally { fetchSpy.mockRestore() }
+  expect(await observed(bookDataPath(context))).toEqual(before)
+})
+
+it('cannot bypass source immutability by reinitializing an active record', async () => {
+  const context = await active(), before = await observed(bookDataPath(context))
+  runTransaction.mockClear()
+  await expect(svc().initializeLibrary(context, record(context, { note: 'Changed', review: 'Changed' })))
+    .rejects.toMatchObject({ code: 'generation-library/not-active' })
+  expect(runTransaction).not.toHaveBeenCalled()
+  expect(await observed(bookDataPath(context))).toEqual(before)
+})
+
+it('sanitizes initial historical sources while creating, without modifying the input', async () => {
+  const context = await creating(), input = record(context, { note: '<b>Safe</b><script>bad()</script>' })
+  await svc().initializeLibrary(context, input)
+  expect(input.note).toContain('<script>')
+  // The existing Node fallback strips tags (browser DOMPurify retains safe tags).
+  expect((await observed(bookLibraryPath(context))).note).toBe('Safebad()')
+  await life().activateGeneration(context)
+  expect((await svc().getActiveBook(context)).book.note).toBe('Safebad()')
 })

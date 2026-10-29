@@ -43,9 +43,14 @@ it.each([{ rating: 0 }, { rating: 6 }, { rating: null }, { status: 'finished' },
   { updatedAt: 1 }, { extra: true }, {}, { note: null }])('rejects unsupported patches %#', patch => {
   expect(() => validateGenerationLibraryPatch(patch)).toThrow(TypeError)
 })
-it('reuses the existing HTML sanitizer', () => {
-  expect(validateGenerationLibraryPatch({ note: '<b>Safe</b><img src=x onerror=alert(1)><script>bad()</script>' }).note)
-    .toBe('<b>Safe</b>')
+it.each([{ note: 'text' }, { review: 'text' }, { note: null }, { review: undefined },
+  { startedAt: 123, note: 'text' }, { rating: 2, review: 'text' }])('rejects entire historical-source patches %#', patch => {
+  expect(() => validateGenerationLibraryPatch(patch)).toThrow(expect.objectContaining({ code: 'generation-library/historical-source-readonly' }))
+})
+it('preserves historical sources in full initialization records', () => {
+  expect(validateGenerationLibraryRecord({ bookId: catalog.id }, {
+    ...createGenerationLibraryBook(catalog), note: 'Historical note', review: 'Historical review',
+  })).toMatchObject({ note: 'Historical note', review: 'Historical review' })
 })
 it('supports explicit absence CAS tokens without allowing null rating/note writes', () => {
   const expected = validateGenerationLibraryExpected({ rating: null, note: null, startedAt: null, status: 'reading' })

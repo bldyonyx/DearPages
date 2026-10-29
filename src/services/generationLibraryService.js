@@ -169,6 +169,9 @@ export function createGenerationLibraryService(database) {
     updateBookStartedAt: (context, value, settings) => updateLibraryFields(context, { startedAt: value ?? null }, settings),
     updateBookFinishedAt: (context, value, settings) => updateLibraryFields(context, { finishedAt: value ?? null }, settings),
     updateBookAbandonedAt: (context, value, settings) => updateLibraryFields(context, { abandonedAt: value ?? null }, settings),
+    // Compatibility only: both reject locally with historical-source-readonly.
+    // Sources may be supplied at initialization while creating; subsequent text
+    // mutations and explicit conversions belong to the generation notes service.
     updateBookNote: (context, value, settings) => updateLibraryFields(context, { note: value }, settings),
     updateBookReview: (context, value, settings) => updateLibraryFields(context, { review: value }, settings),
     updateBookRating: (context, value, settings) => updateLibraryFields(context, { rating: value }, settings),
