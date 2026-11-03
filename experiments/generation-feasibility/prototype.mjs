@@ -1,38 +1,12 @@
 import { getAuth } from 'firebase/auth'
 import { ref, update, serverTimestamp } from 'firebase/database'
 import { createBookLifecycleService } from '../../src/services/bookLifecycleService.js'
-import { validateRtdbPathSegment } from '../../src/utils/rtdbPathSegment.js'
+import { captureMembershipBatch, MEMBERSHIP_BATCH_LIMITS } from '../../src/utils/generationMembershipBatchContracts.js'
 
-export const LIMITS = Object.freeze({ rows: 32, bytes: 128 * 1024, receipts: 64, counter: 2147483647 })
-const freeze = value => {
-  if (value && typeof value === 'object') { for (const item of Object.values(value)) freeze(item); Object.freeze(value) }
-  return value
-}
-export function captureBatch(uid, intent, sequence, rows) {
-  validateRtdbPathSegment(uid); validateRtdbPathSegment(intent)
-  if (!Number.isInteger(sequence) || sequence < 1 || sequence > LIMITS.counter || !rows.length || rows.length > LIMITS.rows) throw new RangeError('batch bounds')
-  const seen = new Set()
-  const guards = Object.fromEntries(Array.from({ length: LIMITS.rows }, (_, i) => [i, { enabled: false }]))
-  const entries = {}, activity = {}
-  for (const [i, input] of rows.entries()) {
-    const row = structuredClone(input)
-    validateRtdbPathSegment(row.bookId); validateRtdbPathSegment(row.collectionId)
-    const tuple = `${row.bookId}/${row.collectionId}`
-    if (seen.has(tuple)) throw new TypeError('duplicate tuple')
-    seen.add(tuple)
-    const before = row.before
-    const effective = before.exists && before.epoch === row.epoch && before.present
-    const changed = row.desired !== Boolean(effective)
-    const after = changed ? { exists: true, epoch: row.epoch, present: row.desired, revision: before.exists && before.epoch === row.epoch ? before.revision + 1 : 1 } : before
-    guards[i] = { enabled: true, ...row, after }
-    entries[row.bookId] ??= {}
-    entries[row.bookId][row.collectionId] = String(i)
-    if (changed) activity[row.collectionId] = String(i)
-  }
-  const receipt = { uid, sequence, intent, guards, entries, ...(Object.keys(activity).length ? { activity } : {}) }
-  if (new TextEncoder().encode(JSON.stringify(receipt)).length > LIMITS.bytes) throw new RangeError('batch bytes')
-  return freeze(receipt)
-}
+// Construction is now shared with the pure contracts. Network capabilities below
+// remain isolated demo-only, with their existing guard and SDK attack surface.
+export const LIMITS = MEMBERSHIP_BATCH_LIMITS
+export const captureBatch = captureMembershipBatch
 
 /** All network capabilities remain demo-only. No app singleton is imported. */
 export function prototype(database) {
