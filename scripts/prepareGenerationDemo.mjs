@@ -1,3 +1,5 @@
+import { generationDemoBooks } from '../src/config/generationDemoBook.js'
+import { createGenerationLibraryGateway } from '../src/integration/generationLibraryGateway.js'
 import assert from 'node:assert/strict'
 import { initializeApp, deleteApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth'
@@ -26,6 +28,10 @@ try {
   await set(ref(db, `${base}/bookProtocol/state`), 'ready')
   const facade = createGenerationApplicationService(db, { uid: user.uid })
   assert.deepEqual(await facade.library.getActiveBooks(), [])
+  // Only this freshly-created fictitious account receives two demonstration books.
+  const library = createGenerationLibraryGateway(facade, user.uid)
+  for (const book of generationDemoBooks) await library.add(library.captureAddition(book, 'to-read', null))
+  assert.equal((await facade.library.getActiveBooks()).length, 2)
   console.log(JSON.stringify({ fixture: 'local-demo-only', email, password, url: `http://${emulator.host}:${emulator.vite}/library` }, null, 2))
 } finally { goOffline(db); await deleteApp(app) }
 // Firebase's Node SDK can retain retry timers after deleteApp (as in testEmulators).

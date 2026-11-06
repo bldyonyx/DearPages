@@ -196,6 +196,12 @@
     "unknownDate": "Unknown date"
   },
   "collectionsPage": {
+    "generation": {
+      "bounds": "This selection exceeds 32 memberships. No changes were sent.",
+      "conflict": "The selection or Collection has changed. Refresh before trying again.",
+      "uncertain": "Confirmation unavailable. Retry the same operation or refresh to check; no automatic retry.",
+      "indeterminate": "The receipt is no longer available. Outcome indeterminate: refresh to check. This intention will not be resent."
+    },
     "title": "My collections",
     "subtitle": "Little stacks of books arranged your way.",
     "newCollection": "New collection",

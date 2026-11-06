@@ -16,5 +16,5 @@ export function useBookLibraryState(options) {
   const personalBackend = useMemo(() => backend.mode === 'generation' && backend.facade && bookGeneration
     ? createGenerationPersonalBackend(backend.facade, createBookMutationContext({ uid, bookId, generation: bookGeneration })) : null,
   [backend.mode, backend.facade, uid, bookId, bookGeneration])
-  return { ...(backend.mode === 'legacy' ? legacy : generation), libraryMode: backend.mode, personalBackend }
+  return { ...(backend.mode === 'legacy' ? legacy : generation), libraryMode: backend.mode, personalBackend, collectionsGateway: backend.collectionsGateway }
 }

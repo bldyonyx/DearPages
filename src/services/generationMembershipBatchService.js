@@ -6,7 +6,7 @@ import { captureBookContext } from '../utils/generationOperationUtils.js'
 import { sameContract } from '../utils/generationContractData.js'
 import { validateRtdbPathSegment } from '../utils/rtdbPathSegment.js'
 import {
-  validateMembershipBatch, reconcileMembershipReceipt, membershipReceiptSlot,
+  createMembershipHead, validateMembershipBatch, reconcileMembershipReceipt, membershipReceiptSlot,
   projectBookReceiptPurge, MEMBERSHIP_BATCH_LIMITS,
 } from '../utils/generationMembershipBatchContracts.js'
 
@@ -57,6 +57,12 @@ export function createGenerationMembershipBatchService(database, { fetch: reques
       owner(uid)
       return value
     } catch { throw failure('observation-unavailable') }
+  }
+  /** Server-only allocation observation. Never advances or resets the head. */
+  async function getHead(uid) {
+    owner(uid)
+    const state = await read(uid)
+    return state?.batchHead == null ? null : createMembershipHead(state.batchHead)
   }
   async function reconcile(input) {
     const batch = validateMembershipBatch(input)
@@ -137,5 +143,5 @@ export function createGenerationMembershipBatchService(database, { fetch: reques
     }
     return resumeDeletion(context)
   }
-  return Object.freeze({ execute, reconcile, writes, deleteGeneration, resumeDeletion })
+  return Object.freeze({ getHead, execute, reconcile, writes, deleteGeneration, resumeDeletion })
 }

@@ -10,6 +10,7 @@ function BookPersonalSection({
   onLibraryBookChange,
   userId,
   personalBackend,
+  collectionsGateway,
 }) {
   const { t } = useTranslation()
 
@@ -18,6 +19,7 @@ function BookPersonalSection({
       <BookPersonalSpace
         key={`${userId}/${bookId}/${personalBackend?.context.generation ?? 'legacy'}`}
         personalBackend={personalBackend}
+        collectionsGateway={collectionsGateway}
         userId={userId}
         bookId={bookId}
         libraryBook={libraryBook}

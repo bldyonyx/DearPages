@@ -196,6 +196,12 @@
     "unknownDate": "Date inconnue"
   },
   "collectionsPage": {
+    "generation": {
+      "bounds": "Cette sélection dépasse 32 appartenances. Aucune modification n’a été envoyée.",
+      "conflict": "La sélection ou la Collection a changé. Actualise avant de réessayer.",
+      "uncertain": "Confirmation indisponible. Réessaie la même opération ou actualise pour vérifier ; aucun renvoi automatique.",
+      "indeterminate": "Le reçu n’est plus disponible. Résultat indéterminé : actualise pour vérifier. Cette intention ne sera pas renvoyée."
+    },
     "title": "Mes collections",
     "subtitle": "Des piles de livres rangées à ta façon.",
     "newCollection": "Nouvelle collection",

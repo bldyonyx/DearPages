@@ -1,5 +1,5 @@
 import { generationLibraryRequested } from '../integration/libraryBackend.js'
-import { generationDemoBook } from '../config/generationDemoBook.js'
+import { generationDemoBooks } from '../config/generationDemoBook.js'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -14,7 +14,10 @@ import {
 } from '../utils/bookPageUtils.js'
 
 async function getBookDetails(bookId) {
-  if (generationLibraryRequested() && bookId === generationDemoBook.id) return generationDemoBook
+  if (generationLibraryRequested()) {
+    const fixture = generationDemoBooks.find(book => book.id === bookId)
+    if (fixture) return fixture
+  }
   if (getBookApiSource(bookId) === BOOK_API_SOURCES.OPEN_LIBRARY) {
     return getOpenLibraryBookById(bookId)
   }

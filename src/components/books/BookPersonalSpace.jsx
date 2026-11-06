@@ -20,6 +20,7 @@ function BookPersonalSpace({
   libraryBook,
   onLibraryBookChange,
   personalBackend,
+  collectionsGateway,
 }) {
   const { t } = useTranslation()
   const generation = personalBackend?.mode === 'generation'
@@ -42,14 +43,14 @@ function BookPersonalSpace({
   }, [libraryBook?.rating, bookId, userId])
 
   useEffect(() => {
-    if (generation) return
+    if (generation && !collectionsGateway) return
     let isActive = true
 
     async function loadCollectionCount() {
       try {
-        const collections = await getUserCollections(userId)
+        const collections = generation ? [] : await getUserCollections(userId)
 
-        const nextCollectionCount = collections.filter(
+        const nextCollectionCount = generation ? await collectionsGateway.bookCount(personalBackend.context) : collections.filter(
           (collection) => collection.books?.[bookId]
         ).length
 
@@ -73,7 +74,7 @@ function BookPersonalSpace({
     return () => {
       isActive = false
     }
-  }, [bookId, userId, generation])
+  }, [bookId, userId, generation, collectionsGateway, personalBackend])
 
   async function handleRatingChange(newRating) {
     if (generation) return
@@ -141,7 +142,7 @@ function BookPersonalSpace({
           ${bookLarge.personalCard}
         `}
       >
-        {!generation && <div
+        {(!generation || collectionsGateway) && <div
           className="
             mb-6 flex flex-col gap-3
             rounded-2xl
@@ -274,7 +275,9 @@ function BookPersonalSpace({
         </div>
       </div>
 
-      {!generation && <BookCollectionsModal
+      {(!generation || collectionsGateway) && <BookCollectionsModal
+        generationGateway={collectionsGateway}
+        bookContext={personalBackend?.context}
         isOpen={isCollectionsModalOpen}
         userId={userId}
         bookId={bookId}

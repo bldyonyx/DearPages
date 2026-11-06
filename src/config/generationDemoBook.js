@@ -6,3 +6,8 @@ export const generationDemoBook = Object.freeze({
   description: 'Un livre fictif pour essayer sa bibliothèque locale.',
   publishedDate: '2026', source: 'emulator-demo',
 })
+
+// Additional public fixture for exercising multi-book Collections in the same UI.
+export const generationDemoBooks = Object.freeze([generationDemoBook, Object.freeze({
+  ...generationDemoBook, id: 'generation-demo-book-2', title: 'Les chemins de papier',
+})])

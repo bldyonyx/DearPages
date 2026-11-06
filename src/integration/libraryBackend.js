@@ -1,3 +1,4 @@
+import { createGenerationCollectionsGateway } from './generationCollectionsGateway.js'
 import { getAuth } from 'firebase/auth'
 import { createBookLifecycleService } from '../services/bookLifecycleService.js'
 import { createGenerationApplicationService } from '../services/generationApplicationService.js'
@@ -42,7 +43,8 @@ export async function resolveLibraryBackend(database, uid, { isolated, fetch: re
     // Existing facade checks protocol shape, legacy residue, account fence and freshness.
     await facade.books.getContext('generation-ui-probe')
     owner()
-    return Object.freeze({ mode: 'generation', facade, gateway: createGenerationLibraryGateway(facade, uid) })
+    const gateway = createGenerationLibraryGateway(facade, uid)
+    return Object.freeze({ mode: 'generation', facade, gateway, collectionsGateway: createGenerationCollectionsGateway(facade, gateway, uid) })
   } catch { return Object.freeze({ mode: 'blocked' }) }
 }
 export async function resolveCurrentLibraryBackend(uid) {

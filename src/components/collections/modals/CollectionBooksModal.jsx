@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { collectionErrorMessage } from '../../../integration/generationCollectionsGateway.js'
+import LoadingState from '../../ui/LoadingState.jsx'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,8 +28,13 @@ function CollectionBooksModal({
   libraryBooks,
   onClose,
   onSaved,
+  generationGateway,
 }) {
   const { t } = useTranslation()
+  const control = useRef(null)
+  const [availableBooks, setAvailableBooks] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const books = generationGateway ? availableBooks : libraryBooks
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [initialSelectedIds, setInitialSelectedIds] =
     useState(new Set())
@@ -48,15 +55,21 @@ function CollectionBooksModal({
       return
     }
 
-    const currentIds = new Set(
-      Object.keys(collection.books || {})
-    )
-
-    setSelectedIds(currentIds)
-    setInitialSelectedIds(new Set(currentIds))
-    setSearch('')
-    setError('')
-  }, [collection, isOpen])
+    const c = { uid: userId, gateway: generationGateway, active: true, locked: false, selection: null }; control.current = c
+    if (generationGateway) {
+      setIsLoading(true); setError(''); setIsSaving(false)
+      generationGateway.collectionSelection(collection).then(selection => {
+        if (!c.active) return
+        c.selection = selection; setAvailableBooks(selection.books)
+        setSelectedIds(new Set(selection.initialIds)); setInitialSelectedIds(new Set(selection.initialIds)); setSearch('')
+      }, error => { if (c.active) setError(collectionErrorMessage(error, t, 'collectionPage.booksModal.saveError')) })
+        .finally(() => { if (c.active) setIsLoading(false) })
+      return () => { c.active = false }
+    }
+    const currentIds = new Set(Object.keys(collection.books || {}))
+    setSelectedIds(currentIds); setInitialSelectedIds(new Set(currentIds)); setSearch(''); setError('')
+    return () => { c.active = false }
+  }, [collection, isOpen, generationGateway, userId, t])
 
   const hasChanges = useMemo(() => {
     if (initialSelectedIds.size !== selectedIds.size) {
@@ -72,10 +85,10 @@ function CollectionBooksModal({
     const normalizedSearch = search.trim().toLowerCase()
 
     if (!normalizedSearch) {
-      return libraryBooks
+      return books
     }
 
-    return libraryBooks.filter((book) => {
+    return books.filter((book) => {
       const title = book.title?.toLowerCase() || ''
       const authors =
         book.authors?.join(' ').toLowerCase() || ''
@@ -85,7 +98,7 @@ function CollectionBooksModal({
         authors.includes(normalizedSearch)
       )
     })
-  }, [libraryBooks, search])
+  }, [books, search])
 
   function handleClose() {
     if (isSaving) {
@@ -116,10 +129,19 @@ function CollectionBooksModal({
       return
     }
 
+    const c = control.current
+    if (generationGateway && (!c?.active || c.uid !== userId || c.gateway !== generationGateway || !c.selection || c.locked)) return
+    if (generationGateway) c.locked = true
+    const alive = () => !generationGateway || (c.active && control.current === c)
     try {
       setIsSaving(true)
       setError('')
 
+      if (generationGateway) {
+        await generationGateway.saveSelection(c.selection, [...selectedIds])
+        if (alive()) { onClose(); await onSaved(Object.fromEntries([...selectedIds].map(id => [id, true]))) }
+        return
+      }
       await updateCollectionBookMembership(
         userId,
         collection.id,
@@ -139,11 +161,10 @@ function CollectionBooksModal({
         saveError
       )
 
-      setError(
-        t('collectionPage.booksModal.saveError')
-      )
+      if (alive()) setError(generationGateway ? collectionErrorMessage(saveError, t, 'collectionPage.booksModal.saveError') : t('collectionPage.booksModal.saveError'))
     } finally {
-      setIsSaving(false)
+      if (generationGateway) c.locked = false
+      if (alive()) setIsSaving(false)
     }
   }
 
@@ -153,7 +174,7 @@ function CollectionBooksModal({
       onClose={handleClose}
       title={t('collectionPage.booksModal.title')}
     >
-      {libraryBooks.length === 0 ? (
+      {isLoading ? <LoadingState message={t('collectionPage.loading')} /> : books.length === 0 ? (
         <div className="py-6 text-center">
           <p className="font-heading text-xl font-bold text-darkwood">
             {t('collectionPage.booksModal.emptyLibraryTitle')}
@@ -300,7 +321,7 @@ function CollectionBooksModal({
 
             <Button
               type="submit"
-              disabled={isSaving || !hasChanges}
+              disabled={isSaving || isLoading || !hasChanges}
               className="
                 disabled:cursor-not-allowed
                 disabled:opacity-60
@@ -311,6 +332,7 @@ function CollectionBooksModal({
           </div>
         </form>
       )}
+      {error && books.length === 0 && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{error}</p>}
     </Modal>
   )
 }

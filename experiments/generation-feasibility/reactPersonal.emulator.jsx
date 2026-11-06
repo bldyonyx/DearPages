@@ -104,7 +104,7 @@ it('BookPage displays the existing personal sections with the authorized facade,
   await ready()
   await addNote('From actual page')
   expect(screen.getByRole('heading', { name: 'Mon évaluation' })).toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: /Gérer mes collections/ })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Gérer les collections' })).toBeEnabled()
   noHistoricalCalls()
 })
 it('existing note forms create several notes, edit, pin, delete and persist after remount', async () => {

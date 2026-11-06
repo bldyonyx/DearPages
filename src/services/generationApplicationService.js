@@ -185,6 +185,7 @@ export function createGenerationApplicationService(database, { uid, fetch: reque
       }),
     }),
     batches: Object.freeze({
+      getHead: ownedList(batches, 'getHead'),
       execute: delegate(batches, 'execute', args => { if (args[0].uid !== uid) throw failure('owner-mismatch') }),
       reconcile: delegate(batches, 'reconcile', args => { if (args[0].uid !== uid) throw failure('owner-mismatch') }),
     }),

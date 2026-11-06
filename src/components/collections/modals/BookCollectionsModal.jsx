@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { collectionErrorMessage } from '../../../integration/generationCollectionsGateway.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -24,8 +25,11 @@ function BookCollectionsModal({
   bookId,
   onClose,
   onSaved,
+  generationGateway,
+  bookContext,
 }) {
   const { t } = useTranslation()
+  const control = useRef(null)
   const [collections, setCollections] = useState([])
   const [initialSelectedIds, setInitialSelectedIds] =
     useState(new Set())
@@ -40,13 +44,16 @@ function BookCollectionsModal({
     }
 
     let isActive = true
+    const c = { uid: userId, gateway: generationGateway, active: true, locked: false, selection: null }; control.current = c
 
     async function loadCollections() {
       try {
         setIsLoading(true)
         setError('')
 
-        const userCollections = await getUserCollections(userId)
+        const selection = generationGateway ? await generationGateway.bookSelection(bookContext) : null
+        const userCollections = selection ? selection.collections.map(item => ({ ...item, books: selection.initialIds.includes(item.id) ? { [bookId]: true } : {} })) : await getUserCollections(userId)
+        c.selection = selection
         const selectedCollectionIds =
           getCollectionsContainingBook(
             userCollections,
@@ -66,7 +73,7 @@ function BookCollectionsModal({
 
         if (isActive) {
           setError(
-            t('collectionPage.bookCollectionsModal.loadError')
+            generationGateway ? collectionErrorMessage(loadError, t, 'collectionPage.bookCollectionsModal.loadError') : t('collectionPage.bookCollectionsModal.loadError')
           )
         }
       } finally {
@@ -80,8 +87,9 @@ function BookCollectionsModal({
 
     return () => {
       isActive = false
+      c.active = false
     }
-  }, [bookId, isOpen, t, userId])
+  }, [bookId, isOpen, t, userId, generationGateway, bookContext])
 
   const selectedCount = selectedIds.size
 
@@ -124,10 +132,20 @@ function BookCollectionsModal({
       return
     }
 
+    const c = control.current
+    if (generationGateway && (!c?.active || c.uid !== userId || c.gateway !== generationGateway || !c.selection || c.locked)) return
+    if (generationGateway) c.locked = true
+    const alive = () => !generationGateway || (c.active && control.current === c)
     try {
       setIsSaving(true)
       setError('')
 
+      if (generationGateway) {
+        await generationGateway.saveSelection(c.selection, [...selectedIds])
+        const count = await generationGateway.bookCount(bookContext)
+        if (alive()) { onSaved(count); onClose() }
+        return
+      }
       await updateBookCollectionMembership(
         userId,
         bookId,
@@ -143,11 +161,10 @@ function BookCollectionsModal({
         saveError
       )
 
-      setError(
-        t('collectionPage.bookCollectionsModal.saveError')
-      )
+      if (alive()) setError(generationGateway ? collectionErrorMessage(saveError, t, 'collectionPage.bookCollectionsModal.saveError') : t('collectionPage.bookCollectionsModal.saveError'))
     } finally {
-      setIsSaving(false)
+      if (generationGateway) c.locked = false
+      if (alive()) setIsSaving(false)
     }
   }
 
@@ -280,6 +297,7 @@ function BookCollectionsModal({
           </div>
         </form>
       )}
+      {error && collections.length === 0 && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{error}</p>}
     </Modal>
   )
 }

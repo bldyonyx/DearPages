@@ -22,6 +22,7 @@ function CollectionPage() {
   const { t } = useTranslation()
   const {
     user,
+    generationGateway,
 
     collection,
     libraryBooks,
@@ -214,6 +215,7 @@ function CollectionPage() {
       </div>
 
       <CollectionBooksModal
+        generationGateway={generationGateway}
         isOpen={isBooksModalOpen}
         userId={user.uid}
         collection={collection}

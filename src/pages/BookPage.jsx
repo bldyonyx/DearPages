@@ -91,6 +91,7 @@ function BookPage() {
     libraryBook,
     libraryMode,
     personalBackend,
+    collectionsGateway,
     setLibraryBook,
     isLibraryLoading,
     isSaving,
@@ -185,6 +186,7 @@ function BookPage() {
               <BookPersonalSection
                 userId={userId}
                 personalBackend={personalBackend}
+                collectionsGateway={collectionsGateway}
                 bookId={currentBookId}
                 libraryBook={libraryBook}
                 isLibraryLoading={isLibraryLoading}
