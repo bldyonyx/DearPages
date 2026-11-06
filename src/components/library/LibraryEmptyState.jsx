@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { libraryLarge } from './libraryResponsive.js'
 
-function LibraryEmptyState() {
+function LibraryEmptyState({ discoverPath = '/discover' }) {
   const { t } = useTranslation()
 
   return (
@@ -40,7 +40,7 @@ function LibraryEmptyState() {
       </p>
 
       <Link
-        to="/discover"
+        to={discoverPath}
         className="
           mt-6 inline-flex
           rounded-2xl bg-lime
