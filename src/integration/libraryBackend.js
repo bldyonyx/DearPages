@@ -42,7 +42,7 @@ export async function resolveLibraryBackend(database, uid, { isolated, fetch: re
     // Existing facade checks protocol shape, legacy residue, account fence and freshness.
     await facade.books.getContext('generation-ui-probe')
     owner()
-    return Object.freeze({ mode: 'generation', gateway: createGenerationLibraryGateway(facade, uid) })
+    return Object.freeze({ mode: 'generation', facade, gateway: createGenerationLibraryGateway(facade, uid) })
   } catch { return Object.freeze({ mode: 'blocked' }) }
 }
 export async function resolveCurrentLibraryBackend(uid) {

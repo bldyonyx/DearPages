@@ -19,8 +19,10 @@ function BookPersonalSpace({
   bookId,
   libraryBook,
   onLibraryBookChange,
+  personalBackend,
 }) {
   const { t } = useTranslation()
+  const generation = personalBackend?.mode === 'generation'
 
   const [rating, setRating] = useState(libraryBook?.rating || 0)
 
@@ -40,6 +42,7 @@ function BookPersonalSpace({
   }, [libraryBook?.rating, bookId, userId])
 
   useEffect(() => {
+    if (generation) return
     let isActive = true
 
     async function loadCollectionCount() {
@@ -70,9 +73,10 @@ function BookPersonalSpace({
     return () => {
       isActive = false
     }
-  }, [bookId, userId])
+  }, [bookId, userId, generation])
 
   async function handleRatingChange(newRating) {
+    if (generation) return
     setIsSaving(true)
     setError('')
 
@@ -137,7 +141,7 @@ function BookPersonalSpace({
           ${bookLarge.personalCard}
         `}
       >
-        <div
+        {!generation && <div
           className="
             mb-6 flex flex-col gap-3
             rounded-2xl
@@ -207,10 +211,10 @@ function BookPersonalSpace({
 
             {t('bookPage.personal.manageCollections')}
           </button>
-        </div>
+        </div>}
 
         {showsRating && (
-          <BookRatingsSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} legacyControl={<div>
+          <BookRatingsSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} legacyControl={generation ? null : <div>
             <h3
               className={`
                 font-heading text-2xl font-bold text-darkwood
@@ -266,17 +270,17 @@ function BookPersonalSpace({
         {error && <p role="alert" className="mt-4 font-ui text-sm text-red-700">{error}</p>}
 
         <div className="mt-8">
-          <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} historicalReview={libraryBook?.review} />
+          <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review} />
         </div>
       </div>
 
-      <BookCollectionsModal
+      {!generation && <BookCollectionsModal
         isOpen={isCollectionsModalOpen}
         userId={userId}
         bookId={bookId}
         onClose={() => setIsCollectionsModalOpen(false)}
         onSaved={setCollectionCount}
-      />
+      />}
     </section>
   )
 }

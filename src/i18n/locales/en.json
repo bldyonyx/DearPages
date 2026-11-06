@@ -432,6 +432,8 @@
       "ratingSaveError": "We couldn’t save your rating."
     },
     "ratings": {
+      "refused": "Operation refused. Refresh the book before trying again.",
+      "uncertain": "Confirmation unavailable. Refresh to check; no automatic retry was made.",
       "impression": "Short impression (optional)",
       "impressionHint": "{{count}}/160",
 
@@ -464,6 +466,9 @@
       "deleteBody": "Other ratings, the reading date and written notes will be kept."
     },
     "notes": {
+      "refused": "Operation refused. Refresh the book before trying again.",
+      "uncertain": "Confirmation unavailable. Refresh to check; no automatic retry was made.",
+      "conflict": "This note has changed. Refresh before trying again; your draft is kept.",
       "refreshLabel": "Refresh notes",
       "refreshHint": "Get note changes from another device. Drafts stay on this page.",
 

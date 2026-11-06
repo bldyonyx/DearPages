@@ -11,6 +11,7 @@ import { formatCivilDate, isCivilDate } from '../../utils/civilDateUtils.js'
 export default function BookNoteCard({ note, pending, error, onSave, onDelete, onPin, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions }) {
   const { t, i18n } = useTranslation()
   const id = useId()
+  const [expected, setExpected] = useState(null)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(null)
   const [confirming, setConfirming] = useState(false)
@@ -31,7 +32,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
       </h4>
       {!readOnly && onPin && <button type="button" disabled={pending} aria-pressed={note.isPinned === true}
         aria-label={t(note.isPinned ? 'bookPage.notes.unpin' : 'bookPage.notes.pin')}
-        onClick={(event) => { event.stopPropagation(); onPin(note.id, !note.isPinned) }}
+        onClick={(event) => { event.stopPropagation(); onPin(note.id, !note.isPinned, note.token) }}
         className={`mr-3 shrink-0 cursor-pointer rounded-xl p-2 transition-colors hover:bg-lime/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 disabled:cursor-wait disabled:opacity-50 ${note.isPinned ? 'text-darkwood' : 'text-walnut/65'}`}>
         <Pin size={16} strokeWidth={1.8} fill={note.isPinned ? 'currentColor' : 'none'} aria-hidden="true" />
       </button>}
@@ -43,7 +44,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
       {editing && !readOnly ? (
         <BookNoteForm draft={draft} onChange={setDraft} pending={pending} error={error}
           onCancel={() => setEditing(false)} onSave={async (input) => {
-            if (await onSave(note.id, input)) { setEditing(false); setDraft(null) }
+            if (await onSave(note.id, input, expected)) { setEditing(false); setDraft(null) }
           }} />
       ) : (
         <>
@@ -54,9 +55,10 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
           {!readOnly && <div className="mt-4 flex flex-wrap justify-end gap-2">
             <Button type="button" variant="secondary" disabled={pending} onClick={() => {
               setDraft((current) => current || { title: note.title || '', date: note.date, contentHtml: note.contentHtml })
+              setExpected(note.token)
               setEditing(true)
             }} className="inline-flex items-center gap-2 rounded-xl"><Pencil size={14} aria-hidden="true" />{t('bookPage.notes.edit')}</Button>
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => setConfirming(true)} className="inline-flex items-center gap-2 rounded-xl"><Trash2 size={14} aria-hidden="true" />{t('common.delete')}</Button>
+            <Button type="button" variant="secondary" disabled={pending} onClick={() => { setExpected(note.token); setConfirming(true) }} className="inline-flex items-center gap-2 rounded-xl"><Trash2 size={14} aria-hidden="true" />{t('common.delete')}</Button>
           </div>}
           {historicalActions && <div className="mt-4 flex flex-wrap justify-end gap-2">{historicalActions}</div>}
           {error && !confirming && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
@@ -69,7 +71,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
         {error && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
         <div className="mt-5 flex flex-wrap justify-end gap-3">
           <Button type="button" variant="secondary" disabled={pending} onClick={() => setConfirming(false)}>{t('common.cancel')}</Button>
-          <Button type="button" disabled={pending} onClick={async () => { if (await onDelete(note.id)) setConfirming(false) }}>
+          <Button type="button" disabled={pending} onClick={async () => { if (await onDelete(note.id, expected)) setConfirming(false) }}>
             {pending ? t('common.deleting') : t('common.delete')}
           </Button>
         </div>

@@ -167,7 +167,9 @@ it('Actual existing pages: library link, book consultation and mutations keep Re
   await waitFor(() => expect(screen.getByRole('button', { name: '+ Ajouter à ma bibliothèque' })).toBeEnabled())
   fireEvent.click(screen.getByRole('button', { name: '+ Ajouter à ma bibliothèque' }))
   await waitFor(async () => expect((await observed('bookLifecycle/generation-demo-book')).generation).toBe(2))
-  expect(BookPersonalSection).not.toHaveBeenCalled(); noLegacyWrites()
+  expect(BookPersonalSection).toHaveBeenCalled()
+  await waitFor(() => expect(BookPersonalSection.mock.lastCall[0].personalBackend.context.generation).toBe(2))
+  noLegacyWrites()
 })
 it('Gateway: uncertain purge preserves the book until the same context is explicitly reconciled', async () => {
   await prepare(); let failing = true

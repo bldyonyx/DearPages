@@ -432,6 +432,8 @@
       "ratingSaveError": "Impossible d’enregistrer ton évaluation."
     },
     "ratings": {
+      "refused": "Opération refusée. Actualise le livre avant de réessayer.",
+      "uncertain": "Confirmation indisponible. Actualise pour vérifier ; aucun réessai automatique n’a été effectué.",
       "impression": "Petite phrase (facultative)",
       "impressionHint": "{{count}}/160",
 
@@ -464,6 +466,9 @@
       "deleteBody": "Les autres évaluations, la date de lecture et les notes écrites seront conservées."
     },
     "notes": {
+      "refused": "Opération refusée. Actualise le livre avant de réessayer.",
+      "uncertain": "Confirmation indisponible. Actualise pour vérifier ; aucun réessai automatique n’a été effectué.",
+      "conflict": "Cette note a changé. Actualise avant de réessayer ; ton brouillon est conservé.",
       "refreshLabel": "Actualiser les notes",
       "refreshHint": "Récupérer les notes enregistrées sur un autre appareil, sans enregistrer le brouillon ouvert.",
 

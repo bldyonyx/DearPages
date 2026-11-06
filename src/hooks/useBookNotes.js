@@ -1,3 +1,4 @@
+import { personalErrorKind } from '../integration/generationPersonalBackend.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   compareBookNotes, createBookNote, deleteBookNote, getBookNotesForDisplay,
@@ -5,28 +6,30 @@ import {
   getBookNote, migrateLegacyBookNote, migrateLegacyBookReview,
 } from '../services/bookNotesService.js'
 
-function initial(scope) {
-  return { scope, notes: [], legacy: null, legacyReview: null, conversionStatus: '', loading: isBookNotesUiEnabled, loaded: false, loadError: false, pending: {}, errors: {} }
+function initial(scope, enabled) {
+  return { scope, notes: [], legacy: null, legacyReview: null, conversionStatus: '', loading: enabled, loaded: false, loadError: false, pending: {}, errors: {} }
 }
 
-export default function useBookNotes(userId, bookId) {
-  const scope = useMemo(() => ({ userId, bookId }), [userId, bookId])
+export default function useBookNotes(userId, bookId, personalBackend) {
+  const generation = personalBackend?.mode === 'generation'
+  const enabled = personalBackend ? generation && personalBackend.context.uid === userId && personalBackend.context.bookId === bookId : isBookNotesUiEnabled
+  const scope = useMemo(() => ({ userId, bookId, personalBackend }), [userId, bookId, personalBackend])
   const controlRef = useRef(null)
-  const [state, setState] = useState(() => initial(scope))
+  const [state, setState] = useState(() => initial(scope, enabled))
   const change = useCallback((update) => {
     if (controlRef.current?.scope === scope && controlRef.current.active) {
-      setState((current) => update(current.scope === scope ? current : initial(scope)))
+      setState((current) => update(current.scope === scope ? current : initial(scope, enabled)))
     }
-  }, [scope])
+  }, [scope, enabled])
 
   const reload = useCallback(async () => {
     const control = controlRef.current
-    if (!isBookNotesUiEnabled || !userId || !bookId || !control?.active || control.scope !== scope || control.locks.size) return
+    if (!enabled || !userId || !bookId || !control?.active || control.scope !== scope || control.locks.size) return
     const sequence = ++control.sequence
     control.loading = true
     change((current) => ({ ...current, loading: true, loadError: false }))
     try {
-      const result = await getBookNotesForDisplay(userId, bookId)
+      const result = await (generation ? personalBackend.notes.load() : getBookNotesForDisplay(userId, bookId))
       if (!control.active || sequence !== control.sequence) return
       control.processed ||= result.legacy.status === 'processed'
       control.processedReview ||= result.legacyReview?.status === 'processed'
@@ -37,7 +40,7 @@ export default function useBookNotes(userId, bookId) {
     } finally {
       if (sequence === control.sequence) control.loading = false
     }
-  }, [bookId, userId, scope, change])
+  }, [bookId, userId, scope, change, enabled, generation, personalBackend])
 
   useEffect(() => {
     const control = { scope, active: true, sequence: 0, locks: new Set(), processed: false, processedReview: false, loading: false }
@@ -49,7 +52,7 @@ export default function useBookNotes(userId, bookId) {
 
   async function operate(key, action, apply, errorKey) {
     const control = controlRef.current
-    if (!isBookNotesUiEnabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
+    if (!enabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
     control.locks.add(key)
     change((current) => ({ ...current, pending: { ...current.pending, [key]: true }, errors: { ...current.errors, [key]: '' } }))
     try {
@@ -58,7 +61,8 @@ export default function useBookNotes(userId, bookId) {
       change((current) => ({ ...current, notes: apply(current.notes, result).sort(compareBookNotes) }))
       return true
     } catch (error) {
-      const message = error.code === 'book-notes/invalid-argument' ? 'invalidInput' : error.code === 'book-notes/note-not-found' ? 'missingNote' : errorKey
+      const kind = generation ? personalErrorKind(error) : null
+      const message = generation ? (kind === 'invalid' ? 'invalidInput' : kind) : error.code === 'book-notes/invalid-argument' ? 'invalidInput' : error.code === 'book-notes/note-not-found' ? 'missingNote' : errorKey
       change((current) => ({ ...current, errors: { ...current.errors, [key]: message } }))
       return false
     } finally {
@@ -70,7 +74,7 @@ export default function useBookNotes(userId, bookId) {
   async function convert(kind, options) {
     const control = controlRef.current
     const key = `convert:${kind}`
-    if (!['note', 'review'].includes(kind) || !options?.expectedVersion || !isBookNotesUiEnabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
+    if (generation || !['note', 'review'].includes(kind) || !options?.expectedVersion || !enabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
     control.locks.add(key)
     change((current) => ({ ...current, conversionStatus: '', pending: { ...current.pending, [key]: true }, errors: { ...current.errors, [key]: '' } }))
     try {
@@ -103,16 +107,16 @@ export default function useBookNotes(userId, bookId) {
     }
   }
 
-  const current = state.scope === scope ? state : initial(scope)
+  const current = state.scope === scope ? state : initial(scope, enabled)
   return {
-    ...current, enabled: isBookNotesUiEnabled, reload, convert,
-    create: (input) => operate('new', () => createBookNote(userId, bookId, input),
-      (notes, id) => [...notes, { ...input, id, createdAt: Date.now() }], 'saveError'),
-    save: (id, input) => operate(id, () => updateBookNote(userId, bookId, id, input),
-      (notes) => notes.map((note) => note.id === id ? { ...note, ...input } : note), 'saveError'),
-    pin: (id, isPinned) => operate(id, () => updateBookNotePinned(userId, bookId, id, isPinned),
-      (notes) => notes.map((note) => note.id === id ? { ...note, isPinned } : note), 'pinError'),
-    remove: (id) => operate(id, () => deleteBookNote(userId, bookId, id),
-      (notes) => notes.filter((note) => note.id !== id), 'deleteError'),
+    ...current, enabled, reload, convert,
+    create: (input) => operate('new', () => generation ? personalBackend.notes.create(input) : createBookNote(userId, bookId, input),
+      (notes, result) => generation ? [...notes, result] : [...notes, { ...input, id: result, createdAt: Date.now() }], 'saveError'),
+    save: (id, input, expected) => operate(id, () => generation ? personalBackend.notes.save(id, input, expected) : updateBookNote(userId, bookId, id, input),
+      (notes, result) => notes.map(note => note.id === id ? (generation ? result : { ...note, ...input }) : note), 'saveError'),
+    pin: (id, isPinned, expected) => operate(id, () => generation ? personalBackend.notes.pin(id, isPinned, expected) : updateBookNotePinned(userId, bookId, id, isPinned),
+      (notes, result) => notes.map(note => note.id === id ? (generation ? result : { ...note, isPinned }) : note), 'pinError'),
+    remove: (id, expected) => operate(id, () => generation ? personalBackend.notes.remove(id, expected) : deleteBookNote(userId, bookId, id),
+      notes => notes.filter(note => note.id !== id), 'deleteError'),
   }
 }

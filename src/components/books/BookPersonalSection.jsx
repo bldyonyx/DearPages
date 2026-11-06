@@ -9,12 +9,15 @@ function BookPersonalSection({
   libraryBook,
   onLibraryBookChange,
   userId,
+  personalBackend,
 }) {
   const { t } = useTranslation()
 
   if (libraryBook && userId) {
     return (
       <BookPersonalSpace
+        key={`${userId}/${bookId}/${personalBackend?.context.generation ?? 'legacy'}`}
+        personalBackend={personalBackend}
         userId={userId}
         bookId={bookId}
         libraryBook={libraryBook}

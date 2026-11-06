@@ -90,6 +90,7 @@ function BookPage() {
   const {
     libraryBook,
     libraryMode,
+    personalBackend,
     setLibraryBook,
     isLibraryLoading,
     isSaving,
@@ -180,9 +181,10 @@ function BookPage() {
               isBookLoading={isBookLoading}
             />
 
-            {!isBookLoading && libraryMode === 'legacy' && (
+            {!isBookLoading && (libraryMode === 'legacy' || personalBackend) && (
               <BookPersonalSection
                 userId={userId}
+                personalBackend={personalBackend}
                 bookId={currentBookId}
                 libraryBook={libraryBook}
                 isLibraryLoading={isLibraryLoading}
