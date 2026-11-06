@@ -22,13 +22,14 @@ let failed = false
 const experiment = fileURLToPath(new URL('.', import.meta.url))
 const main = await run(experiment, 'vitest.config.js')
 failed ||= main !== 0
+if (!main) failed = (await run(experiment, 'reactLibrary.vitest.config.js')) !== 0 || failed
 if (!main) {
   // Boundary profile changes only the absent-head genesis constant. No admin
   // fixture writes, no production path, no weakening of transition predicates.
   const boundary = (await compose()).replaceAll(".child('sequence').val() : 0) + 1", ".child('sequence').val() : 2147483645) + 1")
   assert.notEqual(boundary, await compose())
   await loadRules(boundary)
-  failed ||= (await run(experiment, 'boundary.vitest.config.js')) !== 0
+  failed = (await run(experiment, 'boundary.vitest.config.js')) !== 0 || failed
 }
 const suites = [
   ['generation-integration', 'generation-integration'],

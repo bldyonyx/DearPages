@@ -1,76 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
 import { getUserLibrary } from '../services/libraryService.js'
+import useLibraryBackend from './useLibraryBackend.js'
 
-/**
- * Loads the authenticated user's Firebase library books.
- *
- * The hook owns only the asynchronous data-loading state for MyLibrary:
- * stored books, loading status, and the user-facing load error. It preserves
- * an `isActive` guard so late Firebase responses cannot update state after the
- * page unmounts or the authenticated user changes.
- *
- * @param {string|undefined} userId - Firebase Authentication user ID.
- * @returns {{
- *   books: Object[],
- *   isLoading: boolean,
- *   error: string,
- * }} Library books and loading state for the current user.
- */
-function useLibraryBooks(userId) {
+export default function useLibraryBooks(userId) {
   const { t } = useTranslation()
-  const [books, setBooks] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-
+  const backend = useLibraryBackend(userId)
+  const scope = useMemo(() => ({ userId, mode: backend.mode, gateway: backend.gateway }), [userId, backend.mode, backend.gateway])
+  const [state, setState] = useState(null)
   useEffect(() => {
-    if (!userId) {
-      return
-    }
-
-    let isActive = true
-
-    async function loadLibrary() {
+    if (!userId || backend.mode === 'loading') return
+    let active = true
+    async function load() {
       try {
-        setIsLoading(true)
-        setError('')
-
-        const libraryBooks = await getUserLibrary(userId)
-
-        if (isActive) {
-          setBooks(libraryBooks)
-        }
-      } catch (loadError) {
-        console.error(
-          'Unable to load library:',
-          loadError
-        )
-
-        if (isActive) {
-          setError(
-            t('libraryPage.loadError')
-          )
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false)
-        }
+        if (backend.mode === 'blocked') throw new Error('generation-disabled')
+        const books = backend.mode === 'generation' ? await backend.gateway.list() : await getUserLibrary(userId)
+        if (active) setState({ scope, books, error: '' })
+      } catch {
+        if (active) setState({ scope, books: [], error: t('libraryPage.loadError') })
       }
     }
-
-    loadLibrary()
-
-    return () => {
-      isActive = false
-    }
-  }, [userId, t])
-
-  return {
-    books,
-    isLoading,
-    error,
-  }
+    load()
+    return () => { active = false }
+  }, [userId, scope, t, backend.mode, backend.gateway])
+  const current = state?.scope === scope ? state : null
+  return { books: current?.books ?? [], isLoading: Boolean(userId) && !current, error: current?.error ?? '', libraryMode: backend.mode }
 }
-
-export default useLibraryBooks

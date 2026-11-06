@@ -89,6 +89,7 @@ function BookPage() {
 
   const {
     libraryBook,
+    libraryMode,
     setLibraryBook,
     isLibraryLoading,
     isSaving,
@@ -179,7 +180,7 @@ function BookPage() {
               isBookLoading={isBookLoading}
             />
 
-            {!isBookLoading && (
+            {!isBookLoading && libraryMode === 'legacy' && (
               <BookPersonalSection
                 userId={userId}
                 bookId={currentBookId}

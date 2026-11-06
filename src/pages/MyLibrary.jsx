@@ -34,7 +34,7 @@ function MyLibrary() {
   const [search, setSearch] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
-  const { books, isLoading, error } = useLibraryBooks(
+  const { books, isLoading, error, libraryMode } = useLibraryBooks(
     user?.uid
   )
 
@@ -244,7 +244,7 @@ function MyLibrary() {
         <div
           className={`dp-section-enter mt-8 ${libraryLarge.sectionGap}`}
         >
-          <LibraryEmptyState />
+          <LibraryEmptyState discoverPath={libraryMode === 'generation' ? '/books/generation-demo-book' : undefined} />
         </div>
       ) : (
         <LibraryBooksPanel
