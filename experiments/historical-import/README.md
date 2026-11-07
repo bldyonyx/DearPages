@@ -42,6 +42,7 @@ await importer.begin()
 await importer.resume({ maxUnits: 2 }) // interruption contrôlée facultative
 await importer.resume()                // même identité, relecture serveur
 const report = await importer.sealAndVerify()
+const attempt = await importer.finalize() // refus explicite tant que l'autorité manque
 ```
 
 La construction et chaque opération vérifient les deux connexions SDK Emulator,
@@ -62,6 +63,12 @@ vers une autre identité n'est fournie. Les seules opérations sont :
 3. `sealAndVerify` : refuser une importation partielle ; comparer indépendamment
    avant scellement, fermer toutes les écritures d'import, relire l'état scellé,
    vérifier à nouveau. Un appel après interruption/rejeu reste réconciliable.
+4. `finalize` : tentative explicite, en lecture seule. Relire la barrière active,
+   l'identité, les liaisons source/plan et les destinations scellées ; réexécuter
+   le vérificateur indépendant. Refuser toute preuve fournie par le client. Un
+   import complet retourne `blocked / verification-authority-unavailable` ; une
+   source/cible contradictoire ou incomplète reste bloquée. Aucun champ ni état
+   n'est modifié, même lors d'un réessai concurrent ou après une interruption.
 
 Les identifiants, versions, sourceVersion et planDigest sont immuables. Les reçus
 ont une clé SHA-256 du unitId contractuel, et contiennent unitId + digest du payload,
@@ -119,16 +126,21 @@ comparaison locale indépendante, pas attestation d'une autorité d'exploitation
 
 ## Validation et blocage final
 
-- **23 tests Emulator** : sept branches fidèles, notes multiples/copies éditées
+- **33 tests Emulator** : sept branches fidèles, notes multiples/copies éditées
   ou supprimées, ratings révisés/tombstones, Collections vides/liens multiples,
   conservation brute/profile/préférences/Auth, interruptions/rejeux/perte d'ack,
   gel et import concurrents, écriture hors ligne obsolète, conflits, faux
   contenus/hashes/checkpoints, import incomplet, priorité/champ inconnu,
-  barrière terminale, isolation et refus ready/activation/approbation.
-- **16 tests unitaires d'isolation** : projets/connexions/namespace/Auth/Admin
+  barrière terminale, isolation et refus ready/activation/approbation. Les dix
+  scénarios supplémentaires de finalisation couvrent le refus de confiance pour
+  un import complet, les preuves clientes falsifiées/périmées/d'autre compte ou
+  migration/rejouées, la concurrence et l'interruption, les reçus en excès, la
+  façade fermée et l'absence de résurrection.
+- **18 tests unitaires d'isolation** : projets/connexions/namespace/Auth/Admin
   refusés avant ref/réseau, changements après construction/token et indépendance
-  du vérificateur.
-- Régression : **1 214 tests unitaires, 64 fichiers, réussis**.
+  du vérificateur, refus des preuves clientes sans les lire et garde Emulator
+  revérifié sur la tentative de finalisation.
+- Régression : **1 216 tests unitaires, 64 fichiers, réussis**.
 - Lint ciblé propre ; lint global : 11 avertissements préexistants, aucune erreur.
   Build réussi. Compositions faisabilité et intégration existantes inchangées.
 
@@ -139,3 +151,46 @@ branches pour ready : elles ne seront pas supprimées pour satisfaire cette
 condition. L'activation demeure donc **bloquée intentionnellement**. Aucune
 approbation de production, autorité privilégiée, finalisation, réparation de
 migration scellée contradictoire ou politique de nettoyage n'est introduite.
+
+
+## Finalisation : blocage de confiance confirmé
+
+Conditions exactes, distinctes :
+
+- Dans ce profil d'import, le grant lifecycle exige `!data.exists()` et ne crée
+  que `creating`. Le grant protocole exige un nœud absent et ne crée que
+  `migrating`. Aucune transition de finalisation n'est autorisée.
+- Dans le profil de faisabilité réutilisé, les opérations lifecycle ordinaires
+  exigent `ready` ; la transition protocole vers ready exige l'absence des sept
+  anciennes racines. Ces conditions ne permettent donc pas leur coexistence.
+- `generationApplicationService.requireReady()` refuse aussi les anciennes
+  racines (`legacy-unmigrated`), indépendamment de la permission RTDB. Modifier
+  les seules règles ne rendrait pas ce compte utilisable par la façade.
+
+Le vérificateur existant est indépendant du transformateur, mais ses observations
+et son exécution utilisent le propriétaire. Aucun principal d'approbation distinct,
+aucune émission de claims de rôle/cible/migration et aucune approbation signée
+vérifiable par les règles ne sont disponibles dans ce mécanisme. Les champs de
+checkpoint, hashes et rapports clients ne constituent pas cette autorité.
+
+`finalize()` n'accepte donc aucun argument et ne persiste jamais son résultat.
+Il lie son diagnostic au contexte capturé et aux versions source/plan recalculées,
+puis vérifie le contenu réel observé sous le seal. Le diagnostic ne peut pas être
+présenté à un autre appel comme une approbation. Les règles existantes continuent
+à refuser les approbations fabriquées, activations et passages ready, y compris
+un multipath réunissant ces opérations.
+
+La clause de repli demandée est appliquée : seules ces protections vérifiables
+sont implémentées. Aucun approbateur fictif, clé auto-émise, claim fabriqué ni
+write Admin de finalisation n'est introduit. Les règles ne sont pas assouplies.
+La finalisation positive authentifiée et le fonctionnement après activation ne
+sont **pas réalisés ni prétendus testés** : ils restent bloqués par cette absence
+d'autorité et, pour l'utilisation via la façade, par son refus du résidu legacy.
+La non-résurrection est testée sur les tentatives refusées et les rejeux SDK ;
+elle n'est pas présentée comme un test de suppression après activation.
+
+Le prochain changement de permissions devrait consommer une approbation issue
+d'une autorité distincte réellement authentifiée et liée au seal, sans contourner
+la barrière de compte ; cette autorité n'est pas créée par cette tâche. Aucun
+bypass du refus legacy de la façade n'est ajouté en attendant. Les sept racines,
+profils, préférences, identités Auth et autres données existantes restent intacts.

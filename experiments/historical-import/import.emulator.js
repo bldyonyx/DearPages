@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, afterAll, expect, it } from 'vitest'
+import { beforeAll, beforeEach, afterAll, expect, it, vi } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { initializeApp, deleteApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword, getIdTokenResult } from 'firebase/auth'
@@ -10,6 +10,7 @@ import { verifyHistoricalImport } from './verify.mjs'
 import { receiptKey, receiptFor, sourceValue, planDigest } from './protocol.mjs'
 import { transformHistoricalSnapshot } from '../../src/utils/historicalGenerationTransformer.js'
 import { verify } from './composeRules.mjs'
+import { createGenerationApplicationService } from '../../src/services/generationApplicationService.js'
 
 const clients = []
 let uid, serial = 0, originalRules
@@ -172,6 +173,7 @@ it('freezes each raw historical branch and refuses deletion even during terminal
   await set(ref(clients[0].db, `accountControl/${uid}`), { state: 'deleting', legacyClosed: true })
   await denied(write('', null)); await denied(write('profile', null))
   await expect(service().resume()).rejects.toThrow('account-blocked')
+  await expect(service().finalize()).rejects.toThrow('account-blocked')
   expect(sourceValue(await read())).toEqual(before)
 })
 it('rejects incomplete import, forged progress, approval, ready and lifecycle activation', async () => {
@@ -301,4 +303,112 @@ it('does not infer an import from a forged plan digest or checkpoint observation
   const user = await read(), prep = await preparation()
   expect(user.historicalImport.planDigest).toBe(planDigest(prep))
   expect(verifyHistoricalImport({ ...user, historicalImport: { ...user.historicalImport, phase: 'sealed', stage: 'imported' } }, identity()).status).toBe('blocked')
+})
+
+
+it('reports the missing trust authority explicitly for a complete sealed import without changing any account data', async () => {
+  const svc = service(); await svc.begin(); await svc.resume(); await svc.sealAndVerify()
+  const before = await read(), authBefore = clients[0].auth.currentUser.uid
+  const report = await svc.finalize()
+  expect(report).toMatchObject({ status: 'blocked', reason: 'verification-authority-unavailable', migration: identity(),
+    sourceVersion: before.historicalImport.sourceVersion, planDigest: before.historicalImport.planDigest,
+    verification: { status: 'verified-unfinalized', failures: [] }, canApprove: false, canReady: false })
+  expect(await read()).toEqual(before)
+  expect(clients[0].auth.currentUser.uid).toBe(authBefore)
+  expect(before.bookProtocol.state).toBe('migrating')
+  expect(Object.values(before.bookLifecycle).every(life => life.state === 'creating')).toBe(true)
+})
+it('refuses finalization of an unsealed import without silently sealing it', async () => {
+  await service().begin(); await service().resume()
+  const before = await read()
+  await expect(service().finalize()).rejects.toThrow('unsealed-import')
+  expect(await read()).toEqual(before)
+})
+it('refuses incomplete imports even if their progress and seal were declared complete by the owner', async () => {
+  await service().begin(); await service().resume({ maxUnits: 1 })
+  await expect(service().finalize()).rejects.toThrow('incomplete-import')
+  await write('historicalImport/stage', 'imported'); await write('historicalImport/phase', 'sealed')
+  const before = await read()
+  expect(await service().finalize()).toMatchObject({ status: 'blocked', reason: 'incomplete-import', canApprove: false, canReady: false })
+  expect(await read()).toEqual(before)
+  await denied(write('bookProtocol/state', 'ready'))
+})
+it('refuses client-forged, expired, cross-account and replayed approval artifacts rather than treating them as trusted', async () => {
+  await service().begin(); await service().resume(); const localReport = await service().sealAndVerify()
+  const before = await read()
+  for (const artifact of [
+    { approved: true, role: 'verifier', ...identity() },
+    { approved: true, ...identity(), expiresAt: 0, sourceVersion: before.historicalImport.sourceVersion },
+    { approved: true, ...identity(clients[2].auth.currentUser.uid), sourceVersion: before.historicalImport.sourceVersion },
+    { approved: true, ...identity(uid, 'obsolete-migration'), sourceVersion: 'a'.repeat(64) },
+    localReport,
+  ]) {
+    await expect(service().finalize(artifact)).rejects.toThrow('client-approval-forbidden')
+    await denied(write('historicalImport/approval', artifact))
+    await denied(write('migrationApproval', artifact))
+  }
+  const refusal = await service().finalize()
+  await expect(service().finalize(refusal)).rejects.toThrow('client-approval-forbidden')
+  await denied(update(ref(clients[0].db), {
+    [path('historicalImport/approval')]: { approved: true },
+    [path('bookLifecycle/book/state')]: 'active', [path('bookProtocol/state')]: 'ready',
+  }))
+  expect(await read()).toEqual(before)
+})
+it('refuses finalization by another owner and a conflicting migration identity', async () => {
+  await service().begin(); await service().resume(); await service().sealAndVerify()
+  const before = await read()
+  expect(() => service(2)).toThrow('fictional-owner-required')
+  await expect(service(1, 'obsolete-migration').finalize()).rejects.toThrow('identity-or-source-conflict')
+  await denied(write('historicalImport/approval', { approved: true }, 2))
+  await denied(write('bookLifecycle/book/state', 'active', 2))
+  await denied(write('bookProtocol/state', 'ready', 2))
+  expect(await read()).toEqual(before)
+})
+it('retries concurrent finalization attempts idempotently without partial lifecycle activation', async () => {
+  await service().begin(); await service().resume(); await service().sealAndVerify()
+  const before = await read()
+  const reports = await Promise.all([service().finalize(), service(1).finalize()])
+  expect(reports[0]).toEqual(reports[1])
+  expect(reports[0].reason).toBe('verification-authority-unavailable')
+  expect(await service(1).finalize()).toEqual(reports[0])
+  expect(await read()).toEqual(before)
+})
+it('fails explicitly when interrupted during finalization observation and safely rechecks on retry', async () => {
+  await service().begin(); await service().resume(); await service().sealAndVerify()
+  const before = await read(), request = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Simulated local observation interruption'))
+  try { await expect(service().finalize()).rejects.toThrow('observation-unavailable') }
+  finally { request.mockRestore() }
+  expect(await read()).toEqual(before)
+  expect((await service().finalize()).reason).toBe('verification-authority-unavailable')
+  expect(await read()).toEqual(before)
+})
+it('does not resurrect deleted ratings or absent historical copies through a finalization attempt or a direct SDK replay', async () => {
+  await service().begin(); await service().resume(); await service().sealAndVerify()
+  const before = await read()
+  expect(before.bookData.book[1].bookRatings[deletedId].deleted).toBe(true)
+  expect(before.bookData.book[1].bookNotes['legacy-review-v1']).toBeUndefined()
+  await service().finalize()
+  await denied(write(`bookData/book/1/bookRatings/${deletedId}`, fixture().bookRatings.book[ratingId]))
+  await denied(write('bookData/book/1/bookNotes/legacy-review-v1', before.bookData.book[1].bookNotes['legacy-note-v1']))
+  await denied(write('bookLifecycle/book', { generation: 2, state: 'creating' }))
+  await denied(write('bookData/book/2/library', before.library.book))
+  expect(await read()).toEqual(before)
+})
+it('refuses a sealed contradictory receipt inventory despite complete imported destinations', async () => {
+  await service().begin(); await service().resume({ maxUnits: 0 })
+  await write(`importReceipts/${'f'.repeat(64)}`, { unitId: 'owner-declaration', payloadDigest: 'a'.repeat(64) })
+  await service().resume()
+  // An owner-declared seal is not authenticated evidence of verification.
+  await write('historicalImport/phase', 'sealed')
+  const before = await read(), report = await service().finalize()
+  expect(report).toMatchObject({ status: 'blocked', reason: 'verification-failed', canApprove: false, canReady: false })
+  expect(report.verification.failures).toContainEqual({ path: 'importReceipts', reason: 'missing-excess-or-altered-content-including-technical-metadata' })
+  expect(await read()).toEqual(before)
+})
+it('keeps the existing generation facade closed without falling back to legacy while trust is unresolved', async () => {
+  await service().begin(); await service().resume(); await service().sealAndVerify(); await service().finalize()
+  const before = await read(), facade = createGenerationApplicationService(clients[0].db, { uid })
+  await expect(facade.library.getActiveBooks()).rejects.toThrow('generation-app/protocol-migrating')
+  expect(await read()).toEqual(before)
 })

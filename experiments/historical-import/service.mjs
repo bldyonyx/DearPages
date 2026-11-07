@@ -164,5 +164,23 @@ export function createHistoricalImportService(database, identity) {
     ;({ user, account } = await observe()); bound(user, preparation, account)
     return verifyHistoricalImport(user, migration)
   }
-  return Object.freeze({ begin, resume, sealAndVerify }) // No approve/ready/purge/activate/Auth API.
+  /** Fail closed until an independently authenticated approval authority exists.
+   * A verifier running as the owner is independent code, not a trusted principal.
+   * Never accept a caller report/token, persist an approval, activate a book or
+   * promote the protocol. Repeated/concurrent attempts only re-observe the seal.
+   */
+  async function finalize(...input) {
+    if (input.length) throw failure('client-approval-forbidden')
+    const { user, account } = await observe()
+    const preparation = await prepare(user, true); bound(user, preparation, account)
+    if (user.historicalImport.stage !== 'imported') throw failure('incomplete-import')
+    if (user.historicalImport.phase !== 'sealed') throw failure('unsealed-import')
+    const { missing } = scan(user, preparation)
+    const verification = verifyHistoricalImport(user, migration)
+    return contractData({ status: 'blocked', migration,
+      reason: missing.length ? 'incomplete-import' : verification.status !== 'verified-unfinalized' ? 'verification-failed' : 'verification-authority-unavailable',
+      sourceVersion: preparation.sourceVersion, planDigest: planDigest(preparation),
+      verification, canApprove: false, canReady: false })
+  }
+  return Object.freeze({ begin, resume, sealAndVerify, finalize }) // No approval/write finalization capability.
 }

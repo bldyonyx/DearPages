@@ -56,8 +56,27 @@ it('rechecks owner after token acquisition, before the first network request', a
   finally { vi.unstubAllGlobals() }
 })
 it('does not expose any approval, activation, purge or Auth mutation API', () => {
-  expect(Object.keys(createHistoricalImportService(database(), identity))).toEqual(['begin', 'resume', 'sealAndVerify'])
+  expect(Object.keys(createHistoricalImportService(database(), identity))).toEqual(['begin', 'resume', 'sealAndVerify', 'finalize'])
   expect(update).not.toHaveBeenCalled()
+})
+it('refuses supplied approval artifacts without reading them or accessing the network', async () => {
+  const getter = vi.fn(), proof = Object.defineProperty({}, 'approved', { get: getter, enumerable: true })
+  const network = vi.fn(), service = createHistoricalImportService(database(), identity)
+  vi.stubGlobal('fetch', network)
+  try {
+    await expect(service.finalize(proof)).rejects.toThrow('client-approval-forbidden')
+    expect(getter).not.toHaveBeenCalled(); expect(network).not.toHaveBeenCalled()
+    expect(ref).not.toHaveBeenCalled(); expect(update).not.toHaveBeenCalled()
+  } finally { vi.unstubAllGlobals() }
+})
+it('rechecks the Emulator guard on a finalization attempt before any read or write', async () => {
+  const db = database(), service = createHistoricalImportService(db, identity), network = vi.fn()
+  db.app.options.projectId = 'production-refused'
+  vi.stubGlobal('fetch', network)
+  try {
+    await expect(service.finalize()).rejects.toThrow('emulator-only')
+    expect(network).not.toHaveBeenCalled(); expect(ref).not.toHaveBeenCalled(); expect(update).not.toHaveBeenCalled()
+  } finally { vi.unstubAllGlobals() }
 })
 it('keeps the independent verifier graph free of transformer, services, SDK and dynamic imports', () => {
   const visited = new Set()
