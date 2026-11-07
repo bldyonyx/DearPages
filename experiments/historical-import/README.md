@@ -144,7 +144,7 @@ React existante n'est pas modifiée et reste explicitement opt-in Emulator.
   liaisons d'attestation, ETag obligatoire, erreur 5xx incertaine et aucune dépendance
   de l'autorité dans les entrées clientes. Le bundle généré ne contient pas les
   marqueurs du module serveur ni sa variable de privilège.
-- Régression unitaire : **1 228 tests / 65 fichiers**. Lint ciblé propre ; lint global
+- Régression unitaire : **1 233 tests / 65 fichiers**. Lint ciblé propre ; lint global
   sans erreur, avec les 11 avertissements préexistants. Build réussi.
 
 Le compte fictif peut désormais être utilisé en générationnel avec ses sept
@@ -160,3 +160,65 @@ volontairement conservatrices. Le profil doit rester stable sous le contrôle de
 l'opérateur pendant l'opération ; un administrateur de règles malveillant n'est
 pas assimilé à un client ordinaire. Pas d'automatisation d'activation, de worker,
 de réparation de conflits ni de purge. Firebase production reste **NO-GO**.
+
+
+## Préparation du raccordement à un futur serveur Firebase réel
+
+Inspection ciblée : la configuration racine `firebase.json` ne contient que
+Hosting ; aucune infrastructure Functions/Cloud Run, dépendance firebase-admin,
+identité de service ou gestion de credentials serveur n'est implémentée dans le
+dépôt. Le point d'entrée Node déjà validé est donc réutilisé, sans nouvelle
+infrastructure ni dépendance.
+
+La seule extraction est `finalizationCore.server.mjs`, contenant la même boucle
+validée de vérification, liaison source/plan/destinations, CAS racine, activation,
+attestation et réconciliation. Il ne contient ni URL Firebase, ni credential,
+ni découverte ADC, ni initialisation SDK, ni appel réseau, ni route publique.
+Sans capacité serveur fournie explicitement, sa construction est refusée ; un
+rapport/jeton utilisateur n'est pas une telle capacité. Le module refuse aussi
+un environnement navigateur. Les méthodes de capacité sont copiées et figées,
+et l'autorisation est revérifiée avant le CAS.
+
+`finalize.server.mjs` reste le **seul adaptateur exécutable** et conserve exactement
+son API et sa CLI. Il fournit au noyau les opérations suivantes :
+
+| Capacité interne serveur | Garantie attendue de l'adaptateur |
+| --- | --- |
+| `assertAuthorized` / `authorize` | Processus autorisé, principal serveur distinct, destination explicitement admise ; refus par défaut |
+| `verifyAccountIdentity(uid)` | Relecture d'identité sans modification Auth ; aucune preuve client |
+| `readRoot()` | Export complet de la racine commune users/accountControl, avec ETag |
+| `assertWritePolicy()` | Contrôle explicite du profil de droits attendu avant commit |
+| `compareAndSwapRoot(etag, root)` | Écriture conditionnelle du même périmètre ; conflit→relecture/revérification, résultat incertain explicite |
+| `recordAuthority` | Identifiant de l'autorité effectivement autorisée par le contrat d'attestation |
+
+Il s'agit de capacités internes d'un programme serveur de confiance, **pas**
+d'une API RPC acceptant ces fonctions depuis un utilisateur. Le noyau ne crée
+pas l'autorité et ne rend pas fiable un adaptateur arbitraire. L'adaptateur livré
+reste figé sur les deux Emulators loopback, le projet demo et le privilège natif
+Emulator ; ses contrôles de comptes fictifs, de règles et de redirects sont
+inchangés. Une variable ressemblant à une activation production ou un chemin
+GOOGLE_APPLICATION_CREDENTIALS ne déclenche ni découverte de credentials ni
+requête réelle. Aucun adaptateur production ou fallback n'est fourni.
+
+Avant toute future exécution réelle, il manque uniquement le raccordement serveur
+concret et son autorisation :
+
+- Un environnement serveur privé et un principal IAM/service account distinct des
+  utilisateurs, avec permissions et invocation opérateur explicitement validées.
+  Aucun secret ne doit être fourni à React ni à une route accessible au propriétaire.
+- Un adaptateur réel à destinations autorisées explicitement, réutilisant le même
+  noyau et le même CAS couvrant la barrière externe ; validation du contrôle de
+  règles, des bornes et de la contention globale. Ne pas remplacer le CAS par
+  une simple mise à jour ou une transaction limitée à users/{uid}.
+- Une extension explicite et testée du contrat/règles pour cette autorité réelle :
+  le wire v1 actuel accepte seulement `emulator-root-cas-v1`. Le privilège local
+  `owner` n'est pas une identité production et ne doit pas être transposé.
+
+Ces raccordements ne sont ni implémentés, ni autorisés, ni testés sur Firebase réel
+par cette tâche. Les 45 tests Emulator existants sont réutilisés sans recréer
+l'import ; cinq tests ciblés ajoutent les refus sans autorité/dans un navigateur,
+la capture non retargetable des capacités, la révocation avant CAS et l'absence
+d'activation réelle/discovery de credentials. L'inspection des sources clientes
+couvre désormais tous les fichiers JavaScript/TypeScript de src hors tests.
+Les services, règles, contrats, React, configuration Firebase et données historiques
+ne sont pas modifiés par cette extraction. Firebase production reste **NO-GO**.

@@ -1,11 +1,12 @@
 // @vitest-environment node
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createEmulatorFinalizationServer } from '../../experiments/historical-import/finalize.server.mjs'
 import { historicalFinalizationRecord, hasHistoricalFinalization } from '../utils/historicalFinalizationRecord.js'
 import { transformHistoricalSnapshot } from '../utils/historicalGenerationTransformer.js'
 import { planDigest } from '../../experiments/historical-import/protocol.mjs'
+import { createHistoricalFinalizer } from '../../experiments/historical-import/finalizationCore.server.mjs'
 vi.mock('../../scripts/emulatorSafety.mjs', () => ({ assertEmulatorProject: vi.fn(async () => {}), assertEmulatorsReady: vi.fn(async () => {}) }))
 const context = { uid: 'owner', migrationId: 'm', transformVersion: 1 }
 const proof = { version: 1, authority: 'emulator-root-cas-v1', ...context, sourceVersion: 'a'.repeat(64), planDigest: 'b'.repeat(64), snapshotDigest: 'c'.repeat(64), receiptsDigest: 'd'.repeat(64), finalizationId: 'e'.repeat(64) }
@@ -83,8 +84,65 @@ it('uses a conditional root write and treats a server error as an uncertain comm
   expect(root.users.owner.bookProtocol.state).toBe('migrating')
 })
 it('does not import the server authority from any browser application source', () => {
-  // Existing app entry graph remains client-only. The new pure DTO may be shared;
-  // the process-only authority must never be reachable through a source import.
-  const files = ['src/main.jsx', 'src/services/generationApplicationService.js', 'src/utils/historicalFinalizationRecord.js']
-  for (const file of files) expect(readFileSync(resolve(file), 'utf8')).not.toContain('finalize.server')
+  function inspect(directory) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name === 'test') continue
+      const file = resolve(directory, entry.name)
+      if (entry.isDirectory()) inspect(file)
+      else if (/\.[cm]?[jt]sx?$/.test(entry.name)) {
+        const source = readFileSync(file, 'utf8')
+        expect(source).not.toMatch(/finalize\.server|finalizationCore\.server|HISTORICAL_EMULATOR_ADMIN_TOKEN/)
+      }
+    }
+  }
+  inspect(resolve('src'))
+})
+it('has no default authority and rejects an end-user report as a server capability', () => {
+  expect(() => createHistoricalFinalizer()).toThrow('server-authority-required')
+  expect(() => createHistoricalFinalizer({ ...context, approved: true })).toThrow()
+  expect(() => createHistoricalFinalizer({ approval: proof })).toThrow()
+})
+it('rejects the common server mechanism in a browser context', () => {
+  vi.stubGlobal('window', {})
+  expect(() => createHistoricalFinalizer({})).toThrow('server-authority-required')
+})
+it('captures server capabilities without letting a later mutation retarget reads', async () => {
+  const original = vi.fn(async () => ({ etag: 'version', text: 'null' })), replaced = vi.fn()
+  const authority = {
+    recordAuthority: 'emulator-root-cas-v1', assertAuthorized: vi.fn(), authorize: vi.fn(async () => {}),
+    verifyAccountIdentity: vi.fn(async () => {}), readRoot: original,
+    assertWritePolicy: vi.fn(async () => {}), compareAndSwapRoot: vi.fn(),
+  }
+  const finalizer = createHistoricalFinalizer(authority)
+  authority.readRoot = replaced
+  await expect(finalizer.finalize(context)).rejects.toThrow('account-blocked')
+  expect(original).toHaveBeenCalledTimes(1); expect(replaced).not.toHaveBeenCalled()
+  expect(authority.compareAndSwapRoot).not.toHaveBeenCalled()
+})
+it('rechecks server authorization immediately before the common CAS', async () => {
+  const preparation = await transformHistoricalSnapshot({}, context)
+  const root = { accountControl: { owner: { state: 'active', legacyClosed: true } }, users: { owner: {
+    bookMigration: { id: 'm', version: 1 }, bookProtocol: { version: 2, state: 'migrating' },
+    historicalImport: { phase: 'sealed', stage: 'imported', sourceVersion: preparation.sourceVersion, planDigest: planDigest(preparation) },
+  } } }
+  let authorized = true
+  const write = vi.fn()
+  const finalizer = createHistoricalFinalizer({
+    recordAuthority: 'emulator-root-cas-v1',
+    assertAuthorized: () => { if (!authorized) throw new Error('authority-revoked') },
+    authorize: async () => {}, verifyAccountIdentity: async () => {},
+    readRoot: async () => ({ etag: 'version', text: JSON.stringify(root) }),
+    assertWritePolicy: async () => { authorized = false }, compareAndSwapRoot: write,
+  })
+  await expect(finalizer.finalize(context)).rejects.toThrow('authority-revoked')
+  expect(write).not.toHaveBeenCalled()
+  expect(root.users.owner.bookProtocol.state).toBe('migrating')
+})
+it('does not enable real execution or discover credentials from a production-looking environment', () => {
+  const request = vi.fn()
+  vi.stubEnv('GCLOUD_PROJECT', 'production-refused')
+  vi.stubEnv('GOOGLE_APPLICATION_CREDENTIALS', '/tmp/never-read-fake-migration-credentials.json')
+  vi.stubEnv('HISTORICAL_FINALIZATION_ALLOW_PRODUCTION', 'true')
+  expect(() => createEmulatorFinalizationServer({ request })).toThrow('controlled-emulator-server-required')
+  expect(request).not.toHaveBeenCalled()
 })
