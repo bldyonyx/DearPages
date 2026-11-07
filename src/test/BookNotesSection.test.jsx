@@ -617,6 +617,28 @@ it('pins without toggling the accordion, disables during writing, and preserves 
   fireEvent.click(within(card('Deuxième')).getByRole('button', { name: 'Désépingler la note' }))
   await waitFor(() => expect(service.updateBookNotePinned).toHaveBeenLastCalledWith('user', 'book', 'b', false))
 })
+it('keeps pin and unpin pending silently on a collapsed card while blocking repeated clicks', async () => {
+  fixture.notes = [note('a')]
+  render(<BookNotesSection userId="user" bookId="book" />)
+  await waitFor(() => expect(addButton()).toBeEnabled())
+  for (const pinned of [true, false]) {
+    const writing = pending()
+    service.updateBookNotePinned.mockReturnValueOnce(writing.promise)
+    const pin = screen.getByRole('button', { name: pinned ? 'Épingler la note' : 'Désépingler la note' })
+    const calls = service.updateBookNotePinned.mock.calls.length
+    fireEvent.click(pin)
+    expect(pin).toBeDisabled()
+    expect(card()).toHaveAttribute('aria-busy', 'true')
+    expect(within(card()).queryByRole('status')).not.toBeInTheDocument()
+    expect(card()).not.toHaveTextContent('Enregistrement')
+    fireEvent.click(pin)
+    expect(service.updateBookNotePinned).toHaveBeenCalledTimes(calls + 1)
+    await act(async () => writing.resolve())
+    expect(pin).toBeEnabled()
+    expect(pin).toHaveAttribute('aria-pressed', String(pinned))
+    expect(card().querySelector('[aria-expanded]')).toHaveAttribute('aria-expanded', 'false')
+  }
+})
 it('reports a pin error on a collapsed card and allows retry without altering its content', async () => {
   fixture.notes = [note('a')]
   service.updateBookNotePinned.mockRejectedValueOnce(new Error('network'))

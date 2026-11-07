@@ -34,15 +34,17 @@ export default function BookRatingsView({ model }) {
   const disabled = busy || loading || !loaded || loadError
   function row(rating) {
     const readOnly = rating.id === 'legacy-rating-v1' && legacy?.status === 'conflict'
-    return <article key={rating.id} aria-label={t('bookPage.ratings.entry')} className="min-w-0 space-y-1 rounded-2xl border border-walnut/15 bg-cream/70 p-3">
+    return <article key={rating.id} aria-label={t('bookPage.ratings.entry')} className="relative min-w-0 space-y-1 rounded-2xl border border-walnut/15 bg-cream/70 p-3">
       <div className="flex min-w-0 items-center justify-between gap-1">
         <Stars value={rating.value} />
-        {!readOnly && <div className="flex shrink-0">
-          <IconButton label={t('bookPage.ratings.edit')} disabled={disabled} onClick={() => setDraft({ expected: { ...rating }, value: rating.value, date: rating.date, impression: rating.impression ?? '' })}><Pencil size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
-          <IconButton label={t('bookPage.ratings.delete')} disabled={disabled} onClick={() => setDeleting({ ...rating })}><Trash2 size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
+        {!readOnly && <div className="h-11 w-22 shrink-0">
+        <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-0">
+          <IconButton label={t('bookPage.ratings.edit')} className="inline-flex items-center justify-center" disabled={disabled} onClick={() => setDraft({ expected: { ...rating }, value: rating.value, date: rating.date, impression: rating.impression ?? '' })}><Pencil size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
+          <IconButton label={t('bookPage.ratings.delete')} className="inline-flex items-center justify-center" disabled={disabled} onClick={() => setDeleting({ ...rating })}><Trash2 size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
+        </div>
         </div>}
       </div>
-      {rating.impression?.trim() && <p className="break-words font-ui text-sm leading-5 text-walnut [overflow-wrap:anywhere]">{rating.impression}</p>}
+      {rating.impression?.trim() && <p className={`break-words font-ui text-sm leading-5 text-walnut [overflow-wrap:anywhere] ${!readOnly ? 'pr-24' : ''}`}>{rating.impression}</p>}
       <time dateTime={rating.date || undefined} className="block font-ui text-xs text-walnut/65">{rating.date ? formatCivilDate(rating.date, i18n.resolvedLanguage || 'fr') : t('bookPage.date.unknown')}</time>
     </article>
   }

@@ -15,6 +15,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(null)
   const [confirming, setConfirming] = useState(false)
+  const [pinning, setPinning] = useState(false)
   const label = isCivilDate(note.date) ? formatCivilDate(note.date, i18n?.resolvedLanguage || 'fr') : t('bookPage.date.unknown')
   return (
     <article aria-label={note.title || t('bookPage.notes.untitled')} aria-busy={pending || undefined} className="min-w-0 rounded-2xl border border-walnut/15 bg-cream/70">
@@ -22,22 +23,29 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
       <h4 className="min-w-0 flex-1">
         <button id={`${id}-trigger`} type="button" aria-expanded={Boolean(expanded)} aria-controls={`${id}-panel`} onClick={onToggle}
           aria-label={`${note.title || t('bookPage.notes.untitled')} · ${label}`}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl p-4 text-left transition-colors duration-200 ease-out hover:bg-mintcream/55 active:bg-mintcream/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 sm:px-5">
+          className="flex w-full items-center justify-between gap-3 rounded-2xl p-4 pr-0 text-left transition-colors duration-200 ease-out hover:bg-mintcream/55 active:bg-mintcream/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 sm:px-5 sm:pr-0">
           <span className="min-w-0">
             {note.title && <span className="block break-words font-heading text-lg font-bold text-darkwood">{note.title}</span>}
             <time dateTime={isCivilDate(note.date) ? note.date : undefined} className={`font-ui text-xs font-normal text-walnut/65 ${bookLarge.personalSmallText}`}>{label}</time>
           </span>
-          <ChevronDown size={18} aria-hidden="true" className={`shrink-0 text-olive transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+          <span className="-my-2 inline-flex size-11 shrink-0 items-center justify-center">
+            <ChevronDown size={18} aria-hidden="true" className={`text-olive transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+          </span>
         </button>
       </h4>
       {!readOnly && onPin && <button type="button" disabled={pending} aria-pressed={note.isPinned === true}
         aria-label={t(note.isPinned ? 'bookPage.notes.unpin' : 'bookPage.notes.pin')}
-        onClick={(event) => { event.stopPropagation(); onPin(note.id, !note.isPinned, note.token) }}
-        className={`mr-3 shrink-0 cursor-pointer rounded-xl p-2 transition-colors hover:bg-lime/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 disabled:cursor-wait disabled:opacity-50 ${note.isPinned ? 'text-darkwood' : 'text-walnut/65'}`}>
+        onClick={async (event) => {
+          event.stopPropagation()
+          setPinning(true)
+          try { await onPin(note.id, !note.isPinned, note.token) }
+          finally { setPinning(false) }
+        }}
+        className={`mr-3 inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-xl p-0 transition-colors hover:bg-lime/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 disabled:cursor-wait disabled:opacity-50 ${note.isPinned ? 'text-darkwood' : 'text-walnut/65'}`}>
         <Pin size={16} strokeWidth={1.8} fill={note.isPinned ? 'currentColor' : 'none'} aria-hidden="true" />
       </button>}
       </div>
-      {!expanded && pending && <p role="status" className="px-4 pb-3 font-ui text-xs text-walnut">{t('common.saving')}</p>}
+      {!expanded && pending && !pinning && <p role="status" className="px-4 pb-3 font-ui text-xs text-walnut">{t('common.saving')}</p>}
       {!expanded && error && <p role="alert" className="px-4 pb-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
       <div id={`${id}-panel`} role="region" aria-labelledby={`${id}-trigger`} hidden={!expanded}>
       {expanded && <div className="dp-menu-enter px-4 pb-4 sm:px-5 sm:pb-5">
