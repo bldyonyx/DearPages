@@ -164,7 +164,7 @@ export function createHistoricalImportService(database, identity) {
     ;({ user, account } = await observe()); bound(user, preparation, account)
     return verifyHistoricalImport(user, migration)
   }
-  /** Fail closed until an independently authenticated approval authority exists.
+  /** Owner-side diagnostic only; the actual authority is a controlled Node tool.
    * A verifier running as the owner is independent code, not a trusted principal.
    * Never accept a caller report/token, persist an approval, activate a book or
    * promote the protocol. Repeated/concurrent attempts only re-observe the seal.

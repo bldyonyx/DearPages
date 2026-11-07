@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, afterAll, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, afterEach, afterAll, expect, it, vi } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { initializeApp, deleteApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword, getIdTokenResult } from 'firebase/auth'
@@ -10,6 +10,8 @@ import { verifyHistoricalImport } from './verify.mjs'
 import { receiptKey, receiptFor, sourceValue, planDigest } from './protocol.mjs'
 import { transformHistoricalSnapshot } from '../../src/utils/historicalGenerationTransformer.js'
 import { verify } from './composeRules.mjs'
+import { createEmulatorFinalizationServer } from './finalize.server.mjs'
+import { createBookMutationContext } from '../../src/utils/bookMutationContext.js'
 import { createGenerationApplicationService } from '../../src/services/generationApplicationService.js'
 
 const clients = []
@@ -60,6 +62,7 @@ beforeAll(async () => {
     clients.push({ app, auth, db })
   }
   await createUserWithEmailAndPassword(clients[2].auth, `historical-other-${Date.now()}@example.test`, 'fictional-password')
+  await set(ref(clients[2].db, `accountControl/${clients[2].auth.currentUser.uid}`), { state: 'active', legacyClosed: false })
 })
 beforeEach(async () => {
   const email = `historical-import-${Date.now()}-${++serial}@example.test`
@@ -68,6 +71,7 @@ beforeEach(async () => {
   await set(ref(clients[0].db, `accountControl/${uid}`), { state: 'active', legacyClosed: false })
   await update(ref(clients[0].db, path('')), fixture()) // Owner SDK, no Admin fixture data.
 })
+afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks() })
 afterAll(async () => {
   try { for (const client of clients) { goOffline(client.db); await deleteApp(client.app) } }
   finally { if (originalRules) await loadRules(originalRules) }
@@ -411,4 +415,178 @@ it('keeps the existing generation facade closed without falling back to legacy w
   const before = await read(), facade = createGenerationApplicationService(clients[0].db, { uid })
   await expect(facade.library.getActiveBooks()).rejects.toThrow('generation-app/protocol-migrating')
   expect(await read()).toEqual(before)
+})
+
+
+function authority(options) {
+  vi.stubEnv('HISTORICAL_FINALIZATION_SERVER', 'true')
+  vi.stubEnv('GCLOUD_PROJECT', 'demo-dear-pages')
+  vi.stubEnv('FIREBASE_DATABASE_EMULATOR_HOST', '127.0.0.1:9000')
+  vi.stubEnv('FIREBASE_AUTH_EMULATOR_HOST', '127.0.0.1:9099')
+  vi.stubEnv('HISTORICAL_EMULATOR_ADMIN_TOKEN', 'owner')
+  return createEmulatorFinalizationServer(options)
+}
+async function sealedImport() { await service().begin(); await service().resume(); await service().sealAndVerify() }
+it('server authority atomically activates every imported book and ready while preserving the complete historical account and Auth', async () => {
+  await sealedImport()
+  const before = await read(), authBefore = clients[0].auth.currentUser.toJSON()
+  const report = await authority().finalize(identity())
+  expect(report.status).toBe('finalized')
+  const after = await read()
+  for (const key of ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 'bookRatings', 'bookRatingsLegacy', 'collections', 'profile', 'preferences']) expect(after[key]).toEqual(before[key])
+  expect(after.bookData).toEqual(before.bookData); expect(after.importReceipts).toEqual(before.importReceipts)
+  expect(after.bookLifecycle).toEqual({ book: { generation: 1, state: 'active' }, second: { generation: 1, state: 'active' } })
+  expect(after.bookProtocol).toEqual({ version: 2, state: 'ready' })
+  expect(after.historicalFinalization).toMatchObject({ authority: 'emulator-root-cas-v1', ...identity(), sourceVersion: before.historicalImport.sourceVersion, planDigest: before.historicalImport.planDigest, finalizationId: report.finalizationId })
+  expect(clients[0].auth.currentUser.toJSON()).toEqual(authBefore)
+})
+it('owner cannot forge, replace, copy or delete a server approval or promote the protocol', async () => {
+  await sealedImport()
+  const forged = { authority: 'emulator-root-cas-v1', approved: true, ...identity() }
+  await denied(write('historicalFinalization', forged)); await denied(write('bookProtocol/state', 'ready'))
+  await authority().finalize(identity())
+  const proof = await read('historicalFinalization'), before = await read()
+  await denied(write('historicalFinalization', proof)); await denied(write('historicalFinalization', null))
+  await denied(write('historicalFinalization/planDigest', 'a'.repeat(64)))
+  await denied(set(ref(clients[2].db, `users/${clients[2].auth.currentUser.uid}/historicalFinalization`), proof))
+  expect(await read()).toEqual(before)
+})
+it('server refuses incomplete or unsealed imports and rejects a supplied client proof', async () => {
+  await service().begin(); await service().resume({ maxUnits: 1 })
+  const before = await read(), server = authority()
+  await expect(server.finalize(identity())).rejects.toThrow('independent-verification-failed')
+  await expect(server.finalize({ ...identity(), approval: true })).rejects.toThrow()
+  expect(await read()).toEqual(before)
+  await service().resume()
+  await expect(server.finalize(identity())).rejects.toThrow('independent-verification-failed')
+  expect((await read('bookProtocol')).state).toBe('migrating')
+})
+it('server rejects another migration identity and forged plan binding without activation', async () => {
+  await service().begin(); await service().resume({ maxUnits: 0 })
+  const prepared = await preparation()
+  await service().resume(); await service().sealAndVerify()
+  const before = await read(), server = authority()
+  await expect(server.finalize(identity(uid, 'other-migration'))).rejects.toThrow('identity-conflict')
+  expect(await read()).toEqual(before)
+  expect(before.historicalImport.planDigest).toBe(planDigest(prepared))
+})
+it('server finalization is idempotent under concurrency and after a lost commit acknowledgement', async () => {
+  await sealedImport()
+  const reports = await Promise.all([authority().finalize(identity()), authority().finalize(identity())])
+  expect(reports.map(value => value.status).sort()).toEqual(['already-finalized', 'finalized'])
+  expect(reports[0].finalizationId).toBe(reports[1].finalizationId)
+  const before = await read()
+  expect((await authority().finalize(identity())).status).toBe('already-finalized')
+  expect(await read()).toEqual(before)
+})
+it('server detects a committed finalization after interruption without replaying activation writes', async () => {
+  await sealedImport()
+  const actual = globalThis.fetch
+  let interrupted = false
+  const server = authority({ request: async (url, options) => {
+    const response = await actual(url, options)
+    if (options.method === 'PUT' && !interrupted) { interrupted = true; throw new Error('Simulated lost acknowledgement') }
+    return response
+  } })
+  await expect(server.finalize(identity())).rejects.toThrow('observation-or-commit-uncertain')
+  const after = await read()
+  expect(after.bookProtocol.state).toBe('ready')
+  expect((await authority().finalize(identity())).status).toBe('already-finalized')
+  expect(await read()).toEqual(after)
+})
+it('root CAS prevents a concurrent terminal account barrier from being overwritten or resurrected', async () => {
+  await sealedImport()
+  const actual = globalThis.fetch
+  let switched = false
+  const server = authority({ request: async (url, options) => {
+    if (options.method === 'PUT' && !switched) {
+      switched = true
+      await set(ref(clients[0].db, `accountControl/${uid}`), { state: 'deleting', legacyClosed: true })
+    }
+    return actual(url, options)
+  } })
+  await expect(server.finalize(identity())).rejects.toThrow('account-blocked')
+  const after = await read()
+  expect(after.bookProtocol.state).toBe('migrating'); expect(after.historicalFinalization).toBeUndefined()
+  expect(Object.values(after.bookLifecycle).every(life => life.state === 'creating')).toBe(true)
+})
+it('root CAS preserves unrelated concurrent profile changes in another account', async () => {
+  await sealedImport()
+  const otherUid = clients[2].auth.currentUser.uid, actual = globalThis.fetch
+  const otherPath = `users/${otherUid}/profile`
+  await set(ref(clients[2].db, otherPath), { displayName: 'Other fixture' })
+  let changed = false
+  const server = authority({ request: async (url, options) => {
+    if (options.method === 'PUT' && !changed) { changed = true; await set(ref(clients[2].db, otherPath), { displayName: 'Concurrent change' }) }
+    return actual(url, options)
+  } })
+  expect((await server.finalize(identity())).status).toBe('finalized')
+  expect((await read('profile', 2, otherUid)).displayName).toBe('Concurrent change')
+})
+it('ordinary generation services work after server activation and never reopen historical writes', async () => {
+  await sealedImport(); await authority().finalize(identity())
+  const before = await read(), app = createGenerationApplicationService(clients[0].db, { uid })
+  const context = createBookMutationContext({ uid, bookId: 'book', generation: 1 })
+  expect((await app.library.getActiveBooks()).length).toBe(2)
+  await app.library.updateBookStatus(context, 'finished')
+  const liveRating = await app.ratings.getRating(context, ratingId)
+  await app.ratings.updateRating(context, ratingId, { value: 5, date: liveRating.date, impression: 'Runtime rating' }, liveRating.token)
+  expect((await app.ratings.getRating(context, ratingId)).value).toBe(5)
+  const catalog = await app.collections.getCatalog(), empty = catalog.find(collection => collection.id === 'empty')
+  await app.collections.updateMetadata(empty.context, { name: 'Runtime collection' }, empty.token)
+  expect((await app.collections.getCollection(empty.context)).name).toBe('Runtime collection')
+  const existing = await app.notes.getNotes(context)
+  expect(existing).toHaveLength(3)
+  await app.notes.patchNote(context, 'n', { title: 'Runtime edit' }, existing.find(note => note.id === 'n').token)
+  const note = await app.notes.getNote(context, 'n')
+  expect(note.title).toBe('Runtime edit')
+  await app.notes.deleteNote(context, 'n', note.token)
+  await expect(app.notes.createNote(context, 'n', { title: '', contentHtml: 'Resurrection', date: '2024-02-29' })).rejects.toThrow()
+  await denied(write('bookData/book/1/bookNotes/n', before.bookData.book[1].bookNotes.n))
+  for (const branch of ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 'bookRatings', 'bookRatingsLegacy', 'collections']) await denied(write(branch, null))
+  const after = await read()
+  for (const key of ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 'bookRatings', 'bookRatingsLegacy', 'collections', 'profile', 'preferences']) expect(after[key]).toEqual(before[key])
+  expect((await authority().finalize(identity())).status).toBe('already-finalized')
+  expect((await read('bookData/book/1/bookNotes/n')).deleted).toBe(true)
+})
+
+it('server root export/CAS preserves priorities and arbitrary data in an unrelated fictitious account', async () => {
+  const otherUid = clients[2].auth.currentUser.uid
+  await setWithPriority(ref(clients[2].db, `users/${otherUid}/profile`), { displayName: 'Other', custom: { exact: ' Unchanged ' } }, 7)
+  const token = await clients[2].auth.currentUser.getIdToken()
+  const exportUrl = `http://127.0.0.1:9000/users/${otherUid}.json?ns=demo-dear-pages&format=export&auth=${token}`
+  const before = await (await fetch(exportUrl, { redirect: 'error' })).json()
+  await sealedImport(); await authority().finalize(identity())
+  expect(await (await fetch(exportUrl, { redirect: 'error' })).json()).toEqual(before)
+})
+it('deleted book generations remain deleted after a server retry and re-add without historic resurrection', async () => {
+  await sealedImport(); await authority().finalize(identity())
+  const before = await read(), app = createGenerationApplicationService(clients[0].db, { uid })
+  const first = createBookMutationContext({ uid, bookId: 'book', generation: 1 })
+  expect((await app.books.deleteGeneration(first)).status).toBe('confirmed')
+  expect((await read('bookLifecycle/book')).state).toBe('deleted')
+  expect((await authority().finalize(identity())).status).toBe('already-finalized')
+  expect((await read('bookLifecycle/book')).state).toBe('deleted')
+  await app.books.beginNextGeneration(first)
+  const second = createBookMutationContext({ uid, bookId: 'book', generation: 2 })
+  await app.library.initializeLibrary(second, { id: 'book', title: 'Re-added', status: 'reading', addedAt: 123 })
+  await app.books.activateGeneration(second)
+  expect(await app.notes.getNotes(second)).toEqual([])
+  expect(await app.ratings.getRatings(second)).toEqual([])
+  await expect(app.notes.createNote(first, 'resurrect', { title: '', contentHtml: 'stale', date: '2024-02-29' })).rejects.toThrow()
+  expect((await authority().finalize(identity())).status).toBe('already-finalized')
+  const after = await read()
+  for (const branch of ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 'bookRatings', 'bookRatingsLegacy', 'collections']) expect(after[branch]).toEqual(before[branch])
+  expect(after.bookLifecycle.book).toEqual({ generation: 2, state: 'active' })
+  expect(await read('bookData/book/1')).toBeNull()
+})
+
+it('server refuses activation under a different loaded rule profile', async () => {
+  await sealedImport()
+  const before = await read()
+  await loadRules(await readFile(new URL('../generation-feasibility/database.rules.json', import.meta.url), 'utf8'))
+  try {
+    await expect(authority().finalize(identity())).rejects.toThrow('unexpected-emulator-rules')
+    expect(await read()).toEqual(before)
+  } finally { await loadRules(await readFile(new URL('database.rules.json', import.meta.url), 'utf8')) }
 })

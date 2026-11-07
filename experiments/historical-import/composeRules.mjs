@@ -31,11 +31,12 @@ const legacy = ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 
 
 /** Separate import-only Emulator profile. Existing validated profiles untouched.
  * No grant on a user, generation, catalog or legacy ancestor; all null deletes
- * forbidden. Existing CRUD validations remain for unused ready operations, but
- * this profile can NEVER initialize/transition to ready or activate a lifecycle.
+ * forbidden on historical paths. Ordinary CRUD is restored only after a
+ * server-owned finalization. No owner grant can approve or promote to ready.
  */
 export async function compose() {
   const rules = JSON.parse(await baseline()), u = rules.rules.users.$uid, g = u.bookData.$bookId.$g
+  const ordinary = structuredClone(u)
   u['.write'] = false // Also disable the baseline terminal user purge in this experiment.
   u.importWitness = { '.write': false }
   for (const branch of legacy) u[branch]['.write'] = all(active(1), `${account}.child('legacyClosed').val() === false`, `${up('newData', 3)}.child('accountControl').child($uid).child('legacyClosed').val() === false`, `!${user}.child('bookProtocol').exists()`, `!${after(1)}.child('bookProtocol').exists()`)
@@ -107,13 +108,30 @@ export async function compose() {
   membership['.write'] = all(book(5), '!data.exists()', 'newData.exists()', `${user}.child('collections').child($collectionId).child('books').child($bookId).val() === true`,
     ...[user, after(5)].map(value => `${value}.child('collectionCatalog').child($collectionId).child('membershipEpoch').val() === 1`),
     "newData.child('epoch').val() === 1", "newData.child('present').val() === true", "newData.child('revision').val() === 1")
+  u.historicalFinalization = { '.write': false }
+  const runtime = all(
+    `${user}.child('historicalFinalization/authority').val() === 'emulator-root-cas-v1'`,
+    `${user}.child('historicalFinalization/uid').val() === $uid`,
+    `${user}.child('historicalFinalization/migrationId').val() === ${user}.child('bookMigration/id').val()`,
+    `${user}.child('historicalFinalization/sourceVersion').val() === ${user}.child('historicalImport/sourceVersion').val()`,
+    `${user}.child('historicalFinalization/planDigest').val() === ${user}.child('historicalImport/planDigest').val()`,
+    `${user}.child('historicalImport/phase').val() === 'sealed'`,
+  )
+  function restoreRuntime(importNode, runtimeNode) {
+    if (runtimeNode['.write'] !== undefined) importNode['.write'] = any(importNode['.write'] ?? 'false', all(runtime, runtimeNode['.write']))
+    if (runtimeNode['.validate'] !== undefined || importNode['.validate'] !== undefined) {
+      importNode['.validate'] = `(${user}.child('bookProtocol/state').val() === 'ready') ? (${runtimeNode['.validate'] ?? 'true'}) : (${importNode['.validate'] ?? 'true'})`
+    }
+    for (const [key, child] of Object.entries(runtimeNode)) if (!key.startsWith('.') && child && typeof child === 'object') restoreRuntime(importNode[key], child)
+  }
+  for (const branch of ['bookData', 'bookLifecycle', 'collectionCatalog']) restoreRuntime(u[branch], ordinary[branch])
   function noPriorities(node) {
     node['.validate'] = all(node['.validate'] ?? 'true', 'newData.getPriority() === null')
     for (const [key, child] of Object.entries(node)) if (!key.startsWith('.') && child && typeof child === 'object') noPriorities(child)
   }
   for (const node of [u.bookData, u.bookLifecycle, u.collectionCatalog, u.historicalImport, u.importReceipts]) noPriorities(node)
-  // No readiness, approval or cleanup capability exists in this profile.
-  assert.equal(u['.write'], false); assert.equal(g['.write'], false)
+  // Only the controlled server can create historicalFinalization or promote the protocol.
+  assert.equal(u['.write'], false); assert.equal(u.historicalFinalization['.write'], false)
   return JSON.stringify(rules, null, 2) + '\n'
 }
 export async function verify() { assert.equal(await readFile(new URL('database.rules.json', import.meta.url), 'utf8'), await compose()) }

@@ -1,3 +1,4 @@
+import { hasHistoricalFinalization } from '../utils/historicalFinalizationRecord.js'
 import { getAuth } from 'firebase/auth'
 import { createBookLifecycleService } from './bookLifecycleService.js'
 import { createGenerationLibraryService } from './generationLibraryService.js'
@@ -93,7 +94,7 @@ export function createGenerationApplicationService(database, { uid, fetch: reque
     try { protocol = contractRecord(state.bookProtocol, ['version', 'state']) } catch { throw failure('invalid-protocol') }
     if (protocol.version !== 2 || !['ready', 'migrating'].includes(protocol.state)) throw failure('invalid-protocol')
     if (protocol.state === 'migrating') throw failure('protocol-migrating')
-    if (legacy) throw failure('legacy-unmigrated')
+    if (legacy && !hasHistoricalFinalization(state, uid)) throw failure('legacy-unmigrated')
     if (!account) throw failure('account-uninitialized')
     if (!account.legacyClosed) throw failure('protocol-not-ready')
   }
