@@ -102,7 +102,7 @@ function Calendar({ value, initial, onSelect, onClose, anchorRef, label, dialogI
             }
           }} onBlur={() => setYearText(String(year))} className="min-w-0 w-full px-2" />
       </div>
-      <table role="grid" aria-label={monthLabel} className="w-full table-fixed border-separate border-spacing-0.5 font-ui text-xs text-darkwood">
+      <table role="grid" aria-label={monthLabel} aria-describedby={`${id}-keyboard-hint`} className="w-full table-fixed border-separate border-spacing-0.5 font-ui text-xs text-darkwood">
         <thead><tr>{Array.from({ length: 7 }, (_, index) => <th key={index} scope="col" className="pb-2 font-normal text-walnut/65" aria-label={formatCivilDate(`2024-01-0${index + 1}`, locale, { weekday: 'long' })}>{formatCivilDate(`2024-01-0${index + 1}`, locale, { weekday: 'short' })}</th>)}</tr></thead>
         <tbody>{Array.from({ length: cells.length / 7 }, (_, row) => <tr key={row}>
           {cells.slice(row * 7, row * 7 + 7).map((date, index) => <td key={date || `empty-${index}`} role="gridcell" aria-selected={date ? date === value : undefined}>
@@ -113,7 +113,7 @@ function Calendar({ value, initial, onSelect, onClose, anchorRef, label, dialogI
           </td>)}
         </tr>)}</tbody>
       </table>
-      <p className="mt-3 font-ui text-xs leading-5 text-walnut/65">{t('calendar.keyboardHint')}</p>
+      <p id={`${id}-keyboard-hint`} className="sr-only">{t('calendar.keyboardHint')}</p>
       <div className="mt-2 flex justify-end"><Button type="button" variant="secondary" onClick={() => onClose(true)}>{t('common.close')}</Button></div>
     </div>
   </Portal>
