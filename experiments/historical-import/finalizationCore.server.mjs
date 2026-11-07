@@ -17,7 +17,7 @@ const proofId = record => hash(['historical-finalization-v1', record.uid, record
  * supply these capabilities; an end-user proof is never an input.
  * readRoot returns the complete exported root + ETag. compareAndSwapRoot must
  * preserve that same scope (users AND accountControl), never user-only update.
- * The only executable adapter currently supplied is the existing Emulator one.
+ * Shipped adapters remain local-only; no real Firebase authority is supplied.
  */
 export function createHistoricalFinalizer(authority) {
   if (typeof window !== 'undefined' || !authority) throw failure('server-authority-required')

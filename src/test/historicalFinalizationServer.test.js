@@ -91,7 +91,7 @@ it('does not import the server authority from any browser application source', (
       if (entry.isDirectory()) inspect(file)
       else if (/\.[cm]?[jt]sx?$/.test(entry.name)) {
         const source = readFileSync(file, 'utf8')
-        expect(source).not.toMatch(/finalize\.server|finalizationCore\.server|HISTORICAL_EMULATOR_ADMIN_TOKEN/)
+        expect(source).not.toMatch(/(?:finalize|finalizationCore|firebaseAdapter|firebaseRest)\.server|HISTORICAL_EMULATOR_ADMIN_TOKEN/)
       }
     }
   }

@@ -144,7 +144,7 @@ React existante n'est pas modifiée et reste explicitement opt-in Emulator.
   liaisons d'attestation, ETag obligatoire, erreur 5xx incertaine et aucune dépendance
   de l'autorité dans les entrées clientes. Le bundle généré ne contient pas les
   marqueurs du module serveur ni sa variable de privilège.
-- Régression unitaire : **1 233 tests / 65 fichiers**. Lint ciblé propre ; lint global
+- Régression unitaire : **1 257 tests / 66 fichiers**. Lint ciblé propre ; lint global
   sans erreur, avec les 11 avertissements préexistants. Build réussi.
 
 Le compte fictif peut désormais être utilisé en générationnel avec ses sept
@@ -179,7 +179,7 @@ rapport/jeton utilisateur n'est pas une telle capacité. Le module refuse aussi
 un environnement navigateur. Les méthodes de capacité sont copiées et figées,
 et l'autorisation est revérifiée avant le CAS.
 
-`finalize.server.mjs` reste le **seul adaptateur exécutable** et conserve exactement
+`finalize.server.mjs` reste le **point d’entrée opérationnel Emulator** et conserve exactement
 son API et sa CLI. Il fournit au noyau les opérations suivantes :
 
 | Capacité interne serveur | Garantie attendue de l'adaptateur |
@@ -198,7 +198,7 @@ reste figé sur les deux Emulators loopback, le projet demo et le privilège nat
 Emulator ; ses contrôles de comptes fictifs, de règles et de redirects sont
 inchangés. Une variable ressemblant à une activation production ou un chemin
 GOOGLE_APPLICATION_CREDENTIALS ne déclenche ni découverte de credentials ni
-requête réelle. Aucun adaptateur production ou fallback n'est fourni.
+requête réelle. Aucun adaptateur de production exécutable ou fallback n'est fourni.
 
 Avant toute future exécution réelle, il manque uniquement le raccordement serveur
 concret et son autorisation :
@@ -222,3 +222,86 @@ d'activation réelle/discovery de credentials. L'inspection des sources clientes
 couvre désormais tous les fichiers JavaScript/TypeScript de src hors tests.
 Les services, règles, contrats, React, configuration Firebase et données historiques
 ne sont pas modifiés par cette extraction. Firebase production reste **NO-GO**.
+
+
+## Adaptateur serveur préparé — aucune exécution réelle
+
+`firebaseAdapter.server.mjs` fournit `createPreparedFirebaseFinalizationServer`.
+Il construit les capacités du noyau existant ; il ne recopie ni la vérification,
+ni le calcul d'attestation, ni l'activation, ni la boucle de reprise CAS.
+Les primitives réseau existantes ont été extraites dans `firebaseRest.server.mjs`
+et sont partagées avec l'adaptateur Emulator opérationnel : lookup Auth en lecture,
+export racine avec ETag, lecture des règles, PUT racine avec if-match. Aucune
+écriture Auth, suppression de sources ou modification React n'est ajoutée.
+
+Interface interne minimale, pas une route HTTP :
+
+```js
+const server = createPreparedFirebaseFinalizationServer({
+  environment: { mode: 'local-test', projectId: 'demo-dear-pages', namespace: 'demo-dear-pages' },
+  authorizeInvocation,    // capacité du serveur hôte, jamais un champ JSON client
+  getServiceCredential,  // fournisseur explicite, sans découverte ADC
+  request,               // transport explicite ; pas de fallback sur fetch
+  expectedRules,         // politique serveur capturée, pas une déclaration client
+})
+await server.finalize({ uid: fictionalUid, migrationId: stableId, transformVersion: 1 })
+```
+
+Garanties effectivement implémentées :
+
+- Construction refusée sans les capacités explicites, dans un navigateur ou avec
+  tout autre mode/projet/namespace. Les URLs sont encore **fixées sur loopback
+  demo** ; aucun paramètre client ne peut les remplacer. Production reste bloquée,
+  même avec un chemin GOOGLE_APPLICATION_CREDENTIALS dans l'environnement.
+- `authorizeInvocation(scope)` doit renvoyer le canal private-job, le rôle
+  migration-finalizer, un principal de service distinct du compte cible et de
+  l'invocateur, ainsi qu'un scope exact : compte, migration/version, action,
+  projet et namespace. Une autorisation réduite à approved:true ne suffit pas.
+- `getServiceCredential(scope)` est appelé après autorisation. Son contrat est
+  `{kind:'service', principal, accessToken}` ; le principal doit correspondre à
+  la décision de l'hôte, un jeton utilisateur ou implicite est refusé. L'autorisation
+  est revérifiée avant/après acquisition du jeton et avant chaque requête ; un
+  changement de principal pendant l'opération est refusé.
+- Ce sont des capacités **de code serveur de confiance**, pas des paramètres
+  d'une future requête utilisateur. Un callback arbitraire fourni par l'utilisateur
+  ne devient pas une autorité. Aucun endpoint public, émetteur IAM ou credential
+  réel n'est créé par cette préparation.
+- Les tokens sont passés uniquement en Authorization côté serveur, jamais en URL,
+  dans l'attestation ou dans les logs. Les redirects sont refusés. Un CAS sans
+  ETag ou avec wildcard est refusé avant acquisition de credential/réseau.
+- Le noyau et le vérificateur inchangés restent responsables de la complétude, de
+  la liaison aux observations scellées et de la priorité de la barrière compte.
+  Le contrat d'attestation et les règles actuels restent inchangés : seul le
+  record serveur `emulator-root-cas-v1` est accepté, jamais une preuve cliente.
+
+Validation locale : **24 nouveaux tests avec doubles locaux** couvrent le chemin
+complet sur les sept branches, profils/préférences et autres comptes conservés,
+les refus d'invocation/projet/credentials, la révocation, les conflits CAS,
+le compte terminal, la perte d'ack/reprise et les règles inattendues. Les **45 tests
+Emulator existants** valident l'adaptateur opérationnel après mutualisation REST.
+La régression compte **1 257 tests, 66 fichiers**. Lint ciblé propre, lint global
+sans erreur et 11 avertissements préexistants ; build et vérification d'absence
+des modules/variables serveur dans le bundle navigateur réussis.
+
+### Décisions encore bloquantes pour Firebase réel
+
+Les décisions de doubles locaux **ne prouvent pas une identité IAM**. Avant tout
+raccordement réel, il faut désigner et implémenter la vérification authentique
+côté hôte de l'invocateur privé et du principal de service, avec permissions,
+source de credentials, durée/révocation et périmètres approuvés. Les chaînes
+servicePrincipal et le champ kind:'service' sont ici un contrat interne testé,
+pas une validation cryptographique de token. Ils ne doivent pas être acceptés
+comme des revendications d'un body HTTP.
+
+Il faut aussi approuver le privilège Firebase nécessaire au **CAS à la racine
+commune** couvrant users et accountControl, le contrôle réel de la politique de
+règles et le périmètre projet/base explicitement autorisé. Un accès Admin contourne
+les règles : supprimer le CAS racine ou se fier à un simple précheck affaiblirait
+la barrière terminale et n'est pas une option silencieuse de l'adaptateur.
+
+Enfin, l'autorité réelle doit obtenir un identifiant/version d'attestation reconnu
+explicitement par le contrat et les règles. Ne pas la faire passer pour
+emulator-root-cas-v1 et ne pas créer un grant propriétaire pour approved:true.
+Aucune de ces décisions n'est contournée ici : l'adaptateur reste volontairement
+non exécutable sur Firebase réel, aucune connexion/credential IAM/déploiement
+n'a été effectué et Firebase production reste strictement **NO-GO**.
