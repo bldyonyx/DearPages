@@ -13,6 +13,7 @@ import { verify } from './composeRules.mjs'
 import { createEmulatorFinalizationServer } from './finalize.server.mjs'
 import { createBookMutationContext } from '../../src/utils/bookMutationContext.js'
 import { createGenerationApplicationService } from '../../src/services/generationApplicationService.js'
+import { createPrivateFinalizationHandler } from '../../functions/migration/handler.server.mjs'
 
 const clients = []
 let uid, serial = 0, originalRules
@@ -589,4 +590,31 @@ it('server refuses activation under a different loaded rule profile', async () =
     await expect(authority().finalize(identity())).rejects.toThrow('unexpected-emulator-rules')
     expect(await read()).toEqual(before)
   } finally { await loadRules(await readFile(new URL('database.rules.json', import.meta.url), 'utf8')) }
+})
+it('the private function envelope delegates to the existing finalizer with local verified-identity doubles and preserves historical data', async () => {
+  await sealedImport()
+  const before = await read()
+  const runtime = 'migration-runtime@demo-dear-pages.iam.gserviceaccount.com'
+  const invoker = 'migration-invoker@demo-dear-pages.iam.gserviceaccount.com'
+  const audience = 'https://local-fixture.invalid/finalizeHistoricalImport', subject = '123456789012345678901'
+  const handler = createPrivateFinalizationHandler({
+    environment: () => ({ FUNCTIONS_EMULATOR: 'true', MIGRATION_FUNCTION_LOCAL_ENABLED: 'true', GCLOUD_PROJECT: 'demo-dear-pages',
+      FIREBASE_DATABASE_EMULATOR_HOST: '127.0.0.1:9000', FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      MIGRATION_RUNTIME_SERVICE_ACCOUNT: runtime, MIGRATION_INVOKER_SERVICE_ACCOUNT: invoker,
+      MIGRATION_FUNCTION_AUDIENCE: audience, MIGRATION_INVOKER_SUBJECT: subject }),
+    verifyInvocationToken: async () => ({ issuer: 'https://accounts.google.com', audience, subject, email: invoker, emailVerified: true, expiresAt: Math.floor(Date.now() / 1000) + 300 }),
+    getServiceCredential: async () => ({ kind: 'service', principal: runtime, accessToken: 'owner' }),
+    request: globalThis.fetch, expectedRules: JSON.parse(await readFile(new URL('database.rules.json', import.meta.url), 'utf8')),
+  })
+  const res = { statusCode: 200, payload: null, set() { return this }, status(value) { this.statusCode = value; return this }, json(value) { this.payload = value; return this } }
+  const req = { method: 'POST', headers: { authorization: 'Bearer local-double-only', 'content-type': 'application/json' }, query: {}, body: identity() }
+  await handler(req, res)
+  expect(res.statusCode).toBe(200); expect(res.payload.status).toBe('finalized')
+  const after = await read()
+  for (const branch of ['library', 'bookNotes', 'bookNotesLegacy', 'bookReviewsLegacy', 'bookRatings', 'bookRatingsLegacy', 'collections', 'profile', 'preferences']) expect(after[branch]).toEqual(before[branch])
+  expect(after.bookData).toEqual(before.bookData)
+  expect(after.bookProtocol.state).toBe('ready')
+  await handler(req, res)
+  expect(res.payload.status).toBe('already-finalized')
+  expect(await read()).toEqual(after)
 })

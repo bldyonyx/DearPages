@@ -1,0 +1,16 @@
+{
+  "functions": [
+    {
+      "source": "functions/migration",
+      "codebase": "historical-finalization-preparation",
+      "runtime": "nodejs22",
+      "predeploy": ["node functions/migration/refuseDeploy.mjs"],
+      "ignore": ["node_modules", "*.log", ".env*", "README.md", "build.mjs", "refuseDeploy.mjs"]
+    }
+  ],
+  "emulators": {
+    "functions": { "host": "127.0.0.1", "port": 5001 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
+  }
+}

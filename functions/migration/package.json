@@ -1,0 +1,10 @@
+{
+  "name": "dear-pages-private-historical-finalization",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.mjs",
+  "engines": { "node": "22" },
+  "scripts": { "build": "node build.mjs", "deploy": "node refuseDeploy.mjs" },
+  "dependencies": { "firebase-functions": "7.4.0" }
+}
