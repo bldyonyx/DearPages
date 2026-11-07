@@ -1,0 +1,33 @@
+{
+  "database": [
+    {
+      "instance": "demo-dear-pages",
+      "rules": "database.rules.json",
+      "predeploy": [
+        "node ../../scripts/refuseEmulatorDeploy.mjs"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "database": {
+      "host": "127.0.0.1",
+      "port": 9000
+    },
+    "hub": {
+      "host": "127.0.0.1",
+      "port": 4400
+    },
+    "logging": {
+      "host": "127.0.0.1",
+      "port": 4500
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}
