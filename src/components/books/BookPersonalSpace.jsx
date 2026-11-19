@@ -11,6 +11,7 @@ import {
   updateBookRating,
 } from '../../services/libraryService.js'
 
+import Button from '../ui/Button.jsx'
 import BookNotesSection from './BookNotesSection.jsx'
 import BookHistoricalTextEditor from './BookHistoricalTextEditor.jsx'
 import BookRatingStars from './BookRatingStars.jsx'
@@ -107,11 +108,11 @@ function BookPersonalSpace({
   const showsRating =
     status === BOOK_STATUSES.FINISHED
 
-  function renderHistoricalField(field, expanded, onToggle) {
+  function renderHistoricalField(field, expanded, onToggle, conversionAction) {
     return (
       <BookHistoricalTextEditor key={`${userId}/${bookId}/${field}`} field={field} value={libraryBook?.[field]}
         userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange}
-        expanded={expanded} onToggle={onToggle} />
+        expanded={expanded} onToggle={onToggle} conversionAction={conversionAction} />
     )
   }
 
@@ -250,11 +251,17 @@ function BookPersonalSpace({
         <div className="mt-8">
           {generation || isBookNotesUiEnabled ? (
             <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review}
-              renderHistorical={productionBookHistoryEnabled && !generation ? ({ legacy, legacyReview, openId, toggle }) => [
+              renderHistorical={productionBookHistoryEnabled && !generation ? ({ legacy, legacyReview, openId, toggle, canConvert, pending, onConvertRequest }) => [
                 { field: 'note', source: legacy },
                 { field: 'review', source: legacyReview },
               ].filter(({ source }) => source?.status !== 'processed' && source?.status !== 'conflict')
-                .map(({ field }) => renderHistoricalField(field, openId === field, () => toggle(field))) : undefined} />
+                .map(({ field, source }) => renderHistoricalField(field, openId === field, () => toggle(field),
+                  source?.status === 'unprocessed' && source.sourceVersion ? (
+                    <Button type="button" variant="secondary" disabled={!canConvert || pending[`convert:${field}`]}
+                      onClick={() => onConvertRequest(field, source)}>{t('bookPage.notes.convertToNote')}</Button>
+                  ) : source?.conversionUnavailable || source?.status === 'invalid' ? (
+                    <p className="font-ui text-xs text-walnut">{t('bookPage.notes.conversionUnavailable')}</p>
+                  ) : null)) : undefined} />
           ) : (
             <section className="min-w-0 space-y-4">
               <h3 className={`font-heading text-2xl font-bold text-darkwood ${bookLarge.personalSubheading}`}>

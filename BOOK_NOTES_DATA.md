@@ -1,8 +1,6 @@
 # Notes multiples : couche de données
 
-Le service et les règles **locales** sont intégrés à une interface de notes multiples,
-activée uniquement dans Firebase Emulator. Aucune migration réelle, suppression de champ historique, écriture
-en production, modification de configuration Vite ou de ports n'est nécessaire.
+La conversion manuelle des sources historiques réutilise le contrat v1 dans Firebase Emulator et sous les [règles candidates Spark](BOOK_HISTORY_PRODUCTION.md).
 
 ## Contrat
 
@@ -38,11 +36,11 @@ API de `src/services/bookNotesService.js` :
   Seul `unprocessed` fournit un contenu historique utile à l'affichage, assaini
   par le service puis à nouveau par la vue, et une empreinte `sourceVersion` pour
   confirmer cet instantané. Aucun marqueur brut n'est renvoyé par cette lecture.
-- `migrateLegacyBookNote(uid, bookId, { expectedVersion?, title? } = {})` :
-  conversion explicite de `note`, uniquement dans l'émulateur. L'appel historique
-  sans options reste compatible et conserve ses identifiant, marqueur et sens.
-- `migrateLegacyBookReview(uid, bookId, { expectedVersion?, title? } = {})` :
-  conversion explicite et indépendante de `review`, uniquement dans l'émulateur.
+- `migrateLegacyBookNote(uid, bookId, { expectedVersion, title?, date })` :
+  conversion explicite de `note`. L'empreinte est facultative pour les tests
+  de l'émulateur. La date civile est toujours obligatoire.
+- `migrateLegacyBookReview(uid, bookId, { expectedVersion, title?, date })` :
+  conversion explicite et indépendante de `review` avec les mêmes options.
 
 Les erreurs de validation portent `book-notes/invalid-argument`. Un livre absent
 au contrôle initial produit `book-notes/book-not-found` ; une note absente lors
@@ -99,19 +97,13 @@ n'est ajouté. Réinsérer le même identifiant de livre rend ces notes accessib
 La lecture de toute la liste est actuellement non paginée ; une pagination pourra
 être ajoutée si les volumes l'exigent, sans fixer de limite métier.
 
-## Compatibilité historique : contrat v1, émulateur uniquement
+## Compatibilité historique avec le contrat v1
 
-`library/{bookId}/note` reste inchangé. La nouvelle interface ne l'écrit plus.
-Les lectures CRUD portent sur `bookNotes` ; la lecture d'affichage consulte aussi
-la source historique et son marqueur pour la compatibilité. Aucune lecture ni
-opération CRUD ne déclenche de migration. L'API explicite `migrateLegacyBookNote(uid, bookId)`
-permet une conversion paresseuse par livre, seulement dans l'environnement isolé.
-Elle retourne le marqueur après traitement et refuse tout appel hors émulateur
-avec `book-notes/emulator-only`, avant toute lecture ou écriture Firebase.
-`isFirebaseEmulator` vient de l'initialisation Firebase existante : configuration
-exacte `demo-dear-pages`, origine locale, contrôle de santé et connexions aux
-émulateurs Auth/RTDB. Aucun paramètre de l'appelant ne permet de lever cette garde.
-Les tests remplacent cette dépendance exclusivement par leurs SDK locaux vérifiés.
+`library/{bookId}/note` et `review` restent inchangés pendant la conversion.
+Les lectures CRUD portent sur `bookNotes`. La lecture d'affichage consulte aussi
+les sources historiques et les marqueurs. La conversion se fait uniquement sur
+confirmation, dans l'émulateur ou lorsque `VITE_LEGACY_BOOK_HISTORY=true` en production.
+La publication de cette version nécessite les règles candidates.
 
 ### Marqueur persistant et immuable
 
@@ -138,7 +130,7 @@ règles pour vérifier un condensat envoyé par le client.
 
 ### Opération atomique et concurrence
 
-1. Vérifier l'émulateur, les identifiants et l'existence du livre.
+1. Vérifier l'activation de la fonctionnalité, les identifiants et l'existence du livre.
 2. Si le marqueur existe, le retourner sans inspecter ni écrire la destination.
 3. Si `legacy-note-v1` existe sans marqueur, lever `book-notes/legacy-conflict`.
    Ne jamais écraser une collision ni prétendre qu'elle représente la source.
@@ -195,16 +187,10 @@ automatiquement. Une fermeture du client avant envoi nécessite un réessai expl
 
 ### Dates, conservation et non-résurrection
 
-La copie utilise `title: ''`. Sa `date` civile est le jour local de la tentative
-de migration, modifiable ensuite. C'est une **valeur technique par défaut**, pas
-une date historique connue. `createdAt` et `updatedAt` de la copie sont les
-timestamps serveur de sa création technique. Aucun champ n'utilise le
-`updatedAt` du livre. Une future interface devra rendre explicite cette origine
-pour `legacy-note-v1`, et ne pas inventer de date historique.
-La copie de `review` utilise par défaut « Mon avis sur le livre » ; l'interface
-fournit sa traduction FR/EN comme titre initial. Ce titre reste entièrement
-modifiable, comme le contenu et la date, via le CRUD ordinaire. Les dates de
-`legacy-review-v1` ont exactement la même signification technique.
+L'utilisateur choisit explicitement la date civile et peut modifier le titre avant
+de confirmer. Le titre initial de la note est vide. Celui de l'avis est traduit
+en français et en anglais. Les deux timestamps techniques `createdAt` et
+`updatedAt` sont attribués par le serveur à la création.
 
 Après modification ou suppression, le marqueur reste inchangé ; toute nouvelle
 conversion est une lecture seule. Les règles interdisent également la recréation
@@ -241,24 +227,13 @@ même si la liste des notes est vide.
 - Supprimer puis réinsérer le même identifiant de livre conserve le marqueur.
   Seule une intervention privilégiée hors contrat pourrait le retirer ; les
   garanties ne couvrent pas une modification administrative des données/règles.
-- Les règles restent un candidat **local** : le problème déjà documenté de
-  suppression globale du compte doit être résolu avant un éventuel déploiement.
-  Aucun déploiement ni activation production n'est autorisé par cette étape.
-
-Verdict de périmètre : contrat utilisable pour l'intégration React en émulateur ;
-activation en production interdite par la garde et non validée.
-
-## Interface React locale
+## Interface React
 
 `BookPersonalSpace` présente « Mon évaluation » avant « Mes notes ». Les étoiles
-restent visibles uniquement pour les livres terminés, selon la condition existante.
-« Mes notes » est disponible pour tous les statuts. L'éditeur « Mon avis » est
-retiré ; aucun parcours React n'appelle les anciennes écritures `updateBookReview`
-ou `libraryService.updateBookNote`. Les champs `review` et `note` restent intacts.
-`useBookNotes` charge les données avec `getBookNotesForDisplay` et délègue toutes
-les écritures au service existant. Les opérations de notes multiples sont désactivées
-hors de l'environnement émulateur : aucune lecture supplémentaire ni action de note
-multiple n'est lancée sur la production. Un message remplace cette section.
+restent visibles uniquement pour les livres terminés. « Mes notes » est
+disponible pour tous les statuts. En production, les cartes de compatibilité
+gardent leurs actions d'édition jusqu'à leur conversion. `useBookNotes`
+charge les données avec `getBookNotesForDisplay` et délègue la conversion au service.
 
 Chaque carte possède son propre brouillon, ses erreurs et sa sauvegarde ; une
 opération sur une note ne bloque pas les autres cartes ni les étoiles.
@@ -266,8 +241,7 @@ opération sur une note ne bloque pas les autres cartes ni les étoiles.
 rouvrir l'éditeur permet de le reprendre. Quitter le livre ou recharger la page
 perd ces brouillons : aucun stockage persistant de brouillon n'est ajouté.
 Les nouvelles notes prennent le jour civil local à l'ouverture du formulaire ;
-le titre est facultatif et la date reste modifiable. La copie historique porte
-une explication de la date technique initialisée pendant sa conversion.
+le titre est facultatif et la date reste modifiable. Le formulaire de conversion historique commence avec une date vide.
 
 Les cartes sont repliées par défaut. Leur en-tête présente le titre facultatif,
 la date et un chevron. Une seule carte (y compris historique) ou le formulaire
@@ -282,7 +256,7 @@ et l'animation `dp-menu-enter`, sans nouvelles couleurs ni dépendances.
 Dans l'émulateur, `BookHistoricalNotes` utilise uniquement les deux états
 historiques validés par le service. Une source non traitée propose « Convertir
 l'ancienne note » ou « Convertir l'ancien avis ». Le dialogue précise la copie
-dans « Mes notes », la conservation de la source et la date technique initiale.
+dans « Mes notes » et présente le contenu à vérifier, le titre modifiable et la date à choisir.
 Aucune écriture n'a lieu avant l'action « Confirmer la conversion ». Annuler ne
 modifie rien. Les sources invalides ou en collision n'offrent pas de conversion.
 Une fois traitée, chaque source quitte la compatibilité en lecture seule et sa
@@ -297,10 +271,10 @@ client, un message indique qu'elle est absente et ne sera pas recréée. Un éch
 réseau avant acquittement laisse l'état incertain : actualiser ou réessayer
 explicitement est sûr grâce au marqueur. Aucun réessai de conversion automatique.
 
-Hors émulateur, les conversions et les lectures supplémentaires restent
-désactivées. La consultation de `libraryBook.review`, déjà chargé par la page,
-reste disponible en lecture seule, sans aucun ancien service d'écriture. Cette
-compatibilité de production n'active ni n'implémente une migration production.
+En production, les cartes « Ancienne note » et « Mon avis » proposent « Convertir
+en note » si le HTML peut être copié à l'identique. Les sources incompatibles
+restent visibles. Les règles de production exigent une source non vide et l'égalité
+entre les HTML d'origine, du marqueur et de la destination au commit.
 
 Si les deux sources historiques encore en lecture seule, `note` et `review`, ont
 exactement le même HTML après sanitation, une seule carte les présente avec les
@@ -376,12 +350,12 @@ les règles locales lorsqu'elles changent. Sans émulateurs démarrés,
 ces suites. Les tests créent uniquement des utilisateurs et livres fictifs sur
 l'émulateur. Aucune commande de déploiement n'est utilisée.
 
-## Épinglage individuel (émulateur uniquement)
+## Épinglage individuel
 
 Chaque note stocke `isPinned: false` à la création, conversions comprises. Une
 ancienne valeur absente est lue comme `false`, sans migration ni écriture à la lecture.
 `updateBookNotePinned` exige un booléen et écrit uniquement `isPinned` au chemin
-`users/{uid}/bookNotes/{bookId}/{noteId}`. La garde interdit cet appel hors émulateur.
+`users/{uid}/bookNotes/{bookId}/{noteId}`. La garde exige que les notes multiples soient activées.
 Aucun titre, HTML, date, `createdAt` ou `updatedAt` n'est modifié par cette action.
 Les règles permettent de conserver `updatedAt` uniquement quand les autres champs
 rédactionnels restent identiques ; les éditions ordinaires exigent encore `now`.

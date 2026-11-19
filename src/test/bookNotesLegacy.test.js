@@ -20,13 +20,13 @@ beforeEach(() => { vi.resetAllMocks(); environment.enabled = true; vi.stubGlobal
 describe('explicit legacy conversion', () => {
   it('also refuses review conversion outside the emulator before Firebase access', async () => {
     environment.enabled = false
-    await expect(migrateLegacyBookReview('user', 'book')).rejects.toMatchObject({ code: 'book-notes/emulator-only' })
+    await expect(migrateLegacyBookReview('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/emulator-only' })
     expect(get).not.toHaveBeenCalled()
   })
 
   it('copies the review to its own destination and marker, preserving the allowed HTML', async () => {
     prepare({ note: '<b>Note</b>', review: '<i>Review</i><font size="4">Big</font><script>bad()</script>', rating: 4, updatedAt: 12 })
-    await migrateLegacyBookReview('user', 'book')
+    await migrateLegacyBookReview('user', 'book', { date: '2024-02-29' })
     const [path, writes] = update.mock.calls[0]
     expect(path).toBe('users/user')
     expect(Object.keys(writes).sort()).toEqual(['bookNotes/book/legacy-review-v1', 'bookReviewsLegacy/book'])
@@ -36,20 +36,20 @@ describe('explicit legacy conversion', () => {
 
   it.each([{}, { review: '' }, { review: null }])('marks a missing review once without creating a note: %j', async (book) => {
     prepare(book)
-    await migrateLegacyBookReview('user', 'book')
+    await migrateLegacyBookReview('user', 'book', { date: '2024-02-29' })
     expect(update.mock.calls[0][1]).toEqual({ 'bookReviewsLegacy/book': { version: 1, outcome: 'empty', sourceHtml: '', processedAt: { '.sv': 'timestamp' } } })
   })
 
   it('keeps an existing review marker terminal even if the source changed or the destination was deleted', async () => {
     get.mockResolvedValueOnce(snapshot({ review: 'A later source' })).mockResolvedValueOnce(snapshot(marker))
-    expect(await migrateLegacyBookReview('user', 'book')).toEqual(marker)
+    expect(await migrateLegacyBookReview('user', 'book', { date: '2024-02-29' })).toEqual(marker)
     expect(get).toHaveBeenCalledTimes(2)
     expect(update).not.toHaveBeenCalled()
   })
 
   it('rejects a review ID collision without changing its occupant or either historical field', async () => {
-    get.mockResolvedValueOnce(snapshot({ note: 'Note', review: 'Review' })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot({ contentHtml: 'Occupied' }))
-    await expect(migrateLegacyBookReview('user', 'book')).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
+    get.mockResolvedValueOnce(snapshot({ note: 'Note', review: 'Review' })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot({ contentHtml: 'Occupied' })).mockResolvedValueOnce(snapshot(null))
+    await expect(migrateLegacyBookReview('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
     expect(update).not.toHaveBeenCalled()
   })
 
@@ -59,14 +59,14 @@ describe('explicit legacy conversion', () => {
     const displayed = await getBookNotesForDisplay('user', 'book')
     const expectedVersion = (kind === 'note' ? displayed.legacy : displayed.legacyReview).sourceVersion
     book = { [kind]: '<b>Text</b><script>bad()</script>' }
-    await expect((kind === 'note' ? migrateLegacyBookNote : migrateLegacyBookReview)('user', 'book', { expectedVersion })).rejects.toMatchObject({ code: 'book-notes/legacy-source-changed' })
+    await expect((kind === 'note' ? migrateLegacyBookNote : migrateLegacyBookReview)('user', 'book', { date: '2024-02-29', expectedVersion })).rejects.toMatchObject({ code: 'book-notes/legacy-source-changed' })
     expect(update).not.toHaveBeenCalled()
   })
 
   it('accepts the displayed source fingerprint and a localized initial review title', async () => {
     get.mockImplementation(async (path) => snapshot(path.includes('/library/') ? { review: '<b>Review</b>' } : null))
     const displayed = await getBookNotesForDisplay('user', 'book')
-    await migrateLegacyBookReview('user', 'book', { expectedVersion: displayed.legacyReview.sourceVersion, title: 'My review of the book' })
+    await migrateLegacyBookReview('user', 'book', { date: '2024-02-29', expectedVersion: displayed.legacyReview.sourceVersion, title: 'My review of the book' })
     expect(update.mock.calls[0][1]['bookNotes/book/legacy-review-v1'].title).toBe('My review of the book')
   })
 
@@ -91,13 +91,13 @@ describe('explicit legacy conversion', () => {
   })
   it('refuses production before any Firebase access', async () => {
     environment.enabled = false
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toMatchObject({ code: 'book-notes/emulator-only' })
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/emulator-only' })
     expect(get).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
   })
   it('copies sanitized HTML with one atomic update and leaves every library field untouched', async () => {
     prepare({ note: '<b>Old</b><img src=x><script>bad()</script>', updatedAt: 1, review: 'Review', rating: 5 })
-    await migrateLegacyBookNote('user', 'book')
+    await migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })
     const [path, writes] = update.mock.calls[0]
     expect(path).toBe('users/user')
     expect(Object.keys(writes).sort()).toEqual(['bookNotes/book/legacy-note-v1', 'bookNotesLegacy/book'])
@@ -109,51 +109,51 @@ describe('explicit legacy conversion', () => {
   })
   it.each([{}, { note: '' }, { note: null }])('marks an absent/empty source without a note: %j', async (book) => {
     prepare(book)
-    await migrateLegacyBookNote('user', 'book')
+    await migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })
     expect(update.mock.calls[0][1]).toEqual({ 'bookNotesLegacy/book': {
       version: 1, outcome: 'empty', sourceHtml: '', processedAt: { '.sv': 'timestamp' },
     } })
   })
   it('returns a persistent marker without inspecting or recreating the destination', async () => {
     get.mockResolvedValueOnce(snapshot({ note: 'Old' })).mockResolvedValueOnce(snapshot(marker))
-    expect(await migrateLegacyBookNote('user', 'book')).toEqual(marker)
+    expect(await migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).toEqual(marker)
     expect(get).toHaveBeenCalledTimes(2)
     expect(update).not.toHaveBeenCalled()
   })
   it('reports a reserved ID collision without overwriting data', async () => {
-    get.mockResolvedValueOnce(snapshot({ note: 'Old' })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot({ contentHtml: 'Existing' }))
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
+    get.mockResolvedValueOnce(snapshot({ note: 'Old' })).mockResolvedValueOnce(snapshot(null)).mockResolvedValueOnce(snapshot({ contentHtml: 'Existing' })).mockResolvedValueOnce(snapshot(null))
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/legacy-conflict' })
     expect(update).not.toHaveBeenCalled()
   })
   it.each([42, 'x'.repeat(200001), 'A\u0001B'])('leaves invalid historical data unprocessed: %#', async (note) => {
     prepare({ note })
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toMatchObject({ code: 'book-notes/invalid-argument' })
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/invalid-argument' })
     expect(update).not.toHaveBeenCalled()
   })
   it('returns the concurrent winner after a compare-and-set rejection', async () => {
     prepare()
     update.mockRejectedValueOnce(Object.assign(new Error('denied'), { code: 'PERMISSION_DENIED' }))
-    expect(await migrateLegacyBookNote('user', 'book')).toEqual(marker)
+    expect(await migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).toEqual(marker)
     expect(update).toHaveBeenCalledTimes(1)
   })
   it('propagates a rejection when no concurrent marker exists', async () => {
     prepare()
     get.mockResolvedValue(snapshot(null))
     update.mockRejectedValueOnce(new Error('PERMISSION_DENIED'))
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toThrow('PERMISSION_DENIED')
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toThrow('PERMISSION_DENIED')
   })
   it('propagates network failure; a retry after a lost acknowledgement only reads the marker', async () => {
     prepare()
     update.mockRejectedValueOnce(new Error('network interruption'))
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toThrow('network interruption')
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toThrow('network interruption')
     get.mockReset()
     get.mockResolvedValueOnce(snapshot({ note: 'Old' })).mockResolvedValueOnce(snapshot(marker))
-    expect(await migrateLegacyBookNote('user', 'book')).toEqual(marker)
+    expect(await migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).toEqual(marker)
     expect(update).toHaveBeenCalledTimes(1)
   })
   it('does not process a missing book', async () => {
     get.mockResolvedValue(snapshot(null))
-    await expect(migrateLegacyBookNote('user', 'book')).rejects.toMatchObject({ code: 'book-notes/book-not-found' })
+    await expect(migrateLegacyBookNote('user', 'book', { date: '2024-02-29' })).rejects.toMatchObject({ code: 'book-notes/book-not-found' })
     expect(update).not.toHaveBeenCalled()
   })
 })

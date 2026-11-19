@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw } from 'lucide-react'
 import Button from '../ui/Button.jsx'
+import Input from '../ui/Input.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import Modal from '../ui/Modal.jsx'
 import BookNoteCard from './BookNoteCard.jsx'
@@ -9,6 +10,8 @@ import BookNoteForm from './BookNoteForm.jsx'
 import BookHistoricalNotes from './BookHistoricalNotes.jsx'
 import { newBookNoteDraft } from '../../utils/bookNoteDraft.js'
 import { bookLarge } from './bookResponsive.js'
+import { isCivilDate } from '../../utils/civilDateUtils.js'
+import { sanitizeNoteHtml } from '../../utils/noteHtmlSanitizer.js'
 
 // Pure UI: also used by the local preview without importing Firebase.
 export default function BookNotesView({ model, historicalReview, renderHistorical }) {
@@ -21,6 +24,14 @@ export default function BookNotesView({ model, historicalReview, renderHistorica
   function toggle(id) { setAdding(false); setOpenId((current) => current === id ? null : id) }
   const { notes, legacy, legacyReview, loading, loaded, loadError, pending, errors, enabled } = model
   const canWrite = enabled && loaded && !loading && !loadError
+  const converting = pending[`convert:${conversion?.kind}`]
+  const conversionError = errors[`convert:${conversion?.kind}`]
+  function requestConversion(kind, source) {
+    setConversion({
+      kind, expectedVersion: source.sourceVersion, contentHtml: source.contentHtml,
+      title: kind === 'review' ? t('bookPage.notes.reviewInitialTitle') : '', date: '',
+    })
+  }
   return (
     <section aria-labelledby={titleId} className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -49,23 +60,38 @@ export default function BookNotesView({ model, historicalReview, renderHistorica
         expanded={openId === `note:${note.id}`} onToggle={() => toggle(`note:${note.id}`)}
         isLegacyCopy={(note.id === 'legacy-note-v1' && legacy?.status === 'processed') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'processed')}
         error={errors[note.id]} onPin={model.pin} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'conflict')} />)}</div>
-      <div className="space-y-3">{renderHistorical ? (loaded && !loadError && renderHistorical({ legacy, legacyReview, openId, toggle })) : <BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
+      <div className="space-y-3">{renderHistorical ? (loaded && !loadError && renderHistorical({
+        legacy, legacyReview, openId, toggle, canConvert: canWrite, pending, onConvertRequest: requestConversion,
+      })) : <BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
         legacyReview={enabled ? (loaded && !loadError ? legacyReview : { status: 'unknown' }) : null}
         review={enabled ? undefined : historicalReview} openId={openId} onToggle={toggle} pending={pending} canConvert={canWrite}
-        onConvertRequest={(kind, source) => setConversion({ kind, expectedVersion: source.sourceVersion })} />}</div>
+        onConvertRequest={requestConversion} />}</div>
       <Modal isOpen={Boolean(conversion)} title={t('bookPage.notes.conversionTitle')}
-        onClose={() => { if (!pending[`convert:${conversion?.kind}`]) setConversion(null) }}>
-        <p className="font-ui text-sm leading-6 text-walnut">{t(conversion?.kind === 'review' ? 'bookPage.notes.conversionReviewBody' : 'bookPage.notes.conversionNoteBody')}</p>
-        <p className="mt-3 font-ui text-xs leading-5 text-walnut/65">{t('bookPage.notes.conversionDateHint')}</p>
-        {errors[`convert:${conversion?.kind}`] && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${errors[`convert:${conversion.kind}`]}`)}</p>}
-        <div className="mt-5 flex flex-wrap justify-end gap-3">
-          <Button type="button" variant="secondary" disabled={pending[`convert:${conversion?.kind}`]} onClick={() => setConversion(null)}>{t('common.cancel')}</Button>
-          <Button type="button" disabled={pending[`convert:${conversion?.kind}`] || !canWrite} onClick={async () => {
-            const options = { expectedVersion: conversion.expectedVersion }
-            if (conversion.kind === 'review') options.title = t('bookPage.notes.reviewInitialTitle')
-            if (await model.convert(conversion.kind, options)) setConversion(null)
-          }}>{pending[`convert:${conversion?.kind}`] ? t('bookPage.notes.converting') : t('bookPage.notes.confirmConversion')}</Button>
-        </div>
+        onClose={() => { if (!converting) setConversion(null) }}>
+        {conversion && <form className="max-h-[65dvh] space-y-4 overflow-y-auto p-1" onSubmit={async (event) => {
+          event.preventDefault()
+          const { kind, expectedVersion, title, date } = conversion
+          if (!converting && canWrite && isCivilDate(date) && await model.convert(kind, { expectedVersion, title, date })) {
+            setConversion(null)
+          }
+        }}>
+          <p className="font-ui text-sm leading-6 text-walnut">{t(conversion.kind === 'review' ? 'bookPage.notes.conversionReviewBody' : 'bookPage.notes.conversionNoteBody')}</p>
+          <Input id={`${titleId}-conversion-title`} label={t('bookPage.notes.optionalTitle')} type="text" maxLength={200} value={conversion.title}
+            disabled={converting} onChange={(event) => setConversion({ ...conversion, title: event.target.value })} />
+          <Input id={`${titleId}-conversion-date`} label={t('bookPage.notes.date')} type="date" min="0001-01-01" max="9999-12-31" required value={conversion.date}
+            disabled={converting} onChange={(event) => setConversion({ ...conversion, date: event.target.value })} />
+          <p className="font-ui text-xs leading-5 text-walnut/65">{t('bookPage.notes.conversionDateHint')}</p>
+          <div role="region" aria-label={t('bookPage.notes.content')}
+            className="dp-note-rich-text max-h-40 overflow-auto break-words rounded-xl border border-walnut/20 p-3 font-ui text-sm text-darkwood"
+            dangerouslySetInnerHTML={{ __html: sanitizeNoteHtml(conversion.contentHtml) }} />
+          {conversionError && <p role="alert" className="font-ui text-sm text-red-700">{t(`bookPage.notes.${conversionError}`)}</p>}
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button type="button" variant="secondary" disabled={converting} onClick={() => setConversion(null)}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={converting || !canWrite || !isCivilDate(conversion.date)}>
+              {converting ? t('bookPage.notes.converting') : t('bookPage.notes.confirmConversion')}
+            </Button>
+          </div>
+        </form>}
       </Modal>
       {enabled && loaded && !loadError && <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <p className="min-w-0 flex-1 font-ui text-xs leading-5 text-walnut/60">{t('bookPage.notes.draftHint')}</p>

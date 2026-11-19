@@ -4,7 +4,6 @@ import { database, isFirebaseEmulator } from './firebase.js'
 import { productionBookHistoryEnabled } from '../config/legacyBookHistory.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 import { isCivilDate as isBookNoteDate } from '../utils/civilDateUtils.js'
-import { todayCivilDate } from '../utils/civilDateUtils.js'
 
 import { compareBookNotes } from '../utils/bookNotesOrder.js'
 
@@ -14,6 +13,8 @@ export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 
 export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
 export const LEGACY_BOOK_REVIEW_ID = 'legacy-review-v1'
 export const isBookNotesUiEnabled = isFirebaseEmulator === true || productionBookHistoryEnabled
+// Match the RTDB contentHtml validation for a lossless copy of the stored source.
+const storageHtml = /^(?:[^<]|<(?:b|strong|i|em|div|p)>|<\/(?:b|strong|i|em|font|div|p)>|<br>|<font(?: size="[2-5]")?>)*$/u
 
 function failure(code, message) {
   return Object.assign(new Error(message), { code: `book-notes/${code}` })
@@ -95,11 +96,28 @@ export async function getBookNotes(uid, bookId) {
  */
 export async function getBookNotesForDisplay(uid, bookId) {
   const location = paths(uid, bookId)
+  const noteConversionKey = `${uid}/${bookId}/note`
+  const reviewConversionKey = `${uid}/${bookId}/review`
+  function conversionPending() {
+    return legacyConversions.has(noteConversionKey) || legacyConversions.has(reviewConversionKey)
+  }
+  if (conversionPending()) {
+    await Promise.allSettled([legacyConversions.get(noteConversionKey), legacyConversions.get(reviewConversionKey)])
+  }
   const book = await get(location.book)
   if (!book.exists()) throw failure('book-not-found', 'Book no longer exists in the library.')
-  const notes = await readNotes(location.notes)
-  const noteMarker = await get(ref(database, `users/${uid}/bookNotesLegacy/${bookId}`))
-  const reviewMarker = await get(ref(database, `users/${uid}/bookReviewsLegacy/${bookId}`))
+  if (conversionPending()) return getBookNotesForDisplay(uid, bookId)
+  let notes = await readNotes(location.notes)
+  if (conversionPending()) return getBookNotesForDisplay(uid, bookId)
+  const [noteMarker, reviewMarker] = await Promise.all([
+    get(ref(database, `users/${uid}/bookNotesLegacy/${bookId}`)),
+    get(ref(database, `users/${uid}/bookReviewsLegacy/${bookId}`)),
+  ])
+  if (conversionPending()) return getBookNotesForDisplay(uid, bookId)
+  // A different client may have converted between the notes and marker reads.
+  if ([[LEGACY_BOOK_NOTE_ID, noteMarker], [LEGACY_BOOK_REVIEW_ID, reviewMarker]].some(
+    ([id, marker]) => marker.val()?.outcome === 'copied' && !notes.some((note) => note.id === id),
+  )) notes = await readNotes(location.notes)
   return {
     notes,
     legacy: await legacyDisplay(book.val().note, notes, noteMarker, LEGACY_BOOK_NOTE_ID),
@@ -128,6 +146,9 @@ async function legacyDisplay(value, notes, marker, noteId) {
     return { status: 'invalid' }
   }
   if (source === '') return { status: 'empty' }
+  if (productionBookHistoryEnabled && !storageHtml.test(source)) {
+    return { status: 'unprocessed', contentHtml, conversionUnavailable: true }
+  }
   return { status: 'unprocessed', contentHtml, sourceVersion: await sourceVersion(source) }
 }
 
@@ -180,8 +201,8 @@ export async function deleteBookNote(uid, bookId, noteId) {
   await remove(location.notes)
 }
 
-/** Explicit emulator-only lazy conversion. Reads and ordinary CRUD never invoke it.
- * The immutable marker is the compare-and-set lock enforced by local RTDB rules.
+/** Explicit conversion. Reads and ordinary CRUD never invoke it.
+ * The immutable marker is the compare-and-set lock enforced by RTDB rules.
  * A lost acknowledgement is safe: retry reads the marker without rewriting a note.
  */
 const legacyConversions = new Map()
@@ -200,7 +221,7 @@ async function migrateLegacy(uid, bookId, kind, options) {
   identifier(uid)
   identifier(bookId)
   if (!options || Object.getPrototypeOf(options) !== Object.prototype ||
-      Object.keys(options).some((key) => !['expectedVersion', 'title'].includes(key)) ||
+      Object.keys(options).some((key) => !['expectedVersion', 'title', 'date'].includes(key)) ||
       (options.expectedVersion !== undefined && (typeof options.expectedVersion !== 'string' || !/^[a-f0-9]{64}$/.test(options.expectedVersion)))) {
     throw failure('invalid-argument', 'Invalid conversion options.')
   }
@@ -216,8 +237,11 @@ async function migrateLegacy(uid, bookId, kind, options) {
 }
 
 async function convertLegacy(uid, bookId, kind, options) {
-  if (isFirebaseEmulator !== true) {
-    throw failure('emulator-only', 'Legacy conversion is disabled outside the isolated emulator.')
+  if (isFirebaseEmulator !== true && !productionBookHistoryEnabled) {
+    throw failure('emulator-only', 'Legacy conversion is disabled.')
+  }
+  if (!isBookNoteDate(options.date) || (productionBookHistoryEnabled && !options.expectedVersion)) {
+    throw failure('invalid-argument', 'Conversion requires an explicit civil date and a confirmed production source.')
   }
   const noteId = kind === 'note' ? LEGACY_BOOK_NOTE_ID : LEGACY_BOOK_REVIEW_ID
   const markerBranch = kind === 'note' ? 'bookNotesLegacy' : 'bookReviewsLegacy'
@@ -228,19 +252,25 @@ async function convertLegacy(uid, bookId, kind, options) {
   const previous = await get(markerRef)
   if (previous.exists()) return previous.val()
   if ((await get(location.notes)).exists()) {
+    const winner = await get(markerRef)
+    if (winner.exists()) return winner.val()
     throw failure('legacy-conflict', 'Reserved legacy note already exists without its marker.')
   }
   const sourceHtml = book.val()[kind] ?? ''
   // Validate before committing anything. Invalid/oversized historical data stays untouched.
-  const values = fields({ title: options.title ?? (kind === 'review' ? 'Mon avis sur le livre' : ''), contentHtml: sourceHtml, date: todayCivilDate() })
+  const values = fields({ title: options.title ?? (kind === 'review' ? 'Mon avis sur le livre' : ''), contentHtml: sourceHtml, date: options.date })
   if (options.expectedVersion !== undefined && options.expectedVersion !== await sourceVersion(sourceHtml)) {
     throw failure('legacy-source-changed', 'Historical source changed since confirmation. Refresh before converting.')
+  }
+  if (productionBookHistoryEnabled && (sourceHtml === '' || !storageHtml.test(sourceHtml))) {
+    throw failure('invalid-argument', 'Historical HTML cannot be copied unchanged under the note storage policy.')
   }
   const marker = { version: 1, outcome: sourceHtml === '' ? 'empty' : 'copied', sourceHtml, processedAt: serverTimestamp() }
   const writes = { [`${markerBranch}/${bookId}`]: marker }
   if (marker.outcome === 'copied') {
     writes[`bookNotes/${bookId}/${noteId}`] = {
-      ...values, isPinned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      ...values, contentHtml: productionBookHistoryEnabled ? sourceHtml : values.contentHtml,
+      isPinned: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     }
   }
   try {

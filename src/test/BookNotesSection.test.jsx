@@ -376,7 +376,11 @@ describe('manual confirmed historical conversions', () => {
     fireEvent.click(within(root).getByRole('button', { name: kind === 'note' ? 'Convertir l’ancienne note' : 'Convertir l’ancien avis' }))
     return screen.getByRole('dialog')
   }
-  function confirm() { fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmer la conversion' })) }
+  function confirm() {
+    const dialog = within(screen.getByRole('dialog'))
+    change(dialog.getByLabelText('Date de la note'), '2026-10-24')
+    fireEvent.click(dialog.getByRole('button', { name: 'Confirmer la conversion' }))
+  }
 
   it.each(['note', 'review'])('converts %s only after confirmation, then allows ordinary editing and deletion without fallback', async (kind) => {
     historical(kind)
@@ -388,13 +392,15 @@ describe('manual confirmed historical conversions', () => {
     expect(service.migrateLegacyBookReview).not.toHaveBeenCalled()
     const dialog = request(kind)
     expect(method).not.toHaveBeenCalled()
-    expect(dialog).toHaveTextContent('date technique de conversion')
+    expect(within(dialog).getByLabelText('Date de la note')).toHaveValue('')
+    expect(within(dialog).getByRole('button', { name: 'Confirmer la conversion' })).toBeDisabled()
+    expect(within(dialog).getByRole('region', { name: 'Contenu de la note' }).querySelector('b')).toHaveTextContent('Texte historique')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Annuler' }))
     expect(method).not.toHaveBeenCalled()
     request(kind); confirm()
     const title = kind === 'note' ? 'Note sans titre' : 'Mon avis sur le livre'
     await screen.findByRole('article', { name: title })
-    expect(method).toHaveBeenCalledWith('user', 'book', kind === 'note' ? { expectedVersion: 'a'.repeat(64) } : { expectedVersion: 'b'.repeat(64), title: 'Mon avis sur le livre' })
+    expect(method).toHaveBeenCalledWith('user', 'book', kind === 'note' ? { expectedVersion: 'a'.repeat(64), title: '', date: '2026-10-24' } : { expectedVersion: 'b'.repeat(64), title: 'Mon avis sur le livre', date: '2026-10-24' })
     expect(screen.queryByRole('article', { name: kind === 'note' ? 'Ancienne note' : 'Ancien avis' })).not.toBeInTheDocument()
     expect(screen.queryByText('STALE_PROP_MUST_STAY_HIDDEN')).not.toBeInTheDocument()
     clickCard('Modifier', title)
@@ -434,7 +440,7 @@ describe('manual confirmed historical conversions', () => {
     await waitFor(() => expect(addButton()).toBeEnabled())
     request('review'); confirm()
     await screen.findByRole('article', { name: 'Mon avis sur le livre' })
-    expect(service.migrateLegacyBookReview).toHaveBeenLastCalledWith('user', 'book', { expectedVersion: 'c'.repeat(64), title: 'Mon avis sur le livre' })
+    expect(service.migrateLegacyBookReview).toHaveBeenLastCalledWith('user', 'book', { expectedVersion: 'c'.repeat(64), title: 'Mon avis sur le livre', date: '2026-10-24' })
   })
 
   it('keeps pending conversion locked without changing the parent book or historical metadata', async () => {
