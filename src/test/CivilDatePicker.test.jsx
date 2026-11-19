@@ -103,11 +103,18 @@ describe('civil calendar', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('9999-12-31')
   })
 
-  it('does not open when disabled and localizes the calendar in English', async () => {
+  it('does not open when disabled', () => {
     setup('2024-02-29', true)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('localizes the calendar month and days in English', async () => {
     await i18n.changeLanguage('en')
+    setup()
     expect(screen.getByRole('button', { name: 'Date' })).toHaveTextContent('February 29, 2024')
+    expect(screen.getByRole('grid')).toHaveAccessibleName('February 2024')
+    expect(screen.getByRole('columnheader', { name: 'Thursday' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'February 29, 2024' })).toHaveFocus()
   })
 })
 

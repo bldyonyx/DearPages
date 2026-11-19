@@ -51,15 +51,47 @@ it('keeps both historical actions available and converts only the source confirm
   expect(review.getByRole('button', { name: 'Convertir en note' })).toBeEnabled()
   fireEvent.click(note.getByRole('button', { name: /Ancienne note/ }))
   fireEvent.click(note.getByRole('button', { name: 'Convertir en note' }))
-  const dialog = within(screen.getByRole('dialog'))
+  const conversion = screen.getByRole('dialog')
+  const dialog = within(conversion)
   const date = dialog.getByLabelText('Date de la note')
   const confirm = dialog.getByRole('button', { name: 'Confirmer la conversion' })
-  expect(date).toHaveValue('')
+  expect(date).toHaveTextContent('Choisir une date')
   expect(confirm).toBeDisabled()
   expect(dialog.getByRole('region', { name: 'Contenu de la note' }).querySelector('b')).toHaveTextContent('Ma note historique')
   expect(migrateLegacyBookNote).not.toHaveBeenCalled()
   fireEvent.change(dialog.getByLabelText('Titre (facultatif)'), { target: { value: 'Souvenir de lecture' } })
-  fireEvent.change(date, { target: { value: '2024-02-29' } })
+  const viewport = { width: window.innerWidth, height: window.innerHeight }
+  window.innerWidth = 320
+  window.innerHeight = 480
+  const bounds = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+    .mockImplementation(function () {
+      return this === date
+        ? { left: 250, top: 380, bottom: 420 }
+        : { width: 288, height: 400 }
+    })
+  try {
+    fireEvent.click(date)
+    const picker = screen.getByRole('dialog', { name: 'Date de la note' })
+    expect(conversion).not.toContainElement(picker)
+    expect(picker.parentElement).toBe(document.body)
+    expect(picker).toHaveStyle({ left: '20px', top: '12px' })
+    expect(confirm).toBeDisabled()
+  } finally {
+    bounds.mockRestore()
+    window.innerWidth = viewport.width
+    window.innerHeight = viewport.height
+  }
+  const picker = within(screen.getByRole('dialog', { name: 'Date de la note' }))
+  fireEvent.change(picker.getByRole('spinbutton', { name: 'Année' }), { target: { value: '2024' } })
+  fireEvent.change(picker.getByRole('combobox', { name: 'Mois' }), { target: { value: '2' } })
+  fireEvent.click(picker.getByRole('button', { name: '28 février 2024' }))
+  expect(date).toHaveFocus()
+  fireEvent.click(date)
+  expect(screen.getByRole('button', { name: '28 février 2024' })).toHaveFocus()
+  fireEvent.keyDown(document.activeElement, { key: 'ArrowRight' })
+  fireEvent.keyDown(document.activeElement, { key: 'Enter' })
+  expect(date).toHaveTextContent('29 février 2024')
+  expect(confirm).toBeEnabled()
   fireEvent.click(confirm)
   await screen.findByRole('article', { name: 'Souvenir de lecture' })
   expect(migrateLegacyBookNote).toHaveBeenCalledWith('owner', 'book', {

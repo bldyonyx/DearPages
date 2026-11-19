@@ -30,7 +30,7 @@ function expand(root) { const trigger = root.querySelector('h4 > button'); if (t
 function clickCard(name, title) { const root = card(title); expand(root); fireEvent.click(within(root).getByRole('button', { name })) }
 function selectDate(root, date) {
   fireEvent.click(within(root).getByLabelText('Date de la note'))
-  const dialog = screen.getByRole('dialog')
+  const dialog = screen.getByRole('dialog', { name: 'Date de la note' })
   const [year, month, day] = date.split('-').map(Number)
   change(within(dialog).getByRole('spinbutton', { name: 'Année' }), String(year))
   change(within(dialog).getByRole('combobox', { name: 'Mois' }), String(month))
@@ -377,9 +377,11 @@ describe('manual confirmed historical conversions', () => {
     return screen.getByRole('dialog')
   }
   function confirm() {
-    const dialog = within(screen.getByRole('dialog'))
-    change(dialog.getByLabelText('Date de la note'), '2026-10-24')
-    fireEvent.click(dialog.getByRole('button', { name: 'Confirmer la conversion' }))
+    const dialog = screen.getByRole('dialog')
+    if (within(dialog).getByRole('button', { name: 'Confirmer la conversion' }).disabled) {
+      selectDate(dialog, '2026-10-24')
+    }
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmer la conversion' }))
   }
 
   it.each(['note', 'review'])('converts %s only after confirmation, then allows ordinary editing and deletion without fallback', async (kind) => {
@@ -392,7 +394,7 @@ describe('manual confirmed historical conversions', () => {
     expect(service.migrateLegacyBookReview).not.toHaveBeenCalled()
     const dialog = request(kind)
     expect(method).not.toHaveBeenCalled()
-    expect(within(dialog).getByLabelText('Date de la note')).toHaveValue('')
+    expect(within(dialog).getByLabelText('Date de la note')).toHaveTextContent('Choisir une date')
     expect(within(dialog).getByRole('button', { name: 'Confirmer la conversion' })).toBeDisabled()
     expect(within(dialog).getByRole('region', { name: 'Contenu de la note' }).querySelector('b')).toHaveTextContent('Texte historique')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Annuler' }))

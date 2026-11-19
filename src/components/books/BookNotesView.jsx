@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, RefreshCw } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import Input from '../ui/Input.jsx'
+import CivilDatePicker from '../ui/CivilDatePicker.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import Modal from '../ui/Modal.jsx'
 import BookNoteCard from './BookNoteCard.jsx'
@@ -78,8 +79,8 @@ export default function BookNotesView({ model, historicalReview, renderHistorica
           <p className="font-ui text-sm leading-6 text-walnut">{t(conversion.kind === 'review' ? 'bookPage.notes.conversionReviewBody' : 'bookPage.notes.conversionNoteBody')}</p>
           <Input id={`${titleId}-conversion-title`} label={t('bookPage.notes.optionalTitle')} type="text" maxLength={200} value={conversion.title}
             disabled={converting} onChange={(event) => setConversion({ ...conversion, title: event.target.value })} />
-          <Input id={`${titleId}-conversion-date`} label={t('bookPage.notes.date')} type="date" min="0001-01-01" max="9999-12-31" required value={conversion.date}
-            disabled={converting} onChange={(event) => setConversion({ ...conversion, date: event.target.value })} />
+          <CivilDatePicker id={`${titleId}-conversion-date`} label={t('bookPage.notes.date')} value={conversion.date}
+            disabled={converting} onChange={(date) => setConversion({ ...conversion, date })} />
           <p className="font-ui text-xs leading-5 text-walnut/65">{t('bookPage.notes.conversionDateHint')}</p>
           <div role="region" aria-label={t('bookPage.notes.content')}
             className="dp-note-rich-text max-h-40 overflow-auto break-words rounded-xl border border-walnut/20 p-3 font-ui text-sm text-darkwood"
