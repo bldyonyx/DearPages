@@ -1,0 +1,6 @@
+{
+  "database": {
+    "instance": "dear-pages-booktracker-default-rtdb",
+    "rules": "database.production.rules.json"
+  }
+}
