@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookMarked, Star } from 'lucide-react'
+import { BookMarked } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import BookCollectionsModal from '../collections/modals/BookCollectionsModal.jsx'
@@ -12,6 +12,7 @@ import {
 
 import BookNotesSection from './BookNotesSection.jsx'
 import BookHistoricalTextEditor from './BookHistoricalTextEditor.jsx'
+import BookRatingStars from './BookRatingStars.jsx'
 import BookRatingsSection from './BookRatingsSection.jsx'
 import { isBookNotesUiEnabled } from '../../services/bookNotesService.js'
 import { bookLarge } from './bookResponsive.js'
@@ -27,6 +28,7 @@ function BookPersonalSpace({
   const { t } = useTranslation()
   const generation = personalBackend?.mode === 'generation'
 
+  const [openHistoricalField, setOpenHistoricalField] = useState(null)
   const [rating, setRating] = useState(libraryBook?.rating || 0)
 
   const [isSaving, setIsSaving] = useState(false)
@@ -227,45 +229,8 @@ function BookPersonalSpace({
               {t('bookPage.personal.ratingTitle')}
             </h3>
 
-            <div className="mt-3 flex flex-wrap gap-1">
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isSelected = star <= rating
-
-                return (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => handleRatingChange(star)}
-                    disabled={isSaving}
-                    aria-label={t(
-                      'bookPage.personal.starLabel',
-                      { count: star }
-                    )}
-                    className={`
-                      rounded-lg transition-colors duration-200 ease-out
-                      hover:text-dustyrose active:text-dustyrose
-                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35
-                      disabled:cursor-not-allowed
-                      ${
-                        isSelected
-                          ? 'text-dustyrose'
-                          : 'text-walnut/35 hover:text-dustyrose/70'
-                      }
-                    `}
-                  >
-                    <Star
-                      size={30}
-                      strokeWidth={1.6}
-                      fill={
-                        isSelected
-                          ? 'currentColor'
-                          : 'none'
-                      }
-                      className={bookLarge.personalIcon}
-                    />
-                  </button>
-                )
-              })}
+            <div className="mt-3 rounded-2xl border border-walnut/15 bg-cream/70 p-3">
+              <BookRatingStars value={rating} onChange={handleRatingChange} disabled={isSaving} />
             </div>
           </div>} />
         )}
@@ -276,12 +241,17 @@ function BookPersonalSpace({
           {generation || isBookNotesUiEnabled ? (
             <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review} />
           ) : (
-            <div className="space-y-8">
-              <BookHistoricalTextEditor key={`${userId}/${bookId}/note`} field="note" value={libraryBook?.note}
-                userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange} />
-              <BookHistoricalTextEditor key={`${userId}/${bookId}/review`} field="review" value={libraryBook?.review}
-                userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange} />
-            </div>
+            <section className="min-w-0 space-y-4">
+              <h3 className={`font-heading text-2xl font-bold text-darkwood ${bookLarge.personalSubheading}`}>
+                {t('bookPage.personal.notesTitle')}
+              </h3>
+              {['note', 'review'].map((field) => (
+                <BookHistoricalTextEditor key={`${userId}/${bookId}/${field}`} field={field} value={libraryBook?.[field]}
+                  userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange}
+                  expanded={openHistoricalField === field}
+                  onToggle={() => setOpenHistoricalField((current) => current === field ? null : field)} />
+              ))}
+            </section>
           )}
         </div>
       </div>

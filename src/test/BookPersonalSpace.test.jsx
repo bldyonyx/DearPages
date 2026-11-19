@@ -21,14 +21,25 @@ function Harness({ initial }) {
 }
 beforeEach(() => vi.resetAllMocks())
 
+function openCard(title) {
+  const card = within(screen.getByRole('article', { name: title }))
+  fireEvent.click(card.getByRole('button', { name: title + ' · bookPage.date.unknown' }))
+  return card
+}
+
 it.each(['to-read', 'reading', 'finished', 'abandoned'])('shows both historical fields for %s without writing', (status) => {
   render(<Harness initial={{ status, note: 'Saved note', review: 'Saved review' }} />)
-  expect(screen.getByText('Saved note')).toBeInTheDocument()
-  expect(screen.getByText('Saved review')).toBeInTheDocument()
+  expect(screen.queryByText('Saved note')).not.toBeInTheDocument()
+  expect(openCard('bookPage.notes.legacyTitle').getByText('Saved note')).toBeVisible()
+  expect(openCard('bookPage.personal.reviewTitle').getByText('Saved review')).toBeVisible()
+  expect(screen.queryByText('Saved note')).not.toBeInTheDocument()
   expect(screen.queryAllByRole('button', { name: /starLabel/ })).toHaveLength(status === 'finished' ? 5 : 0)
   expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   expect(updateBookNote).not.toHaveBeenCalled()
   expect(updateBookReview).not.toHaveBeenCalled()
+  for (const name of ['bookPage.notes.add', 'bookPage.notes.pin', 'bookPage.ratings.add']) {
+    expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+  }
 })
 
 it('puts the rating before notes and preserves both historical fields on a star change', async () => {
@@ -50,8 +61,8 @@ it('shows a rating failure without altering historical data', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'bookPage.personal.starLabel-4' }))
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('bookPage.personal.ratingSaveError'))
   expect(screen.getByTestId('book')).toHaveTextContent('"rating":1')
-  expect(screen.getByText('Saved note')).toBeInTheDocument()
-  expect(screen.getByText('Saved review')).toBeInTheDocument()
+  expect(openCard('bookPage.notes.legacyTitle').getByText('Saved note')).toBeVisible()
+  expect(openCard('bookPage.personal.reviewTitle').getByText('Saved review')).toBeVisible()
   vi.restoreAllMocks()
 })
 
@@ -67,11 +78,11 @@ it('does not recreate a removed book when an in-flight rating save resolves', as
 })
 
 it.each([
-  ['note', 'notesTitle', updateBookNote, updateBookReview],
-  ['review', 'reviewTitle', updateBookReview, updateBookNote],
+  ['note', 'bookPage.notes.legacyTitle', updateBookNote, updateBookReview],
+  ['review', 'bookPage.personal.reviewTitle', updateBookReview, updateBookNote],
 ])('saves only the historical %s after an explicit edit', async (field, title, write, otherWrite) => {
   render(<Harness initial={{ status: 'finished', note: 'Saved note', review: 'Saved review', rating: 4 }} />)
-  const panel = within(screen.getByRole('region', { name: `bookPage.personal.${title}` }))
+  const panel = openCard(title)
   fireEvent.click(panel.getByRole('button', { name: 'bookPage.notes.edit' }))
   expect(panel.getByRole('button', { name: 'common.save' })).toBeDisabled()
   fireEvent.input(panel.getByRole('textbox'), { target: { innerHTML: '<b>Edited</b>' } })

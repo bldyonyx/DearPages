@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronDown, Pencil, Plus, RefreshCw, Star, Trash2 } from 'lucide-react'
+import { ChevronDown, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import BookRatingStars from './BookRatingStars.jsx'
 import Button from '../ui/Button.jsx'
 import IconButton from '../ui/IconButton.jsx'
 import Input from '../ui/Input.jsx'
@@ -8,20 +9,6 @@ import Modal from '../ui/Modal.jsx'
 import CivilDatePicker from '../ui/CivilDatePicker.jsx'
 import { formatCivilDate, todayCivilDate } from '../../utils/civilDateUtils.js'
 import { bookLarge } from './bookResponsive.js'
-
-function Stars({ value, onChange, disabled }) {
-  const { t } = useTranslation()
-  if (!onChange) return <span role="img" aria-label={t('bookPage.personal.starLabel', { count: value })} className="inline-flex shrink-0 gap-0.5 sm:gap-1">
-    {[1, 2, 3, 4, 5].map(star => <Star key={star} size={30} strokeWidth={1.6} aria-hidden="true" fill={star <= value ? 'currentColor' : 'none'} className={`size-5 sm:size-7 ${star <= value ? 'text-dustyrose' : 'text-walnut/35'}`} />)}
-  </span>
-  return <div role="group" aria-label={t('bookPage.ratings.value')} className="flex flex-wrap gap-1">
-    {[1, 2, 3, 4, 5].map(star => <button key={star} type="button" disabled={disabled} aria-pressed={star === value}
-      aria-label={t('bookPage.personal.starLabel', { count: star })} onClick={() => onChange(star)}
-      className={`rounded-lg transition-colors duration-200 hover:text-dustyrose focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive/35 disabled:opacity-50 ${star <= value ? 'text-dustyrose' : 'text-walnut/35'}`}>
-      <Star size={30} strokeWidth={1.6} aria-hidden="true" fill={star <= value ? 'currentColor' : 'none'} />
-    </button>)}
-  </div>
-}
 
 export default function BookRatingsView({ model }) {
   const { t, i18n } = useTranslation()
@@ -36,7 +23,7 @@ export default function BookRatingsView({ model }) {
     const readOnly = rating.id === 'legacy-rating-v1' && legacy?.status === 'conflict'
     return <article key={rating.id} aria-label={t('bookPage.ratings.entry')} className="relative min-w-0 space-y-1 rounded-2xl border border-walnut/15 bg-cream/70 p-3">
       <div className="flex min-w-0 items-center justify-between gap-1">
-        <Stars value={rating.value} />
+        <BookRatingStars value={rating.value} />
         {!readOnly && <div className="h-11 w-22 shrink-0">
         <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-0">
           <IconButton label={t('bookPage.ratings.edit')} className="inline-flex items-center justify-center" disabled={disabled} onClick={() => setDraft({ expected: { ...rating }, value: rating.value, date: rating.date, impression: rating.impression ?? '' })}><Pencil size={16} strokeWidth={1.7} aria-hidden="true" /></IconButton>
@@ -81,7 +68,7 @@ export default function BookRatingsView({ model }) {
         const input = { value: draft.value, date: draft.date, impression: draft.impression }
         if (await (draft.expected ? model.save(draft.expected, input) : model.create(draft.id, input))) setDraft(null)
       }}>
-        <Stars value={draft.value} onChange={value => setDraft(current => ({ ...current, value }))} disabled={disabled} />
+        <BookRatingStars value={draft.value} onChange={value => setDraft(current => ({ ...current, value }))} disabled={disabled} />
         <div className="space-y-1">
           <Input id={`${id}-impression`} label={t('bookPage.ratings.impression')} type="text" maxLength={160} value={draft.impression} disabled={disabled}
             aria-describedby={`${id}-impression-hint`} onChange={event => setDraft(current => ({ ...current, impression: event.target.value }))} />

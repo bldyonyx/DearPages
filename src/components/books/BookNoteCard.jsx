@@ -8,7 +8,7 @@ import { sanitizeNoteHtml } from '../../utils/noteHtmlSanitizer.js'
 import { bookLarge } from './bookResponsive.js'
 import { formatCivilDate, isCivilDate } from '../../utils/civilDateUtils.js'
 
-export default function BookNoteCard({ note, pending, error, onSave, onDelete, onPin, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions }) {
+export default function BookNoteCard({ note, pending, error, onSave, onDelete, onPin, readOnly = false, isLegacyCopy = false, expanded, onToggle, notice, historicalActions, editor }) {
   const { t, i18n } = useTranslation()
   const id = useId()
   const [expected, setExpected] = useState(null)
@@ -49,7 +49,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
       {!expanded && error && <p role="alert" className="px-4 pb-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
       <div id={`${id}-panel`} role="region" aria-labelledby={`${id}-trigger`} hidden={!expanded}>
       {expanded && <div className="dp-menu-enter px-4 pb-4 sm:px-5 sm:pb-5">
-      {editing && !readOnly ? (
+      {editor ?? (editing && !readOnly ? (
         <BookNoteForm draft={draft} onChange={setDraft} pending={pending} error={error}
           onCancel={() => setEditing(false)} onSave={async (input) => {
             if (await onSave(note.id, input, expected)) { setEditing(false); setDraft(null) }
@@ -71,7 +71,7 @@ export default function BookNoteCard({ note, pending, error, onSave, onDelete, o
           {historicalActions && <div className="mt-4 flex flex-wrap justify-end gap-2">{historicalActions}</div>}
           {error && !confirming && <p role="alert" className="mt-3 font-ui text-sm text-red-700">{t(`bookPage.notes.${error}`)}</p>}
         </>
-      )}
+      ))}
       </div>}
       </div>
       <Modal isOpen={confirming} onClose={() => { if (!pending) setConfirming(false) }} title={t('bookPage.notes.deleteTitle')}>
