@@ -11,7 +11,7 @@ import { newBookNoteDraft } from '../../utils/bookNoteDraft.js'
 import { bookLarge } from './bookResponsive.js'
 
 // Pure UI: also used by the local preview without importing Firebase.
-export default function BookNotesView({ model, historicalReview }) {
+export default function BookNotesView({ model, historicalReview, renderHistorical }) {
   const { t } = useTranslation()
   const titleId = useId()
   const [adding, setAdding] = useState(false)
@@ -44,15 +44,15 @@ export default function BookNotesView({ model, historicalReview }) {
           }} />
       </div>}
       {loaded && !loadError && ['invalid', 'conflict'].includes(legacy?.status) && <p role="alert" className="rounded-2xl border border-walnut/15 bg-mintcream/35 p-4 font-ui text-sm leading-6 text-walnut">{t(`bookPage.notes.legacy${legacy.status === 'invalid' ? 'Invalid' : 'Conflict'}`)}</p>}
-      {loaded && !loading && !loadError && !notes.length && ['empty', 'processed'].includes(legacy?.status) && !adding && <p className={`py-4 font-handwritten text-lg text-walnut/70 ${bookLarge.handwritten}`}>{t('bookPage.notes.empty')}</p>}
+      {loaded && !loading && !loadError && !notes.length && (renderHistorical || ['empty', 'processed'].includes(legacy?.status)) && !adding && <p className={`py-4 font-handwritten text-lg text-walnut/70 ${bookLarge.handwritten}`}>{t('bookPage.notes.empty')}</p>}
       <div className="space-y-3">{notes.map((note) => <BookNoteCard key={note.id} note={note} pending={pending[note.id] || loading || !canWrite}
         expanded={openId === `note:${note.id}`} onToggle={() => toggle(`note:${note.id}`)}
         isLegacyCopy={(note.id === 'legacy-note-v1' && legacy?.status === 'processed') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'processed')}
         error={errors[note.id]} onPin={model.pin} onSave={model.save} onDelete={model.remove} readOnly={!enabled || (note.id === 'legacy-note-v1' && legacy?.status === 'conflict') || (note.id === 'legacy-review-v1' && legacyReview?.status === 'conflict')} />)}</div>
-      <div className="space-y-3"><BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
+      <div className="space-y-3">{renderHistorical ? (loaded && !loadError && renderHistorical({ legacy, legacyReview, openId, toggle })) : <BookHistoricalNotes legacy={loaded && !loadError ? legacy : null}
         legacyReview={enabled ? (loaded && !loadError ? legacyReview : { status: 'unknown' }) : null}
         review={enabled ? undefined : historicalReview} openId={openId} onToggle={toggle} pending={pending} canConvert={canWrite}
-        onConvertRequest={(kind, source) => setConversion({ kind, expectedVersion: source.sourceVersion })} /></div>
+        onConvertRequest={(kind, source) => setConversion({ kind, expectedVersion: source.sourceVersion })} />}</div>
       <Modal isOpen={Boolean(conversion)} title={t('bookPage.notes.conversionTitle')}
         onClose={() => { if (!pending[`convert:${conversion?.kind}`]) setConversion(null) }}>
         <p className="font-ui text-sm leading-6 text-walnut">{t(conversion?.kind === 'review' ? 'bookPage.notes.conversionReviewBody' : 'bookPage.notes.conversionNoteBody')}</p>

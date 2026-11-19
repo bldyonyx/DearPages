@@ -1,3 +1,4 @@
+import { productionBookHistoryEnabled } from '../config/legacyBookHistory.js'
 import { personalErrorKind } from '../integration/generationPersonalBackend.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -60,7 +61,7 @@ export default function useBookRatings(userId, bookId, personalBackend) {
     create: (id, input) => operate(() => generation ? personalBackend.ratings.create(id, input) : createBookRating(userId, bookId, id, input), (ratings, result) => [...ratings.filter(r => r.id !== result.id), result]),
     save: (expected, input) => operate(() => generation ? personalBackend.ratings.save(expected, input) : updateBookRatingEntry(userId, bookId, expected, input), (ratings, result) => ratings.map(r => r.id === result.id ? result : r)),
     remove: expected => operate(() => generation ? personalBackend.ratings.remove(expected) : deleteBookRatingEntry(userId, bookId, expected), ratings => ratings.filter(r => r.id !== expected.id)),
-    convert: value => generation ? Promise.resolve(false) : operate(async () => {
+    convert: value => generation || productionBookHistoryEnabled ? Promise.resolve(false) : operate(async () => {
       await migrateLegacyBookRating(userId, bookId, value)
       const c = control.current
       if (!c?.active || c.scope !== scope) return null

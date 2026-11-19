@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BookMarked } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { productionBookHistoryEnabled } from '../../config/legacyBookHistory.js'
 import BookCollectionsModal from '../collections/modals/BookCollectionsModal.jsx'
 import { getUserCollections } from '../../services/collectionsService.js'
 
@@ -105,6 +106,14 @@ function BookPersonalSpace({
 
   const showsRating =
     status === BOOK_STATUSES.FINISHED
+
+  function renderHistoricalField(field, expanded, onToggle) {
+    return (
+      <BookHistoricalTextEditor key={`${userId}/${bookId}/${field}`} field={field} value={libraryBook?.[field]}
+        userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange}
+        expanded={expanded} onToggle={onToggle} />
+    )
+  }
 
   return (
     <section
@@ -220,16 +229,17 @@ function BookPersonalSpace({
 
         {showsRating && (
           <BookRatingsSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} legacyControl={generation ? null : <div>
-            <h3
+            {!productionBookHistoryEnabled && <h3
               className={`
                 font-heading text-2xl font-bold text-darkwood
                 ${bookLarge.personalSubheading}
               `}
             >
               {t('bookPage.personal.ratingTitle')}
-            </h3>
+            </h3>}
 
             <div className="mt-3 rounded-2xl border border-walnut/15 bg-cream/70 p-3">
+              {productionBookHistoryEnabled && <p className="mb-2 font-ui text-sm text-walnut">{t('bookPage.ratings.original')}</p>}
               <BookRatingStars value={rating} onChange={handleRatingChange} disabled={isSaving} />
             </div>
           </div>} />
@@ -239,18 +249,19 @@ function BookPersonalSpace({
 
         <div className="mt-8">
           {generation || isBookNotesUiEnabled ? (
-            <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review} />
+            <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review}
+              renderHistorical={productionBookHistoryEnabled && !generation ? ({ legacy, legacyReview, openId, toggle }) => [
+                { field: 'note', source: legacy },
+                { field: 'review', source: legacyReview },
+              ].filter(({ source }) => source?.status !== 'processed' && source?.status !== 'conflict')
+                .map(({ field }) => renderHistoricalField(field, openId === field, () => toggle(field))) : undefined} />
           ) : (
             <section className="min-w-0 space-y-4">
               <h3 className={`font-heading text-2xl font-bold text-darkwood ${bookLarge.personalSubheading}`}>
                 {t('bookPage.personal.notesTitle')}
               </h3>
-              {['note', 'review'].map((field) => (
-                <BookHistoricalTextEditor key={`${userId}/${bookId}/${field}`} field={field} value={libraryBook?.[field]}
-                  userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange}
-                  expanded={openHistoricalField === field}
-                  onToggle={() => setOpenHistoricalField((current) => current === field ? null : field)} />
-              ))}
+              {['note', 'review'].map((field) => renderHistoricalField(field, openHistoricalField === field,
+                () => setOpenHistoricalField((current) => current === field ? null : field)))}
             </section>
           )}
         </div>

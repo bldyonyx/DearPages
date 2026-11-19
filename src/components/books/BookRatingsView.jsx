@@ -10,7 +10,7 @@ import CivilDatePicker from '../ui/CivilDatePicker.jsx'
 import { formatCivilDate, todayCivilDate } from '../../utils/civilDateUtils.js'
 import { bookLarge } from './bookResponsive.js'
 
-export default function BookRatingsView({ model }) {
+export default function BookRatingsView({ model, legacyControl }) {
   const { t, i18n } = useTranslation()
   const id = useId()
   const [history, setHistory] = useState(false)
@@ -50,7 +50,8 @@ export default function BookRatingsView({ model }) {
     {notice && <p role="status" className="font-ui text-sm text-forest">{t(`bookPage.ratings.${notice}`)}</p>}
     {loaded && !loadError && !ratings.length && <p className="font-handwritten text-lg text-walnut/70">{t('bookPage.ratings.empty')}</p>}
     {ratings[0] && row(ratings[0])}
-    {legacy?.status === 'unprocessed' && <aside className="space-y-3 rounded-2xl border border-walnut/15 bg-mintcream/35 p-4">
+    {legacyControl && ['unprocessed', 'empty'].includes(legacy?.status) && legacyControl}
+    {!legacyControl && legacy?.status === 'unprocessed' && <aside className="space-y-3 rounded-2xl border border-walnut/15 bg-mintcream/35 p-4">
       <p className="font-ui text-sm leading-6 text-walnut">{t('bookPage.ratings.legacy')}</p>
       <p className="font-ui text-sm text-walnut">{t('bookPage.ratings.legacyValue', { value: legacy.value })} · {t('bookPage.date.unknown')}</p>
       <Button type="button" variant="secondary" disabled={disabled} onClick={() => setConversion(legacy.value)}>{t('bookPage.ratings.convert')}</Button>

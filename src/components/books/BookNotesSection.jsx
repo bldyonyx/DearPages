@@ -1,7 +1,7 @@
 import useBookNotes from '../../hooks/useBookNotes.js'
 import BookNotesView from './BookNotesView.jsx'
 
-export default function BookNotesSection({ userId, bookId, historicalReview, personalBackend }) {
+export default function BookNotesSection({ userId, bookId, historicalReview, personalBackend, renderHistorical }) {
   const model = useBookNotes(userId, bookId, personalBackend)
-  return <BookNotesView key={personalBackend ? `${userId}/${bookId}/${personalBackend.context.generation}` : undefined} model={model} historicalReview={historicalReview} />
+  return <BookNotesView key={personalBackend ? `${userId}/${bookId}/${personalBackend.context.generation}` : undefined} model={model} historicalReview={historicalReview} renderHistorical={renderHistorical} />
 }

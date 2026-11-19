@@ -1,6 +1,7 @@
 /* eslint-disable no-control-regex -- Validation intentionally rejects control characters. */
 import { get, push, ref, remove, serverTimestamp, set, update } from 'firebase/database'
 import { database, isFirebaseEmulator } from './firebase.js'
+import { productionBookHistoryEnabled } from '../config/legacyBookHistory.js'
 import { sanitizeNoteHtml } from '../utils/noteHtmlSanitizer.js'
 import { isCivilDate as isBookNoteDate } from '../utils/civilDateUtils.js'
 import { todayCivilDate } from '../utils/civilDateUtils.js'
@@ -12,7 +13,7 @@ export { isBookNoteDate, compareBookNotes }
 export const BOOK_NOTE_LIMITS = Object.freeze({ title: 200, contentHtml: 200000 })
 export const LEGACY_BOOK_NOTE_ID = 'legacy-note-v1'
 export const LEGACY_BOOK_REVIEW_ID = 'legacy-review-v1'
-export const isBookNotesUiEnabled = isFirebaseEmulator === true
+export const isBookNotesUiEnabled = isFirebaseEmulator === true || productionBookHistoryEnabled
 
 function failure(code, message) {
   return Object.assign(new Error(message), { code: `book-notes/${code}` })
@@ -162,7 +163,7 @@ export async function updateBookNote(uid, bookId, noteId, patch) {
  * Rules recheck existence at commit and allow unchanged historical timestamps.
  */
 export async function updateBookNotePinned(uid, bookId, noteId, isPinned) {
-  if (isFirebaseEmulator !== true) throw failure('emulator-only', 'Pinning is disabled outside the isolated emulator.')
+  if (!isBookNotesUiEnabled) throw failure('emulator-only', 'Book notes are disabled.')
   identifier(noteId)
   if (typeof isPinned !== 'boolean') throw failure('invalid-argument', 'Expected a boolean pin state.')
   const location = paths(uid, bookId, noteId)

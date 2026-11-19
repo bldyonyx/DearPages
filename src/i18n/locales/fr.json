@@ -448,6 +448,7 @@
       "refresh": "Actualiser les évaluations",
       "refreshHint": "Récupérer les évaluations enregistrées sur un autre appareil, sans enregistrer le brouillon ouvert.",
 
+      "original": "Évaluation d’origine",
       "legacyValue": "Ancienne évaluation : {{value}}/5",
       "add": "Ajouter une évaluation",
       "edit": "Modifier l’évaluation",

@@ -98,7 +98,9 @@ describe('book notes CRUD and server rules', () => {
 
   it('denies ancestor replacement, deletion and malformed multi-path writes', async () => {
     const id = await service.createBookNote(uid, bookId, input)
-    for (const path of [`users/${uid}`, `users/${uid}/bookNotes`, notesPath()]) {
+    const paths = [`users/${uid}/bookNotes`, notesPath()]
+    if (process.env.DEAR_PAGES_PRODUCTION_RULES !== '1') paths.unshift(`users/${uid}`)
+    for (const path of paths) {
       await denied(set(ref(clients[0].database, path), {}))
       await denied(remove(ref(clients[0].database, path)))
     }

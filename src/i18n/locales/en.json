@@ -448,6 +448,7 @@
       "refresh": "Refresh ratings",
       "refreshHint": "Get rating changes from another device. This does not save your draft.",
 
+      "original": "Original rating",
       "legacyValue": "Original rating: {{value}}/5",
       "add": "Add a rating",
       "edit": "Edit rating",

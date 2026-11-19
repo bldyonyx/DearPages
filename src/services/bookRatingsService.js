@@ -1,10 +1,11 @@
 /* eslint-disable no-control-regex -- Identifiers intentionally reject control characters. */
 import { get, push, ref, runTransaction, serverTimestamp, update } from 'firebase/database'
 import { database, isFirebaseEmulator } from './firebase.js'
+import { productionBookHistoryEnabled } from '../config/legacyBookHistory.js'
 import { isCivilDate } from '../utils/civilDateUtils.js'
 import { compareBookRatings } from '../utils/bookRatingsOrder.js'
 
-export const isBookRatingsUiEnabled = isFirebaseEmulator === true
+export const isBookRatingsUiEnabled = isFirebaseEmulator === true || productionBookHistoryEnabled
 export const LEGACY_BOOK_RATING_ID = 'legacy-rating-v1'
 export { compareBookRatings }
 const error = (code) => Object.assign(new Error(`book-ratings/${code}`), { code: `book-ratings/${code}` })
@@ -106,6 +107,7 @@ export const deleteBookRatingEntry = async (uid, bookId, expected) => mutate(uid
 
 const conversions = new Map()
 export async function migrateLegacyBookRating(uid, bookId, expectedValue) {
+  if (!isFirebaseEmulator) throw error('emulator-only')
   const loc = location(uid, bookId, LEGACY_BOOK_RATING_ID)
   if (!isRatingValue(expectedValue)) throw error('invalid-argument')
   const key = `${uid}/${bookId}`

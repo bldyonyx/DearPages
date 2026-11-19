@@ -1,3 +1,4 @@
+import { productionBookHistoryEnabled } from '../config/legacyBookHistory.js'
 import { personalErrorKind } from '../integration/generationPersonalBackend.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -74,7 +75,7 @@ export default function useBookNotes(userId, bookId, personalBackend) {
   async function convert(kind, options) {
     const control = controlRef.current
     const key = `convert:${kind}`
-    if (generation || !['note', 'review'].includes(kind) || !options?.expectedVersion || !enabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
+    if (generation || productionBookHistoryEnabled || !['note', 'review'].includes(kind) || !options?.expectedVersion || !enabled || !control?.active || control.scope !== scope || control.loading || control.locks.has(key) || state.loadError || !state.loaded) return false
     control.locks.add(key)
     change((current) => ({ ...current, conversionStatus: '', pending: { ...current.pending, [key]: true }, errors: { ...current.errors, [key]: '' } }))
     try {
