@@ -11,7 +11,9 @@ import {
 } from '../../services/libraryService.js'
 
 import BookNotesSection from './BookNotesSection.jsx'
+import BookHistoricalTextEditor from './BookHistoricalTextEditor.jsx'
 import BookRatingsSection from './BookRatingsSection.jsx'
+import { isBookNotesUiEnabled } from '../../services/bookNotesService.js'
 import { bookLarge } from './bookResponsive.js'
 
 function BookPersonalSpace({
@@ -271,7 +273,16 @@ function BookPersonalSpace({
         {error && <p role="alert" className="mt-4 font-ui text-sm text-red-700">{error}</p>}
 
         <div className="mt-8">
-          <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review} />
+          {generation || isBookNotesUiEnabled ? (
+            <BookNotesSection key={`${userId}/${bookId}`} userId={userId} bookId={bookId} personalBackend={personalBackend} historicalReview={generation ? undefined : libraryBook?.review} />
+          ) : (
+            <div className="space-y-8">
+              <BookHistoricalTextEditor key={`${userId}/${bookId}/note`} field="note" value={libraryBook?.note}
+                userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange} />
+              <BookHistoricalTextEditor key={`${userId}/${bookId}/review`} field="review" value={libraryBook?.review}
+                userId={userId} bookId={bookId} onLibraryBookChange={onLibraryBookChange} />
+            </div>
+          )}
         </div>
       </div>
 

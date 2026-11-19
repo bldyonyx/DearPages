@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import BookPersonalSpace from '../components/books/BookPersonalSpace.jsx'
 import { updateBookNote, updateBookReview, updateBookRating } from '../services/libraryService.js'
@@ -12,9 +12,7 @@ vi.mock('../services/libraryService.js', () => ({
 vi.mock('../services/collectionsService.js', () => ({ getUserCollections: vi.fn(async () => []) }))
 vi.mock('../components/collections/modals/BookCollectionsModal.jsx', () => ({ default: () => null }))
 vi.mock('../components/books/BookFinalStatusDate.jsx', () => ({ default: () => null }))
-vi.mock('../components/books/BookNotesSection.jsx', () => ({
-  default: ({ historicalReview }) => <section data-testid="notes">Multiple notes<output>{historicalReview}</output></section>,
-}))
+vi.mock('../services/bookNotesService.js', () => ({ isBookNotesUiEnabled: false }))
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key, options) => options?.count ? key + '-' + options.count : key }) }))
 
 function Harness({ initial }) {
@@ -23,19 +21,19 @@ function Harness({ initial }) {
 }
 beforeEach(() => vi.resetAllMocks())
 
-it.each(['to-read', 'reading', 'finished', 'abandoned'])('shows notes for %s with the existing rating visibility and no review editor', (status) => {
+it.each(['to-read', 'reading', 'finished', 'abandoned'])('shows both historical fields for %s without writing', (status) => {
   render(<Harness initial={{ status, note: 'Saved note', review: 'Saved review' }} />)
-  expect(screen.getByTestId('notes')).toHaveTextContent('Saved review')
+  expect(screen.getByText('Saved note')).toBeInTheDocument()
+  expect(screen.getByText('Saved review')).toBeInTheDocument()
   expect(screen.queryAllByRole('button', { name: /starLabel/ })).toHaveLength(status === 'finished' ? 5 : 0)
   expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-  expect(screen.queryByText('bookPage.personal.reviewTitle')).not.toBeInTheDocument()
   expect(updateBookNote).not.toHaveBeenCalled()
   expect(updateBookReview).not.toHaveBeenCalled()
 })
 
 it('puts the rating before notes and preserves both historical fields on a star change', async () => {
   render(<Harness initial={{ status: 'finished', note: 'Saved note', review: 'Saved review', rating: 1 }} />)
-  expect(screen.getByText('bookPage.personal.ratingTitle').compareDocumentPosition(screen.getByTestId('notes')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getByText('bookPage.personal.ratingTitle').compareDocumentPosition(screen.getByText('bookPage.personal.notesTitle')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'bookPage.personal.starLabel-4' }))
   await waitFor(() => expect(screen.getByTestId('book')).toHaveTextContent('"rating":4'))
   expect(updateBookRating).toHaveBeenCalledWith('user-1', 'book-1', 4)
@@ -52,7 +50,8 @@ it('shows a rating failure without altering historical data', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'bookPage.personal.starLabel-4' }))
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('bookPage.personal.ratingSaveError'))
   expect(screen.getByTestId('book')).toHaveTextContent('"rating":1')
-  expect(screen.getByTestId('notes')).toHaveTextContent('Saved review')
+  expect(screen.getByText('Saved note')).toBeInTheDocument()
+  expect(screen.getByText('Saved review')).toBeInTheDocument()
   vi.restoreAllMocks()
 })
 
@@ -65,4 +64,24 @@ it('does not recreate a removed book when an in-flight rating save resolves', as
   resolve()
   await waitFor(() => expect(change).toHaveBeenCalled())
   expect(change.mock.calls[0][0](null)).toBeNull()
+})
+
+it.each([
+  ['note', 'notesTitle', updateBookNote, updateBookReview],
+  ['review', 'reviewTitle', updateBookReview, updateBookNote],
+])('saves only the historical %s after an explicit edit', async (field, title, write, otherWrite) => {
+  render(<Harness initial={{ status: 'finished', note: 'Saved note', review: 'Saved review', rating: 4 }} />)
+  const panel = within(screen.getByRole('region', { name: `bookPage.personal.${title}` }))
+  fireEvent.click(panel.getByRole('button', { name: 'bookPage.notes.edit' }))
+  expect(panel.getByRole('button', { name: 'common.save' })).toBeDisabled()
+  fireEvent.input(panel.getByRole('textbox'), { target: { innerHTML: '<b>Edited</b>' } })
+  fireEvent.click(panel.getByRole('button', { name: 'common.cancel' }))
+  expect(write).not.toHaveBeenCalled()
+  fireEvent.click(panel.getByRole('button', { name: 'bookPage.notes.edit' }))
+  fireEvent.input(panel.getByRole('textbox'), { target: { innerHTML: '<b>Saved edit</b>' } })
+  fireEvent.click(panel.getByRole('button', { name: 'common.save' }))
+  await waitFor(() => expect(screen.getByTestId('book')).toHaveTextContent(`"${field}":"<b>Saved edit</b>"`))
+  expect(write).toHaveBeenCalledExactlyOnceWith('user-1', 'book-1', '<b>Saved edit</b>')
+  expect(otherWrite).not.toHaveBeenCalled()
+  expect(updateBookRating).not.toHaveBeenCalled()
 })
